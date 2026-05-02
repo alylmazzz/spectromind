@@ -461,11 +461,11 @@ export class NMRSimulationService {
         const p2 = protons[j];
         
         // J coupling hesapla
-        const jResult = calculateJCoupling(
+        const jResult = (calculateJCoupling as any)(
           p1,
           p2,
           conformers,
-          [],  // bondInfo - dışarıdan alınmalı
+          [],
           config.jCoupling
         );
         
