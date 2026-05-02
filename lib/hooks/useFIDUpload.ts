@@ -219,6 +219,20 @@ export function useFIDUpload(options: UseFIDUploadOptions = {}) {
         const processFormData = new FormData();
         processFormData.append('datasetId', datasetId);
         processFormData.append('format', 'auto');
+
+        // Include ALL files + paths for production (Vercel serverless isolation)
+        const relativePaths: string[] = [];
+        files.forEach((file) => {
+          processFormData.append('files', file);
+          const relPath =
+            (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;
+          relativePaths.push(relPath);
+          processFormData.append('paths', relPath);
+        });
+        if (relativePaths.length > 0) {
+          processFormData.append('relativePaths', JSON.stringify(relativePaths));
+        }
+
         if (theoreticalPeaks && theoreticalPeaks.length > 0) {
           processFormData.append('theoreticalPeaks', JSON.stringify(theoreticalPeaks));
         }

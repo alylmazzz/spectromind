@@ -150,17 +150,19 @@ export default function FIDUploader({ theoreticalPeaks, onProcessingComplete }: 
       processFormData.append('format', 'auto');
       processFormData.append('processingSpec', JSON.stringify(createProcessingSpec()));
 
-      // Production: include ALL files + paths in process request
+      // [FORCE-REBUILD-v3] Production: include ALL files + paths in process request
       // This is critical for Vercel serverless — /tmp is not shared between instances
       const relativePaths: string[] = [];
       files.forEach((file) => {
         processFormData.append('files', file);
-        // @ts-ignore - webkitRelativePath is available in directory upload
-        const relPath = (file as any).webkitRelativePath || file.name;
+        // @ts-ignore
+        const relPath: string = (file as any).webkitRelativePath || file.name;
         relativePaths.push(relPath);
         processFormData.append('paths', relPath);
       });
-      processFormData.append('relativePaths', JSON.stringify(relativePaths));
+      if (relativePaths.length > 0) {
+        processFormData.append('relativePaths', JSON.stringify(relativePaths));
+      }
 
       if (theoreticalPeaks && theoreticalPeaks.length > 0) {
         processFormData.append('theoreticalPeaks', JSON.stringify(theoreticalPeaks));
