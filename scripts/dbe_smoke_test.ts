@@ -70,7 +70,7 @@ function replaceDBEBlock(reasoning: string, lockedFormula: string): string {
   if (!dbeBlock) return reasoning;
   
   // Replace existing DBE block if present
-  const dbeBlockPattern = /\*\*0\.\s*DBE\s*Analizi[^*]*(\*\*[^0]|\n\n\*\*|$)/s;
+  const dbeBlockPattern = /\*\*0\.\s*DBE\s*Analizi[\s\S]*(\*\*[^0]|\n\n\*\*|$)/;
   
   if (dbeBlockPattern.test(reasoning)) {
     // Replace existing DBE block
