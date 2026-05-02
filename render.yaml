@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: spectromind-fid-processor
+    env: docker
+    rootDir: services/fid-processor
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: FID_PROCESSOR_API_KEY
+        sync: false
