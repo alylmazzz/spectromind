@@ -82,7 +82,7 @@ async def process_fid(
             FID_PROCESS_SCRIPT,
             "--baseDir",
             input_path,
-            "--format",
+            "--datasetType",
             format,
         ]
 
