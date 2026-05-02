@@ -191,7 +191,7 @@ export class NMRSimulationService {
     const specialAnalysis = runSpecialPacksAnalysis(
       protons,
       jEdges,
-      input.structure,
+      input.structure as any,
       solvent,
       config.specialPacks
     );
