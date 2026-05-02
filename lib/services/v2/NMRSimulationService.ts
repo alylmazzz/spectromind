@@ -297,8 +297,8 @@ export class NMRSimulationService {
     const renderConfig: RenderConfig = {
       ...DEFAULT_RENDER_CONFIG,
       fieldMHz,
-      lineShape: config.lineShape.shape,
-      voigtEta: config.lineShape.eta ?? 0.7,
+      lineShape: config.lineShape.defaultShape,
+      voigtEta: config.lineShape.voigtEta,
     };
     
     const spectrum = renderSpectrum({
