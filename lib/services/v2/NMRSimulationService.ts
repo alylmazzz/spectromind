@@ -398,11 +398,11 @@ export class NMRSimulationService {
             (config as any).shift
           );
           
-          shifts.push({
+          shifts.push(({
             conformerId: conf.id,
             weight: conf.boltzmannWeight,
             layers: shiftResult,
-          });
+          } as any));
         }
         
         // Boltzmann ağırlıklı ortalama
