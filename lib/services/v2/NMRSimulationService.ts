@@ -554,7 +554,7 @@ export class NMRSimulationService {
           jSource: 'karplus+library',
           conformerCount: 0,
           boltzmannWeighted: false,
-        } as any,
+        },
       });
     }
     

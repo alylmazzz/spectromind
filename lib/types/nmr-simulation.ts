@@ -387,6 +387,7 @@ export interface NMRPeakSimulated {
   shiftLayers?: ShiftLayerContribution;
   spinSystemType?: SpinSystemType;
   warnings?: string[];
+  provenance?: Record<string, unknown>;
 }
 
 export interface SpectrumArray {
