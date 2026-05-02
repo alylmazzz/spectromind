@@ -310,9 +310,9 @@ export class MoleculePipelineService {
     if (input.smiles) {
       return {
         canonicalSmiles: input.smiles,
-        isomericSmiles: null, // Assume canonical unless marked
-        inchi: input.inchi || null,
-        inchiKey: null, // Would need to calculate
+        isomericSmiles: undefined, // Assume canonical unless marked
+        inchi: input.inchi || undefined,
+        inchiKey: undefined, // Would need to calculate
         stereoStatus: 'none', // Unknown
         source: 'user',
         warnings: [
@@ -353,9 +353,9 @@ export class MoleculePipelineService {
 
         return {
           canonicalSmiles: result.smiles,
-          isomericSmiles: result.isomeric ? result.smiles : null,
-          inchi: result.inchi || null,
-          inchiKey: null, // Would need to calculate from InChI
+          isomericSmiles: result.isomeric ? result.smiles : undefined,
+          inchi: result.inchi || undefined,
+          inchiKey: undefined, // Would need to calculate from InChI
           stereoStatus,
           source: result.source || 'pubchem',
           warnings
@@ -371,9 +371,9 @@ export class MoleculePipelineService {
       if (result.smiles) {
         return {
           canonicalSmiles: result.smiles,
-          isomericSmiles: null,
-          inchi: null,
-          inchiKey: null,
+          isomericSmiles: undefined,
+          inchi: undefined,
+          inchiKey: undefined,
           stereoStatus: 'none', // OPSIN usually returns canonical
           source: 'opsin',
           warnings: [
@@ -406,9 +406,9 @@ export class MoleculePipelineService {
           if (smiles) {
             return {
               canonicalSmiles: smiles,
-              isomericSmiles: isomeric ? smiles : null,
-              inchi: props?.InChI || null,
-              inchiKey: null,
+              isomericSmiles: isomeric ? smiles : undefined,
+              inchi: props?.InChI || undefined,
+              inchiKey: undefined,
               stereoStatus: isomeric ? 'full' : 'none',
               source: 'pubchem',
               warnings
@@ -422,10 +422,10 @@ export class MoleculePipelineService {
 
     // All strategies failed
     return {
-      canonicalSmiles: null,
-      isomericSmiles: null,
-      inchi: null,
-      inchiKey: null,
+      canonicalSmiles: undefined,
+      isomericSmiles: undefined,
+      inchi: undefined,
+      inchiKey: undefined,
       stereoStatus: 'none',
       source: 'unknown',
       warnings: [
@@ -667,8 +667,8 @@ export class MoleculePipelineService {
     input: MoleculeInput,
     identityFingerprint?: {
       cid?: number;
-      inchiKey?: string | null;
-      isomericSmiles?: string | null;
+      inchiKey?: string | undefined;
+      isomericSmiles?: string | undefined;
       molecularFormulaHill?: string;
     }
   ): Promise<NMRPredictionResult> {
