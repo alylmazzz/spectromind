@@ -1,0 +1,23 @@
+{
+  "ts": "2026-04-24T16:08:30.033Z",
+  "telemetry_events": 3,
+  "previous": {
+    "authority_integrity_min": 70,
+    "parity_drift_index_max": 0.2,
+    "forbidden_hit_max": 0,
+    "coverage_delta_min": -20,
+    "confidence_delta_min": -40
+  },
+  "tuned": {
+    "authority_integrity_min": 72,
+    "parity_drift_index_max": 0.21,
+    "forbidden_hit_max": 0,
+    "coverage_delta_min": -20,
+    "confidence_delta_min": -40
+  },
+  "signals": {
+    "parityAvg": 0.05555555555555555,
+    "authorityMin": 45,
+    "forbiddenHits": 0
+  }
+}

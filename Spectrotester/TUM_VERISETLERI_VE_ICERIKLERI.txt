@@ -1,0 +1,265 @@
+================================================================================
+  SPECTROTESTER / SPECTROMASTER – TÜM VERİ SETLERİ VE İÇERİKLERİ
+  Oluşturulma: 2025-01-31
+================================================================================
+
+Bu dosya projedeki tüm veri setlerini, kütüphane dosyalarını ve gömülü (inline)
+veri yapılarının içeriklerini tek referans belgede toplar.
+
+--------------------------------------------------------------------------------
+1. GOLDEN_EXPECTATIONS_30.json (Kök: proje kökü)
+--------------------------------------------------------------------------------
+  Dosya: GOLDEN_EXPECTATIONS_30.json
+  Açıklama: 30 referans molekül için beklenen spektral özellikler (must_have,
+            must_not_have, expected_total_H, carbon_count). Teyit modülü ve
+            birim testleri için golden set.
+
+{
+  "dataset_id": "spectromind_golden_expectations_v1_30",
+  "version": "1.0.0",
+  "units": { "nmr_ppm": "ppm", "ir_cm1": "cm-1", "ms_mz": "m/z" },
+  "global_defaults": {
+    "nmr": {
+      "ppm_tolerance_hard": 0.15,
+      "ppm_tolerance_soft": 0.30,
+      "integration_tolerance_hard": 0.15,
+      "integration_tolerance_soft": 0.30
+    },
+    "ir": { "band_tolerance_hard": 15, "band_tolerance_soft": 30 },
+    "ms": { "mz_tolerance_ppm_hard": 10, "mz_tolerance_ppm_soft": 25 }
+  },
+  "molecules": [
+    { "molecule_id": "M001", "smiles": "CC#N", "name": "Asetonitril", "expected_total_H": 3, "carbon_count": 2, "must_have": ["CH3 1.9-2.2 ppm s", "IR C≡N 2210-2260"], "must_not_have": ["13C 160-220 ppm", "1H 10-14 ppm"] },
+    { "molecule_id": "M002", "smiles": "ClC(Cl)Cl", "name": "Kloroform", "expected_total_H": 1, "carbon_count": 1, "must_have": ["1H 6.9-7.6 ppm s"], "must_not_have": ["1H 10.5+ ppm"] },
+    { "molecule_id": "M003", "smiles": "C1CCOC1", "name": "THF", "expected_total_H": 8, "carbon_count": 4, "must_have": ["O-CH2 3.4-3.9 ppm", "CH2 1.5-2.1 ppm"], "must_not_have": ["13C 160-220 ppm", "IR 1650-1800"] },
+    { "molecule_id": "M004", "smiles": "CS(=O)C", "name": "DMSO", "expected_total_H": 6, "carbon_count": 2, "must_have": ["2xCH3 2.4-2.7 ppm s"], "must_not_have": ["1H 9+ ppm", "IR OH 3200-3600"] },
+    { "molecule_id": "M005", "smiles": "C1CCCCC1", "name": "Siklohekzan", "expected_total_H": 12, "carbon_count": 6, "must_have": ["1H 1.0-1.8 ppm m"], "must_not_have": ["13C 160-220 ppm", "1H 4.5+ ppm"] },
+    { "molecule_id": "M006", "smiles": "Oc1ccccc1", "name": "Fenol", "expected_total_H": 6, "carbon_count": 6, "must_have": ["Ar-H 6.6-7.4 ppm 5H"], "must_not_have": [] },
+    { "molecule_id": "M007", "smiles": "Nc1ccccc1", "name": "Anilin", "expected_total_H": 7, "carbon_count": 6, "must_have": ["Ar-H 6.5-7.4 ppm 5H"], "must_not_have": ["13C ketone 190+"] },
+    { "molecule_id": "M008", "smiles": "CN(C)C=O", "name": "DMF", "expected_total_H": 7, "carbon_count": 3, "must_have": ["CHO 7.8-8.4 ppm", "N-CH3 2.7-3.2 ppm"], "must_not_have": ["13C ketone 190-210"] },
+    { "molecule_id": "M009", "smiles": "OC(=O)c1ccccc1", "name": "Benzoik asit", "expected_total_H": 6, "carbon_count": 7, "must_have": ["COOH 10.5-13 ppm", "Ar-H 7.2-8.2 ppm"], "must_not_have": [] },
+    { "molecule_id": "M010", "smiles": "C=O", "name": "Formaldehit", "expected_total_H": 2, "carbon_count": 1, "must_have": ["CHO 9.3-10.5 ppm", "13C 190-205"], "must_not_have": [] },
+    { "molecule_id": "M011", "smiles": "CCO", "name": "Etanol", "expected_total_H": 6, "carbon_count": 2, "must_have": ["CH3 t 1.0-1.3", "CH2-O q 3.3-3.8"], "must_not_have": ["1H 6+ ppm aromatik"] },
+    { "molecule_id": "M012", "smiles": "CC(C)O", "name": "İzopropanol", "expected_total_H": 8, "carbon_count": 3, "must_have": ["6H d 1.0-1.3", "1H sept 3.7-4.3"], "must_not_have": ["1H 6+ ppm"] },
+    { "molecule_id": "M013", "smiles": "CC(C)(C)O", "name": "tert-Bütanol", "expected_total_H": 10, "carbon_count": 4, "must_have": ["9H s 1.1-1.4 ppm"], "must_not_have": ["13C 160-220 carbonyl"] },
+    { "molecule_id": "M014", "smiles": "COC", "name": "Dimetil eter", "expected_total_H": 6, "carbon_count": 2, "must_have": ["6H s 3.2-3.5 ppm"], "must_not_have": ["IR OH 3200-3600"] },
+    { "molecule_id": "M015", "smiles": "C1COCCO1", "name": "1,3-Dioksan", "expected_total_H": 8, "carbon_count": 4, "must_have": ["O-CH2 3.5-4.2 ppm"], "must_not_have": ["1H 10.5+ ppm asit", "13C carbonyl"] },
+    { "molecule_id": "M016", "smiles": "CC(=O)O", "name": "Asetik asit", "expected_total_H": 4, "carbon_count": 2, "must_have": ["CH3 s 2.0-2.2", "COOH 10.5-12.5 br"], "must_not_have": [] },
+    { "molecule_id": "M017", "smiles": "CC(=O)C", "name": "Aseton", "expected_total_H": 6, "carbon_count": 3, "must_have": ["6H s 2.0-2.2 ppm"], "must_not_have": ["1H 9+ ppm"] },
+    { "molecule_id": "M018", "smiles": "CC(=O)N", "name": "Asetamid", "expected_total_H": 5, "carbon_count": 2, "must_have": ["CH3 s 1.8-2.2", "NH2 br 5.5-8.5"], "must_not_have": [] },
+    { "molecule_id": "M019", "smiles": "CCCCCCC", "name": "Heptan", "expected_total_H": 16, "carbon_count": 7, "must_have": ["1H 0.8-1.6 ppm"], "must_not_have": ["13C 160-220", "1H 4.5+ ppm"] },
+    { "molecule_id": "M020", "smiles": "n1ccccc1", "name": "Piridin", "expected_total_H": 5, "carbon_count": 5, "must_have": ["5H 7.1-8.8 ppm aromatik"], "must_not_have": ["13C quaternary yanlış"] },
+    { "molecule_id": "M021", "smiles": "O=[N+]([O-])c1ccccc1", "name": "Nitrobenzen", "expected_total_H": 5, "carbon_count": 6, "must_have": ["5H 7.3-8.3 ppm", "IR NO2 1520-1560"], "must_not_have": [] },
+    { "molecule_id": "M022", "smiles": "Cc1ccccc1", "name": "Toluen", "expected_total_H": 8, "carbon_count": 7, "must_have": ["Ar-H 5H", "Ar-CH3 2.2-2.5 s"], "must_not_have": [] },
+    { "molecule_id": "M023", "smiles": "C1=CC=C(C=C1)C=O", "name": "Benzaldehit", "expected_total_H": 6, "carbon_count": 7, "must_have": ["CHO 9.7-10.2 ppm", "Ar-H 5H"], "must_not_have": [] },
+    { "molecule_id": "M024", "smiles": "ClCCCl", "name": "1,2-Dikloroetan", "expected_total_H": 4, "carbon_count": 2, "must_have": ["4H 3.4-3.8 ppm"], "must_not_have": ["1H 10+ ppm"] },
+    { "molecule_id": "M025", "smiles": "o1cccc1", "name": "Furan", "expected_total_H": 4, "carbon_count": 4, "must_have": ["4H 6.2-7.6 ppm"], "must_not_have": ["13C carbonyl"] },
+    { "molecule_id": "M026", "smiles": "s1cccc1", "name": "Tiyofen", "expected_total_H": 4, "carbon_count": 4, "must_have": ["4H 6.6-7.6 ppm"], "must_not_have": ["13C carbonyl"] },
+    { "molecule_id": "M027", "smiles": "FC(F)(F)C(=O)O", "name": "TFA", "expected_total_H": 1, "carbon_count": 2, "must_have": ["COOH 10-13.8 ppm"], "must_not_have": ["13C CH/CH2/CH3"] },
+    { "molecule_id": "M028", "smiles": "CI", "name": "Metil iyodür", "expected_total_H": 3, "carbon_count": 1, "must_have": ["3H s 2.0-2.3 ppm"], "must_not_have": [] },
+    { "molecule_id": "M029", "smiles": "CCN(CC)CC", "name": "Trietilamin", "expected_total_H": 15, "carbon_count": 6, "must_have": ["CH3 t 0.9-1.2", "CH2 q 2.2-3.2"], "must_not_have": ["1H 6+ ppm"] },
+    { "molecule_id": "M030", "smiles": "C1CCNCC1", "name": "Piperidin", "expected_total_H": 11, "carbon_count": 5, "must_have": ["1H 1.0-3.4 ppm bandı"], "must_not_have": ["1H 6+ ppm aromatik"] }
+  ]
+}
+
+--------------------------------------------------------------------------------
+2. lib/spectra/library/ – Şema ve dokümantasyon
+--------------------------------------------------------------------------------
+
+--- 2.1 teyit_raporu_schema.json ---
+  TEYIT RAPORU çıktısının JSON şeması (status, veto_flags, root_cause_analysis,
+  data_completeness, missing_library_items, patch_recommendations).
+
+(İçerik: JSON Schema draft-07; required: status, overall, summary, confidence_score;
+ properties: veto_flags[], warnings[], data_completeness{}, root_cause_analysis[],
+ missing_library_items[], patch_recommendations[], modules, recommendations,
+ verifiedFormula, traceId. Tam şema lib/spectra/library/teyit_raporu_schema.json
+ dosyasından okunabilir.)
+
+--- 2.2 verification_library_schema.json ---
+  Referans kütüphane şeması: functional_group_shift_priors, J_coupling_priors,
+  IR_band_priors, MS_adduct_rules, solvent_impurity_catalog, isotope_rules.
+  Tam şema lib/spectra/library/verification_library_schema.json dosyasındadır.
+
+--- 2.3 README.md (özet) ---
+  Konum: lib/spectra/library/*.json
+  Uygulama: Kütüphane şu an Spectromasterv0.2tester.html içinde
+  SPECTRAL_VERIFICATION_LIBRARY ve VERIFICATION_CONFIG olarak gömülüdür.
+  Dosyalar: teyit_raporu_schema.json, verification_library_schema.json.
+
+--------------------------------------------------------------------------------
+3. Spectromasterv0.2tester.html – Gömülü veri setleri
+--------------------------------------------------------------------------------
+
+--- 3.1 Sabit listeler (formül / MS) ---
+  ELEMENT_ORDER = ["C","H","N","O","S","P","F","Cl","Br","I","Na","K","Si"]
+  ION_MODES = ["ESI_POS","ESI_NEG","MALDI_POS"]
+
+--- 3.2 1H NMR şablonları (T1H_*) ve SMALL_SYMMETRIC_1H eşlemesi ---
+  T1H_CCN     = [{ ppm: 2.0, mult: "s", integ: 3, assign: "CH3CN", cat: "ALIPHATIC" }]
+  T1H_CHCl3   = [{ ppm: 7.26, mult: "s", integ: 1, assign: "CHCl3", cat: "ALIPHATIC" }]
+  T1H_CYCLO   = [{ ppm: 1.44, mult: "m", integ: 12, assign: "Siklohekzan 12H", cat: "ALIPHATIC" }]
+  T1H_BENZENE = [{ ppm: 7.15, mult: "s", integ: 6, assign: "Benzene 6H", cat: "AROMATIC" }]
+  T1H_THF     = [{ ppm: 3.72, mult: "m", integ: 4, assign: "THF O-CH2", cat: "FUNCTIONAL" }, { ppm: 1.85, mult: "m", integ: 4, assign: "THF CH2", cat: "ALIPHATIC" }]
+  T1H_DMSO    = [{ ppm: 2.52, mult: "s", integ: 6, assign: "DMSO CH3", cat: "METHYL" }]
+  T1H_ACETONE = [{ ppm: 2.09, mult: "s", integ: 6, assign: "Aseton CH3", cat: "METHYL" }]
+  T1H_ETOH    = [{ ppm: 1.18, mult: "t", integ: 3, assign: "Etanol CH3", cat: "METHYL" }, { ppm: 3.65, mult: "q", integ: 2, assign: "Etanol CH2-O", cat: "FUNCTIONAL" }]
+  T1H_FORMAL  = [{ ppm: 9.65, mult: "s", integ: 2, assign: "H2C=O", cat: "ALDEHYDE" }]
+  T1H_DME     = [{ ppm: 3.40, mult: "s", integ: 6, assign: "Dimetil eter CH3", cat: "METHYL" }]
+  T1H_DIOX    = [{ ppm: 3.68, mult: "s", integ: 8, assign: "1,4-Dioksan", cat: "FUNCTIONAL" }]
+  T1H_MEI     = [{ ppm: 2.16, mult: "s", integ: 3, assign: "CH3I", cat: "METHYL" }]
+  T1H_DCE     = [{ ppm: 3.72, mult: "s", integ: 4, assign: "ClCH2CH2Cl", cat: "FUNCTIONAL" }]
+  T1H_DMF     = [{ ppm: 7.95, mult: "s", integ: 1, assign: "DMF Formil H", cat: "ALDEHYDE" }, { ppm: 2.92, mult: "s", integ: 6, assign: "DMF N-CH3", cat: "METHYL" }]
+  T1H_BENZAL  = [{ ppm: 9.96, mult: "s", integ: 1, assign: "CHO", cat: "ALDEHYDE" }, { ppm: 7.55, mult: "m", integ: 2, assign: "Ar H o", cat: "AROMATIC" }, { ppm: 7.65, mult: "m", integ: 1, assign: "Ar H p", cat: "AROMATIC" }, { ppm: 7.45, mult: "m", integ: 2, assign: "Ar H m", cat: "AROMATIC" }]
+  T1H_TBUTANOL   = [{ ppm: 1.20, mult: "s", integ: 9, assign: "t-Bu 9H", cat: "METHYL" }]
+  T1H_ISOPROPANOL = [{ ppm: 1.11, mult: "d", integ: 6, assign: "iPr CH3", cat: "METHYL" }, { ppm: 3.85, mult: "sept", integ: 1, assign: "iPr CH", cat: "FUNCTIONAL" }]
+
+  SMALL_SYMMETRIC_1H anahtarları (SMILES → şablon):
+  "CC#N", "C(#N)C" → T1H_CCN
+  "ClC(Cl)Cl", "C(Cl)(Cl)Cl" → T1H_CHCl3
+  "C1CCCCC1" → T1H_CYCLO
+  "c1ccccc1" → T1H_BENZENE
+  "C1CCOC1", "C1CCCO1" → T1H_THF
+  "CS(=O)C", "C[S](=O)C" → T1H_DMSO
+  "CC(=O)C" → T1H_ACETONE
+  "CCO" → T1H_ETOH
+  "C=O" → T1H_FORMAL
+  "COC" → T1H_DME
+  "C1COCCO1", "C1COCC1" → T1H_DIOX
+  "CI" → T1H_MEI
+  "ClCCCl" → T1H_DCE
+  "CN(C)C=O", "C(=O)N(C)C" → T1H_DMF
+  "c1ccc(C=O)cc1", "C1=CC=C(C=O)C=C1" → T1H_BENZAL
+  "CC(C)(C)O", "CC(C)(C)C" → T1H_TBUTANOL
+  "CC(C)O", "CC(C)C" → T1H_ISOPROPANOL
+
+--- 3.3 13C NMR şablonları (T13_*) ve SMALL_SYMMETRIC_13C eşlemesi ---
+  T13_CCN    = [{ ppm: 118.0, type: "Q", assign: "C≡N", category: "HETERO" }, { ppm: 1.7, type: "CH3", assign: "CH3CN", category: "ALIPHATIC" }]
+  T13_CHCl3  = [{ ppm: 77.0, type: "CH", assign: "CHCl3", category: "ALIPHATIC" }]
+  T13_CYCLO  = [{ ppm: 26.8, type: "CH2", assign: "Siklohekzan", category: "ALIPHATIC" }]
+  T13_THF    = [{ ppm: 67.6, type: "CH2", assign: "THF O-CH2", category: "HETERO" }, { ppm: 25.5, type: "CH2", assign: "THF CH2", category: "ALIPHATIC" }]
+  T13_DMSO   = [{ ppm: 40.5, type: "CH3", assign: "DMSO CH3", category: "ALIPHATIC" }]
+  T13_ACETONE = [{ ppm: 206.5, type: "Q", assign: "Aseton C=O", category: "CARBONYL" }, { ppm: 30.8, type: "CH3", assign: "Aseton CH3", category: "ALIPHATIC" }]
+  T13_ETOH   = [{ ppm: 57.5, type: "CH2", assign: "Etanol CH2-O", category: "HETERO" }, { ppm: 18.2, type: "CH3", assign: "Etanol CH3", category: "ALIPHATIC" }]
+  T13_FORMAL = [{ ppm: 205.0, type: "CH2", assign: "H2C=O", category: "CARBONYL" }]
+  T13_DME    = [{ ppm: 59.2, type: "CH3", assign: "Dimetil eter CH3", category: "ALIPHATIC" }]
+  T13_DIOX   = [{ ppm: 66.8, type: "CH2", assign: "1,4-Dioksan", category: "HETERO" }]
+  T13_MEI    = [{ ppm: -5.0, type: "CH3", assign: "CH3I", category: "ALIPHATIC" }]
+  T13_DCE    = [{ ppm: 44.0, type: "CH2", assign: "ClCH2CH2Cl", category: "ALIPHATIC" }]
+  T13_DMF    = [{ ppm: 162.5, type: "Q", assign: "DMF C=O", category: "CARBONYL" }, { ppm: 35.5, type: "CH3", assign: "DMF N-CH3", category: "ALIPHATIC" }, { ppm: 35.5, type: "CH3", assign: "DMF N-CH3", category: "ALIPHATIC" }]
+  T13_BENZAL = [{ ppm: 192.0, type: "CH", assign: "CHO", category: "CARBONYL" }, { ppm: 137.0, type: "Q", assign: "Ar ipso", category: "AROMATIC" }, { ppm: 129.5, type: "CH", assign: "Ar o", category: "AROMATIC" }, ... (7 C)]
+  T13_BENZENE = [{ ppm: 128.0, type: "CH", assign: "Benzene 6C", category: "AROMATIC" }]
+
+  SMALL_SYMMETRIC_13C anahtarları: "CC#N", "C(#N)C" → T13_CCN; "ClC(Cl)Cl", "C(Cl)(Cl)Cl" → T13_CHCl3;
+  "C1CCCCC1" → T13_CYCLO; "c1ccccc1" → T13_BENZENE; "C1CCOC1", "C1CCCO1" → T13_THF;
+  "CS(=O)C", "C[S](=O)C" → T13_DMSO; "CC(=O)C" → T13_ACETONE; "CCO" → T13_ETOH; "C=O" → T13_FORMAL;
+  "COC" → T13_DME; "C1COCCO1", "C1COCC1" → T13_DIOX; "CI" → T13_MEI; "ClCCCl" → T13_DCE;
+  "CN(C)C=O", "C(=O)N(C)C" → T13_DMF; "c1ccc(C=O)cc1", "C1=CC=C(C=O)C=C1" → T13_BENZAL.
+
+--- 3.4 VERIFICATION_CONFIG ---
+  weights: { h1: 25, c13: 20, hsqc: 15, cosy: 10, hmbc: 15, ms: 10, ftir: 5 }
+  veto_overrides_pass: false
+  integral_tolerance_ratio: 0.2
+  integral_min_abs: 1
+  ppm_tol_1h: 0.2
+  ppm_tol_13c: 0.3
+  ppm_tol_arom: 0.3
+  ms_ppm_match: 5
+  ms_ppm_veto: 10
+  hsqc_ratio_warn: 0.6
+  enable_structured_log: (process.env.SPECTRAL_VERIFY_LOG === "1")
+
+--- 3.5 functional_group_shift_priors ---
+  h1:
+    aliphatic: { min: 0.6, max: 2.2, context: "CH3/CH2/CH sp3" }
+    methoxy_functional: { min: 2.2, max: 4.5, context: "O-CH, N-CH" }
+    vinylic: { min: 4.5, max: 6.5, context: "alkene" }
+    aromatic: { min: 6.3, max: 8.8, context: "aromatic H" }
+    aldehyde: { min: 9.3, max: 10.5, context: "CHO" }
+    acid_phenol_exchangeable: { min: 10.5, max: 13.8, context: "COOH, OH broad" }
+  c13:
+    aliphatic: { min: 0, max: 55, context: "sp3 C" }
+    oxygenated_sp3: { min: 50, max: 90, context: "C-O, C-N" }
+    olefinic_aromatic: { min: 100, max: 160, context: "sp2 C" }
+    carbonyl_ester_amide: { min: 160, max: 185, context: "C=O" }
+    carbonyl_ketone_aldehyde: { min: 190, max: 220, context: "C=O" }
+    nitrile: { min: 115, max: 125, context: "C≡N" }
+
+--- 3.6 J_coupling_priors ---
+  vicinal_aliphatic: { min: 6, max: 9, unit: "Hz", note: "3JHH typical" }
+  trans_alkene: { min: 12, max: 18, unit: "Hz", note: "trans vinyl" }
+  cis_alkene: { min: 6, max: 12, unit: "Hz", note: "cis vinyl" }
+  aromatic_ortho: { min: 6, max: 9, unit: "Hz", note: "ortho" }
+  aromatic_meta: { min: 1, max: 3, unit: "Hz", note: "meta" }
+  geminal: { min: 0, max: 20, unit: "Hz", note: "2JHH variable" }
+
+--- 3.7 IR_band_priors ---
+  C=O_ester: { min: 1730, max: 1750, intensity: "strong" }
+  C=O_amide: { min: 1650, max: 1680, intensity: "strong" }
+  C=O_acid: { min: 1700, max: 1725, intensity: "strong" }
+  C=O_aldehyde: { min: 1720, max: 1740, intensity: "strong" }
+  C=O_ketone: { min: 1705, max: 1725, intensity: "strong" }
+  OH_NH_stretch: { min: 3200, max: 3600, intensity: "broad" }
+  C≡N: { min: 2210, max: 2260, intensity: "medium" }
+  aromatic_C=C: { min: 1450, max: 1600, intensity: "medium" }
+  C-H_aliphatic: { min: 2850, max: 2960, intensity: "medium" }
+
+--- 3.8 MS_adduct_rules ---
+  positive:
+    { label: "[M+H]+", massDelta: 1.007825, name: "protonation" }
+    { label: "[M+Na]+", massDelta: 22.989769, name: "sodium" }
+    { label: "[M+K]+", massDelta: 38.963706, name: "potassium" }
+    { label: "[M+NH4]+", massDelta: 18.034374, name: "ammonium" }
+  negative:
+    { label: "[M-H]-", massDelta: -1.007825, name: "deprotonation" }
+
+--- 3.9 solvent_impurity_catalog ---
+  { name: "CDCl3", ppm_1h: 7.26, pattern: "singlet", note: "residual CHCl3" }
+  { name: "DMSO-d6", ppm_1h: 2.50, pattern: "multiplet", note: "residual DMSO" }
+  { name: "acetone-d6", ppm_1h: 2.05, pattern: "singlet", note: "residual acetone" }
+  { name: "CD3OD", ppm_1h: 3.31, pattern: "multiplet", note: "residual MeOD" }
+  { name: "water", ppm_1h: 1.56, note: "D2O exchange; 4.7-4.8 H2O" }
+  { name: "TMS", ppm_1h: 0.00, pattern: "singlet", note: "reference" }
+
+--- 3.10 isotope_rules ---
+  Cl: { M2_ratio_min: 0.31, M2_ratio_max: 0.34, per_atom: true }
+  Br: { M2_ratio_min: 0.97, M2_ratio_max: 1.01, per_atom: true }
+
+--- 3.11 FP_RULES (Fingerprint kuralları – 30 molekül) ---
+  Her öğe: { smiles, name, expectedH, mustHave: [{ type, args: { min, max, n }, message, severity? }], forbidden: [...] }
+  SMILES listesi (sırayla): CC#N, ClC(Cl)Cl, C1CCOC1, CS(=O)C, C1CCCCC1, Oc1ccccc1, Nc1ccccc1, CN(C)C=O,
+  OC(=O)c1ccccc1, C=O, CCO, CC(C)O, CC(C)(C)O, COC, C1COCCO1, CC(=O)O, CC(=O)C, CC(=O)N, CCCCCCC,
+  n1ccccc1, O=[N+]([O-])c1ccccc1, Cc1ccccc1, C1=CC=C(C=C1)C=O, ClCCCl, o1cccc1, s1cccc1, FC(F)(F)C(=O)O, CI, CCN(CC)CC, C1CCNCC1.
+  (Tam JSON yapısı Spectromasterv0.2tester.html içinde "const FP_RULES = [" ile aranabilir; satır ~14279–14342.)
+
+--- 3.12 SPECTRAL_VERIFICATION_LIBRARY (özet) ---
+  Tüm yukarıdaki referansların tek nesnede toplanmış hali:
+  functional_group_shift_priors, J_coupling_priors, IR_band_priors, MS_adduct_rules,
+  solvent_impurity_catalog, isotope_rules, FP_RULES.
+  Global erişim: window.SPECTRAL_VERIFICATION_LIBRARY (tarayıcıda).
+
+--------------------------------------------------------------------------------
+4. Özet tablo
+--------------------------------------------------------------------------------
+  Veri seti / dosya                    Konum                          Açıklama
+  -----------------                    ------                         --------
+  GOLDEN_EXPECTATIONS_30.json          Proje kökü                     30 molekül golden set
+  teyit_raporu_schema.json             lib/spectra/library/          TEYIT RAPORU JSON şeması
+  verification_library_schema.json    lib/spectra/library/           Kütüphane şeması
+  README.md                            lib/spectra/library/           Kütüphane dokümantasyonu
+  ELEMENT_ORDER, ION_MODES             Spectromasterv0.2tester.html  Formül / iyon modları
+  T1H_*, SMALL_SYMMETRIC_1H            Spectromasterv0.2tester.html  1H NMR şablonları
+  T13_*, SMALL_SYMMETRIC_13C          Spectromasterv0.2tester.html  13C NMR şablonları
+  VERIFICATION_CONFIG                 Spectromasterv0.2tester.html  Teyit ağırlık/tolerans
+  functional_group_shift_priors       Spectromasterv0.2tester.html  1H/13C ppm pencereleri
+  J_coupling_priors                   Spectromasterv0.2tester.html  J (Hz) aralıkları
+  IR_band_priors                      Spectromasterv0.2tester.html  IR bant (cm⁻¹)
+  MS_adduct_rules                     Spectromasterv0.2tester.html  [M+H]+ vb.
+  solvent_impurity_catalog             Spectromasterv0.2tester.html  Çözücü/artefakt ppm
+  isotope_rules                       Spectromasterv0.2tester.html  Cl/Br M+2
+  FP_RULES                            Spectromasterv0.2tester.html  30 SMILES fingerprint
+  SPECTRAL_VERIFICATION_LIBRARY       Spectromasterv0.2tester.html  Tüm kütüphane referansı
+
+================================================================================
+  Son güncelleme: 2025-01-31
+================================================================================

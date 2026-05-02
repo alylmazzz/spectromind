@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "matrix": [
+    {
+      "task_class": "authority_parity_verdict_governance",
+      "primary": "spectromind-subagent-orchestrator",
+      "secondary": [
+        "spectromind-regression-guardian",
+        "spectrotester-rule-engine-architect"
+      ],
+      "activation_conditions": [
+        "authority_integrity_score<70",
+        "forbidden_state_hit_count>0"
+      ],
+      "escalation_path": [
+        "spectromind-chart-parity-architect",
+        "spectromind-fid-processing-lead"
+      ],
+      "forbidden_pairings": []
+    },
+    {
+      "task_class": "chart_parity_focus",
+      "primary": "spectromind-chart-parity-architect",
+      "secondary": [
+        "spectromind-subagent-orchestrator"
+      ],
+      "activation_conditions": [
+        "parity_domain_mismatch_count>0"
+      ],
+      "escalation_path": [
+        "spectromind-regression-guardian"
+      ],
+      "forbidden_pairings": []
+    }
+  ]
+}

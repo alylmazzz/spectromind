@@ -1,0 +1,4 @@
+celery==5.3.4
+redis==5.0.1
+rdkit-pypi==2023.9.1
+

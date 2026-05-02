@@ -1,0 +1,609 @@
+================================================================================
+SPECTROMASTER PLATINUM - MİMARİ, İŞLEYİŞ MEKANİZMALARI VE KURALLAR
+================================================================================
+Belge Tarihi: 2026
+Amaç: Spektral veri üretim pipeline'ı, teyit motoru, eksikler ve hata tespiti için referans döküman
+
+================================================================================
+1. GENEL VERİ AKIŞI (Pipeline)
+================================================================================
+
+  SMILES (girdi)
+       │
+       ▼
+  [1] SpectroMasterKernel constructor
+       │  - preprocessSMILES (tuz ayırma, izotop temizleme)
+       │  - tokenizeSMILES
+       │  - extractConnectivityHints
+       │  - parseAtomCounts
+       │  - detectContext  ←── C<15 veya totalHeavy<18 → SMALL_MOLECULE
+       │  - detectDetailedFunctionalGroups
+       │  - estimateHydrogenModel / adjustHydrogenCounts
+       │  - formulaFromSmiles (tek doğru formül kaynağı)
+       │  - calculateMass, calculateDBE, partitionHydrogens
+       │
+       ▼
+  [2] Generators (kernel + config ile çağrılır)
+       │  - generate1H(kernel, config)  → h1.signals
+       │  - generate13C(kernel, h1Stats, config) → c13.signals
+       │  - generate2D(h1, c13, kernel, config) → hsqc, cosy, hmbc, noesy
+       │  - generateMS(kernel) → ms peaks
+       │  - generateIR(kernel) → ir bands
+       │
+       ▼
+  [3] runVerification({ kernel, h1, c13, ms, ir, corr [, traceId] })
+       │  - VERIFICATION_CONFIG (ağırlıklar, toleranslar)
+       │  - SPECTRAL_VERIFICATION_LIBRARY (shift priors, J, IR, MS, solvent, isotope)
+       │  - Modül değerlendirmeleri (c13, h1, hsqc, cosy, hmbc, noesy, ms, ftir)
+       │  - Yapısal veto kuralları (pushVeto → veto_flags)
+       │  - Uyarılar (pushWarn → warnings)
+       │  - data_completeness, confidence_score (deterministik 0–100)
+       │  - root_cause_analysis (hata sebepleri)
+       │  - missing_library_items (FP_RULES eşleşmezse)
+       │  - patch_recommendations (kod önerileri)
+       │
+       ▼
+  TEYIT RAPORU (status, overall, summary, confidence_score, veto_flags,
+                warnings, data_completeness, root_cause_analysis,
+                missing_library_items, patch_recommendations, modules,
+                recommendations, verifiedFormula, verifiedFormulaNeutral,
+                verifiedFormulaObserved, provenance, seed, rng_version, traceId)
+       │
+       ▼
+  Rapor (h1, c13, corr, ms, ir, verificationReport, qc)
+
+1b. Pipeline – Provenance ve tek doğru formül kaynağı
+  - Her run'da rapora: input_smiles_raw, smiles_canonical, smiles_neutral,
+    salt_stripped, tautomer_key, preprocess_steps[], formula_source, ms_mode_assumed.
+  - Kernel.provenance = { smiles_raw, smiles_canonical, smiles_neutral, salt_stripped,
+    tautomer_key, preprocess_steps, formula_source, ms_mode_assumed }.
+  - Adduct-aware formül: verifiedFormulaNeutral (SMILES/formulaFromSmiles),
+    verifiedFormulaObserved (adduct/charge ile; MS eşleşmesi varsa).
+  - preprocessSMILES: salt ayrıldıysa preprocess_steps'a "salt_strip" eklenir;
+    izotop temizleme varsa "isotope_clean".
+
+1c. Deterministiklik – Seed ve RNG
+  - new SpectroMasterKernel(smiles, { seed }) ile seed verilebilir.
+  - RNG: mulberry32(seed); kernel.random() = seeded veya Math.random.
+  - generate1H içinde rnd = kernel.random varsa onu kullanır (tekrarlanabilir jitter).
+  - Teyit raporunda seed, rng_version (mulberry32-v1) döner.
+
+================================================================================
+2. CONTEXT SINIFLANDIRMA (detectContext)
+================================================================================
+
+Koşul: C < 15 VEYA totalHeavy < 18
+  → SMALL_MOLECULE (erken dönüş); context_reasons[], context_confidence=1.
+
+Hard önkoşullar (sadece sağlayan context skorlanır):
+  - MACROLIDE: rings>=1 AND ester>=1 AND O>=6 AND C>=20
+  - TAXANE: C>=35 AND ester>=3 AND arom>=6
+  - GLYCOPEPTIDE: N>=3 AND O>=8 AND amide>=2 AND arom>=8
+
+Aksi halde skorlama (max skor kazanır):
+  - GLYCOPEPTIDE: N≥3, O≥10, arom≥12, Cl/Br, amide≥2
+  - TAXANE: C≥40, ester≥4, ketone≥1, arom≥10, O≥10
+  - MACROLIDE: C 20–50, O≥6, ester≥1, rings≥1, lactone
+  - PEPTIDE: amide≥2, N≥2, "C(=O)N" içerir
+  - GENERAL: varsayılan
+
+Eğer maxScore < 10 → GENERAL. context_confidence = min(1, 0.3 + maxScore/80).
+context_reasons[]: tetiklenen koşullar (örn. "MACROLIDE: rings≥1,ester≥1,O≥6,C≥20").
+
+ÖNEM: Küçük moleküller (heptan, THF, DMSO, fenol vb.) SMALL_MOLECULE olmalı;
+      aksi halde MACROLIDE template lakton/keton/ester üretir (YANLIŞ).
+
+================================================================================
+3. FONKSİYONEL GRUP TESPİTİ (detectDetailedFunctionalGroups)
+================================================================================
+
+SMILES regex tabanlı:
+  ester: C(=O)O
+  amide: C(=O)N
+  ketone: explicitCarbonyls - (ester+amide+aldehyde+acid)
+  aldehyde: C(=O)[H]
+  acid: C(=O)O[H]
+  alcohol: [OH], O[H] (heuristic)
+  aromaticC: lowercase c sayısı
+  alkene: =C (aromatik hariç)
+  methoxy: CO (C=O hariç)
+  nitrile: #N (ayrı kontrol)
+
+Lactone: halka içinde ester (ring detection)
+
+UYARI: Bazı motifler eksik/yanlış tespit edilebilir (örn. Oc1ccccc1'de phenolic O).
+
+================================================================================
+4. ¹H NMR ÜRETİMİ (generate1H)
+================================================================================
+
+Girdi: kernel (k), config (solvent, frequency, temperature)
+Çıktı: { signals: [{ ppm, mult, integ, assign, category, is_ex, j, linewidth }], stats }
+
+Akış:
+  (1) pool = k.h_carbon, exchPool = k.h_exch
+  (2) PPM clamp: clampPPM(ppm, category, assign) → kategoriye göre zorunlu pencere
+        ALIPHATIC/METHYL: 0.6–2.2
+        METHOXY/FUNCTIONAL: 2.2–4.5
+        VINYLIC: 4.5–6.5
+        AROMATIC: 6.3–8.8
+        ALDEHYDE: 9.3–10.5
+        CARBOXYLIC: 10.5–13.8
+  (3) Context-based bloklar:
+        - TAXANE: benzoyl/phenyl, methyl
+        - GLYCOPEPTIDE: tyrosine, aromatic
+        - MACROLIDE + alkene: vinylic
+  (4) Exchangeable: addEx (COOH 10.5–13.8 clamp)
+  (5) Aliphatic debulking: methyl ratio, remainder → add(ppm, mult, integ, ...)
+
+EKSİKLER:
+  - Atom-graf tabanlı CH3/CH2/CH gruplandırma yok
+  - Multiplicity (t/q/d/sept) gerçek komşu sayısından hesaplanmıyor
+  - Her şey "m/br"a kayma eğiliminde
+
+================================================================================
+5. ¹³C NMR ÜRETİMİ (generate13C)
+================================================================================
+
+Karbonil stratejisi (context'e göre):
+  - TAXANE: ester, ketone, amide
+  - GLYCOPEPTIDE: amide, acid
+  - MACROLIDE: lactone, ketone, amide, aldehyde
+  - GENERAL / SMALL_MOLECULE: groups.ester, groups.ketone, groups.amide vb. (0 ise üretim yok)
+
+Aromatik, vinylic, alifatik havuzlar context'e göre dağıtılır.
+
+EKSİK: SMALL_MOLECULE'da groups doğru ise karbonil üretilmez; ancak başka context'lere sızma riski vardı (düzeltildi: C<15 → SMALL_MOLECULE).
+
+================================================================================
+6. 2D NMR (generate2D)
+================================================================================
+
+HSQC: H↔C korelasyon (protonlu karbonlarla eşleşme)
+COSY: H–H komşuluk
+HMBC: H→C uzun menzil (öz. karbonil/aromatik)
+NOESY: cfg.noesy.onlyIfMacroOrGlyco → sadece MACROLIDE/GLYCOPEPTIDE'de üretilir
+
+SMALL_MOLECULE'da NOESY genelde boş/skip.
+
+================================================================================
+7. MS ÜRETİMİ (generateMS)
+================================================================================
+
+- Base peak: M, [M+H]+, [M+Na]+
+- Fragment kayıpları:
+    TAXANE: SidechainTaxol, AcOH
+    GLYCOPEPTIDE: Vancosamine, Cl
+    GENERAL: -H2O sadece alcohol/acid/h_exch>0 ise; -MeOH methoxy varsa
+
+DÜZELTME: -H2O artık sadece OH içeren moleküllerde eklenir.
+
+================================================================================
+8. FT-IR ÜRETİMİ (generateIR)
+================================================================================
+
+- Her zaman: C-H Aliphatic ~2930
+- h_exch > 0: OH/NH ~3400
+- TAXANE: ester, ketone, amide
+- GLYCOPEPTIDE: amide I/II
+- MACROLIDE: lactone, ketone
+- SMALL_MOLECULE / GENERAL: groups'a göre C=O (varsa), C≡N (varsa)
+
+DÜZELTME: SMALL_MOLECULE'da sadece gerçekten var olan gruplara band eklenir.
+
+================================================================================
+9. TEYİT MOTORU (runVerification)
+================================================================================
+
+9.1 Girdi
+  runVerification({ kernel, h1, c13, ms, ir, corr [, traceId] })
+  - kernel: SpectroMasterKernel örneği (formül, gruplar, kütle, DBE, vb.)
+  - h1: 1H sinyalleri [{ ppm, mult, integ, j, assign, ... }]
+  - c13: 13C sinyalleri [{ ppm, type, assign }]
+  - ms: MS pikleri [{ mz, rel, label }]
+  - ir: IR bantları [{ freq, int, assign }]
+  - corr: { hsqc, cosy, hmbc, noesy } 2D korelasyon listeleri
+  - traceId: opsiyonel, log/tekrarlanabilirlik için
+
+9.2 Konfigürasyon (VERIFICATION_CONFIG)
+  - weights: { h1: 25, c13: 20, hsqc: 15, cosy: 10, hmbc: 15, ms: 10, ftir: 5 }
+  - veto_overrides_pass: false
+  - integral_tolerance_ratio: 0.2
+  - integral_min_abs: 1
+  - ppm_tol_1h: 0.2
+  - ppm_tol_13c: 0.3
+  - ppm_tol_arom: 0.3
+  - ms_ppm_match: 5
+  - ms_ppm_veto: 10
+  - hsqc_ratio_warn: 0.6
+  - enable_structured_log: process.env.SPECTRAL_VERIFY_LOG === "1" (Node ortamında)
+
+9.3 Modüller
+  - c13: sinyal sayısı (C_found vs C_expected), karbon tipleri (CH3/CH2/CH/Q), karbonil bölgesi (160–220 ppm), simetri düzeltmesi. c13_overproduction_ratio = C_found/C_expected; >1.05 ise WARN.
+  - h1: verify1H (integral, ppm sanity, fingerprint, J-coupling, çözücü notu)
+  - hsqc: beklenen protonlu karbon sayısı vs bulunan HSQC pik sayısı (ratio < 0.6 → WARN)
+  - cosy: H–H korelasyon sayısı; aromatik/alken yoksa boş COSY WARN
+  - hmbc: uzun menzil sayısı; karbonil/nitril/kuaterner aromatik varsa HMBC beklenir
+  - noesy: context’e göre BELIRSIZ veya PASS
+  - ms: [M+H]+/[M+Na]+/[M+K]+ eşleşmesi, ppm hatası (≤10 ppm veto)
+  - ftir: beklenen bantlar (C=O, OH/NH, C≡N, aromatik C=C, C-H alifatik) vs bulunanlar. ftir_expected_coverage = found_expected / total_expected; eksik band WARN, yasak band FAIL.
+
+9.4 Yapısal Veto Kuralları (SMILES ↔ çıktı tutarlılığı)
+  Her veto tetiklendiğinde pushVeto(error_code, modality, rule_name, why, evidence, missing_expected) ile veto_flags dizisine eklenir.
+
+  A) Karbonil veto (13C):
+     - Molekülde C=O yok (smilesHasCarbonyl=false) AMA 13C'de 160–220 ppm sinyal VAR
+     - error_code: VETO_C13_CARBONYL_STRUCTURE
+     - modality: 13C
+     - evidence: ilgili 13C pikleri (ppm)
+     - missing_expected: "13C carbonyl yok veya 160-220 ppm bölgesi boş"
+
+  B) Karbonil veto (IR):
+     - Molekülde C=O yok AMA IR'de 1650–1800 cm⁻¹ bandı VAR
+     - error_code: VETO_IR_CARBONYL_STRUCTURE
+     - modality: IR
+
+  C) OH/NH veto (IR):
+     - Molekülde OH/NH yok (hasOorNH=false, exchH=0) AMA IR'de 3200–3600 bandı VAR
+     - error_code: VETO_IR_OH_NH_STRUCTURE
+     - modality: IR
+
+  D) Aromatik integral veto:
+     - Aromatik halka var AMA 1H'de 6–9 ppm toplam integral < beklenen aromatik H
+     - error_code: VETO_H1_AROMATIC_INTEGRAL
+     - modality: 1H
+     - missing_expected: "Aromatik H integrali ≥ expectedAromaticH, 6-9 ppm"
+
+  E) HMBC karbonil veto:
+     - Molekülde C=O yok AMA HMBC'de H→C=O etiketi VAR
+     - error_code: VETO_HMBC_CARBONYL_STRUCTURE
+     - modality: HMBC
+
+  F) CH-less veto (TFA vb.):
+     - Molekül CF3C(=O)O benzeri (alifatik CH yok) AMA 13C'de CH/CH2/CH3 ataması var
+     - error_code: VETO_C13_TFA_ALIPHATIC
+     - modality: 13C
+
+  G) Doymuş hidrokarbon veto:
+     - Karbonil/aromatik/heteroatom yok AMA 1H'de 4.5+ ppm'de ≥2 sinyal
+     - error_code: VETO_H1_SATURATED_HC_ABOVE_45
+     - modality: 1H
+
+  H) Nitril veto:
+     - Nitril var AMA 1H'de 10–14 ppm asidik bölge var
+     - error_code: VETO_H1_NITRILE_ACID_REGION
+     - modality: 1H
+
+  I) CHCl3 veto:
+     - SMILES CHCl3 AMA 1H'de 6.8–8.2 ppm singlet yok
+     - error_code: VETO_H1_CHCL3_SINGLET
+     - modality: 1H
+     - missing_expected: "1H 6.8-8.2 ppm singlet, ~7.26 ppm"
+
+  J) Aldehit veto:
+     - Aldehit grubu var AMA 1H'de 9.3–10.5 ppm CHO sinyali yok
+     - error_code: VETO_H1_ALDEHYDE_MISSING
+     - modality: 1H
+     - missing_expected: "1H 9.3-10.5 ppm (CHO)"
+
+  K) Karboksilik asit veto:
+     - Karboksilik asit var AMA 1H'de 10.5–13.8 ppm COOH sinyali yok
+     - error_code: VETO_H1_COOH_MISSING
+     - modality: 1H
+     - missing_expected: "1H 10.5-13.8 ppm (COOH br), D2O ile kaybolabilir"
+
+9.5 MS ppm Error
+  - Eşleşen adduct’ta ppmError > 10 → ms FAIL
+  - ms_ppm_match: 5 ppm (eşleşme kabul); ms_ppm_veto: 10 ppm (aşımda FAIL)
+
+9.5b MS izotop paterni (Cl/Br)
+  - formulaCounts.Cl/Br > 0 ise require_isotope_pattern = true.
+  - M+2 piki (|mz - (M+2)| < 1.5) aranır; bulunamazsa WARN, pushWarn("MS_ISOTOPE_PATTERN_MISSING", "MS", ...).
+  - M+2 oranı beklenenden (Cl ~0.32, Br ~0.98 per atom) saparsa WARN.
+  - modules.ms.require_isotope_pattern rapora yazılır.
+
+9.6 Çıktı: TEYIT RAPORU (tam yapı)
+  - status: "PASS" | "FAIL" | "PARTIAL" | "INCONCLUSIVE"
+  - overall: "PASS" | "WARN" | "FAIL" | "BELIRSIZ"
+  - summary: Türkçe özet metin
+  - confidence_score: 0–100 (deterministik, ağırlıklı modül skorları)
+  - veto_flags: [ { error_code, modality, rule_name, why, evidence, missing_expected } ]
+  - warnings: [ { error_code, modality, message, evidence } ]
+  - data_completeness: { h1, c13, hsqc, cosy, hmbc, ms, ftir } (0–1 tamamlık)
+  - root_cause_analysis: [ { error_code, modality, what_failed, why, evidence, missing_expected } ]
+  - missing_library_items: [ { table, key, required_parameters_to_add, suggested_sources } ]
+  - patch_recommendations: [ { file_path, function_name, change_type, description, tests } ]
+  - modules: { c13, h1, hsqc, cosy, hmbc, noesy, ms, ftir }
+  - recommendations: [ string ]
+  - verifiedFormula: formül (SMILES→formulaFromSmiles)
+  - traceId: opsiyonel
+
+  status türetimi: veto_flags.length > 0 → FAIL; yoksa overall === "WARN"|"BELIRSIZ" → PARTIAL; yoksa PASS.
+
+9.7 Eksik kütüphane tespiti (missing_library_items)
+  - FP_RULES içinde SMILES (veya FP_ALT_KEYS ile normalize edilmiş) yoksa:
+    table: "FP_RULES", key: SMILES (normalize),
+    required_parameters_to_add: "mustHave, forbidden (regionCountAtLeast/peakNear) for this SMILES",
+    suggested_sources: "NMRShiftDB, in-house curated fingerprint set, GOLDEN_EXPECTATIONS_30.json",
+    suggested_rule_template: { smiles, name: "Custom", expectedH, mustHave: [{ type: "regionCountAtLeast", args: { min: 0.6, max: 2.2, n: 1 }, message: "Alifatik bölge en az 1 sinyal", severity: "WARN" }], forbidden: [] }
+
+9.8 Patch önerileri (patch_recommendations)
+  - H1_INTEGRAL_MISMATCH veto ise: generate1H integral FIX; integ toplamı expectedH ile uyumlu olmalı.
+  - missing_library_items dolu ise: FP_RULES’a yeni SMILES kuralı ADD; GOLDEN_EXPECTATIONS_30 ile senkron.
+  - change_type: "FIX" | "ADD" | "REFACTOR"
+  - tests: ilgili birim/integrasyon test önerisi
+
+================================================================================
+10. verify1H (1H doğrulama detayı)
+================================================================================
+
+Girdi: { smiles, formulaCounts, h1Signals }
+Çıktı: { module: "1H", status, score, expectedH, foundH, tolerance, checks, notes, recommendations }
+
+10.1 B1: Toplam integral ≈ toplam H
+  - sumIntegrals() ile bulunan H; beklenen = expectedH veya (exclude_exchangeable_from_integral_check=true ise) expectedH - h_exch.
+  - formulaCounts.h_exch / formulaCounts.exchH ile değişebilir H sayısı; varsayılan exclude_exchangeable_from_integral_check=true.
+  - Tolerans: max(1, round(0.2 * expectedHForIntegral))
+  - expectedH <= 0 → FAIL, "Formülden H_expected hesaplanamadı."
+  - foundH === null (parse edilemedi) → WARN, "Integral alanları parse edilemedi."
+  - |foundH - expectedHForIntegral| <= tol → PASS
+  - foundH < expectedHForIntegral ve O/N var → WARN (OH/NH değişimi)
+  - Aksi halde FAIL
+  - error_code: H1_INTEGRAL_MISMATCH (FAIL), H1_INTEGRAL_WARN (WARN)
+
+10.2 B2: PPM pencere tutarlılığı
+  - Doymuş hidrokarbon ise: 4.5+ ppm’de 2+ sinyal → FAIL
+  - Doymuş + 2.2–4.5 ppm’de 2+ sinyal → WARN
+  - Aldehit var ama 9.3–10.5 ppm’de pik yok → WARN/FAIL
+  - Karboksilik asit var ama 10.5–13.5 ppm’de pik yok → WARN/FAIL
+  - error_code: H1_PPM_WINDOW_INCONSISTENT
+
+10.3 B3: Fingerprint (FP_RULES)
+  - SMILES FP_RULES’ta (veya FP_ALT_KEYS ile eşleşen) var mı?
+  - Varsa: mustHave/forbidden kuralları regionCountAtLeast veya peakNear ile değerlendirilir.
+  - severity: FAIL veya WARN (kural tanımlı)
+  - Yoksa: WARN, "Bu SMILES için özel fingerprint kuralı tanımlı değil."
+  - error_code: H1_FINGERPRINT_FAIL, H1_FINGERPRINT_WARN, LIBRARY_FINGERPRINT_NOT_FOUND
+
+10.4 B4: J-coupling aralık (opsiyonel)
+  - Sinyallerde j değeri parse edilir (sayısal Hz).
+  - J_coupling_priors.vicinal_aliphatic: 6–9 Hz tipik; >20 Hz dışarıda → WARN
+  - Not: trans alkene ~12–18 Hz, aromatik ortho ~6–9 Hz kabul edilir.
+  - error_code: H1_J_COUPLING_OUTLIER
+
+10.5 Çözücü / artefakt tespiti
+  - solvent_impurity_catalog ile 1H ppm karşılaştırılır (±0.15 ppm).
+  - Eşleşen varsa notes’a eklenir: "Olası çözücü/artefakt pikleri: CDCl3 ~7.26 ppm; ..."
+
+10.6 Genel status ve score
+  - Herhangi bir check FAIL → status FAIL
+  - Hiç FAIL yok, en az bir WARN → status WARN
+  - Hepsi PASS → status PASS
+  - score: PASS 100, WARN 70, FAIL 30; her FAIL -15, her WARN -5 (sınır 0–100)
+
+================================================================================
+11. SPECTRAL VERIFICATION LIBRARY (referans verisi)
+================================================================================
+
+Konum: Spectromasterv0.2tester.html içinde; şema: lib/spectra/library/verification_library_schema.json
+
+11.1 functional_group_shift_priors
+  - h1:
+      aliphatic: 0.6–2.2 (CH3/CH2/CH sp3)
+      methoxy_functional: 2.2–4.5 (O-CH, N-CH)
+      vinylic: 4.5–6.5 (alkene)
+      aromatic: 6.3–8.8 (aromatic H)
+      aldehyde: 9.3–10.5 (CHO)
+      acid_phenol_exchangeable: 10.5–13.8 (COOH, OH broad)
+  - c13:
+      aliphatic: 0–55 (sp3 C)
+      oxygenated_sp3: 50–90 (C-O, C-N)
+      olefinic_aromatic: 100–160 (sp2 C)
+      carbonyl_ester_amide: 160–185 (C=O)
+      carbonyl_ketone_aldehyde: 190–220 (C=O)
+      nitrile: 115–125 (C≡N)
+
+11.2 J_coupling_priors (Hz)
+  - vicinal_aliphatic: 6–9 (3JHH typical)
+  - trans_alkene: 12–18
+  - cis_alkene: 6–12
+  - aromatic_ortho: 6–9
+  - aromatic_meta: 1–3
+  - geminal: 0–20 (variable)
+
+11.3 IR_band_priors (cm⁻¹)
+  - C=O_ester: 1730–1750, strong
+  - C=O_amide: 1650–1680, strong
+  - C=O_acid: 1700–1725, strong
+  - C=O_aldehyde: 1720–1740, strong
+  - C=O_ketone: 1705–1725, strong
+  - OH_NH_stretch: 3200–3600, broad
+  - C≡N: 2210–2260, medium
+  - aromatic_C=C: 1450–1600, medium
+  - C-H_aliphatic: 2850–2960, medium
+
+11.4 MS_adduct_rules
+  - positive: [M+H]+ (+1.007825), [M+Na]+ (+22.989769), [M+K]+ (+38.963706), [M+NH4]+ (+18.034374)
+  - negative: [M-H]- (-1.007825)
+
+11.5 solvent_impurity_catalog (1H ppm)
+  - CDCl3: 7.26, singlet, residual CHCl3
+  - DMSO-d6: 2.50, multiplet, residual DMSO
+  - acetone-d6: 2.05, singlet, residual acetone
+  - CD3OD: 3.31, multiplet, residual MeOD
+  - water: 1.56 (D2O exchange; H2O 4.7–4.8)
+  - TMS: 0.00, singlet, reference
+
+11.6 isotope_rules (Cl/Br M+2)
+  - Cl: M2_ratio 0.31–0.34 per atom
+  - Br: M2_ratio 0.97–1.01 per atom
+
+================================================================================
+12. FP_RULES (30 MOLEKÜL FİNGERPRİNT)
+================================================================================
+
+Her kural: smiles, name, expectedH, mustHave[], forbidden[]
+  - mustHave: { type: "regionCountAtLeast", args: { min, max, n }, message, severity? } veya { type: "peakNear", args: { ppm, tol }, message, severity? }
+  - forbidden: aynı type/args; ihlal edilirse severity (FAIL/WARN)
+
+FP_ALT_KEYS (normalize): C(Cl)(Cl)Cl→ClC(Cl)Cl, C(#N)C→CC#N, C1CCCO1→C1CCOC1, C[S](=O)C→CS(=O)C
+
+Örnekler:
+  CC#N (Asetonitril): CH3 1.6–2.6 ppm ≥1; 4.5–13.8’de ≥2 sinyal yasak
+  ClC(Cl)Cl (Kloroform): 6.8–8.2 ppm ≥1; 10.5+ yasak
+  C1CCOC1 (THF): O-CH2 3.2–4.1, CH2 1.4–2.2; 6.3–13.8’de ≥2 yasak
+  CS(=O)C (DMSO): 2.2–3.3 ≥1; 0.6–1.4’te ≥2 yasak
+  C1CCCCC1 (Siklohekzan): 1.0–2.1 ≥1; 4.5+’da ≥2 yasak
+  Oc1ccccc1, Nc1ccccc1, CN(C)C=O, OC(=O)c1ccccc1, C=O, CCO, CC(C)O, CC(C)(C)O, COC, C1COCCO1, CC(=O)O, CC(=O)C, CC(=O)N, CCCCCCC, n1ccccc1, nitrobenzen, toluen, benzaldehit, ClCCCl, furan, tiyofen, TFA, CI, CCN(CC)CC, C1CCNCC1 … (30 molekül tam liste FP_RULES dizisinde)
+
+================================================================================
+13. BİLİMSEL VERİ / SABİTLER
+================================================================================
+
+PPM pencereleri (kimyasal kayma):
+  Alifatik CH: 0.6–2.2
+  O-CH, N-CH: 2.2–4.5
+  Vinylic: 4.5–6.5
+  Aromatik: 6.3–8.8
+  Aldehit: 9.3–10.5
+  COOH: 10.5–13.8
+
+IR bantları (cm⁻¹):
+  C≡N: 2210–2260
+  C=O: 1650–1800
+  OH/NH: 3200–3600
+  Aromatik C=C: 1450–1600
+  C-H alifatik: 2850–2960
+
+13C karbonil: 160–220 ppm
+MS: eşleşme 5 ppm; veto >10 ppm FAIL
+
+================================================================================
+14. HATA TÜRÜ (FAILURE MODE) EŞLEMESİ
+================================================================================
+
+  - parsing_error: Birim/locale/format (integral, J, ppm) → parseInteg/parseJ hata; notlarda "Integral alanları parse edilemedi" vb.
+  - assignment_error: Tahmin vs ölçüm karışması → Modül notları ve root_cause_analysis ile modality belirtilir.
+  - thresholding_error: Pik seçimi çok sıkı/gevşek → H1_PPM_WINDOW_INCONSISTENT, 13C/HSQC notları; patch_recommendations’da peak picking önerisi.
+  - rule_gap: Eksik kural → missing_library_items (FP_RULES) ve patch_recommendations (ADD rule).
+  - library_gap: Eksik priors → missing_library_items (table, required_parameters_to_add, suggested_sources).
+  - scoring_bug: Ağırlık/veto yanlış → VERIFICATION_CONFIG.weights ve veto_flags sabit; değişiklik için config/patch önerisi.
+  - inconsistent_inputs: Örn. MS formül vs SMILES → Yapısal vetolar (C=O yok ama 13C/IR/HMBC’de var) ve veto_flags ile raporlanır.
+
+================================================================================
+15. BİLİNEN EKSİKLER VE HATA KAYNAKLARI
+================================================================================
+
+15.1 Üretim
+  - 1H: Atom-çevresi (environment) tabanlı üretim yok; CH3/CH2/CH gruplandırma heuristik
+  - Multiplicity: n+1 kuralı graf üzerinden uygulanmıyor; ethyl t/q, iPr d/sept üretimi zayıf
+  - 13C: Template ağırlıklı; SMILES'e tam bağlı değil
+  - IR: Grup tespiti regex ile sınırlı; bazı motifler atlanıyor
+
+15.2 Context
+  - C<15 / totalHeavy<18 ile SMALL_MOLECULE zorunlu (düzeltildi)
+  - 15–18 atom arası sınırda hâlâ GENERAL/MACROLIDE karışabilir
+
+15.3 Teyit
+  - Fingerprint dışı moleküllerde sadece integral/ppm sanity; yapısal veto'lar genişletilebilir
+  - MS: -H2O etiketi OH yoksa artık eklenmiyor (düzeltildi)
+  - Eksik kütüphane tespiti ve patch önerileri çıktıda (missing_library_items, patch_recommendations)
+
+15.4 State / Cache
+  - Her molekül için yeni SpectroMasterKernel; shared state yok
+  - Math.random() deterministik değil; seed yönetimi yok
+
+================================================================================
+16. ÖNERİLEN GELİŞTİRMELER
+================================================================================
+
+1) SMILES → Atom grafi (buildMolGraph): her C/H için komşuluk, hybridizasyon
+2) 1H: classifyProtonSite(atom) → CH3/CH2/CH/AROMATIC_H/ALDEHYDE_H/COOH
+3) 1H: predictMultiplicity(atom, graph) → n+1, ethyl/iPr/tBu özel kuralları
+4) 1H: Eşdeğer proton gruplandırma (symmetry fingerprint)
+5) Teyit: Daha fazla yapısal veto (halojen izotop paterni, DBE parite)
+6) Context: 15–25 C aralığı için daha sıkı MACROLIDE şartları
+7) Deterministik test: seed parametresi ile repeatable output
+8) TEYIT RAPORU JSON şeması ile validasyon (lib/spectra/library/teyit_raporu_schema.json)
+
+================================================================================
+17. SİSTEMATİK HATA DÜZELTMELERİ (Analiz Sonrası)
+================================================================================
+
+A) QC_AROMATIC_HSQC_LOW: Sadece aromatik yapı (aromaticC>=4 veya lowercase c/n/o/s)
+   içeren moleküllerde çalışır. Asetonitril, THF, siklohekzan gibi aromatik
+   olmayanlarda yanlış alarm üretilmez.
+
+B) 13C Q karbon: Doymuş moleküllerde (karbonil yok, aromaticC=0, DBE<1) 135-165 ppm
+   quaternary ÜRETİLMEZ. targetQ=0 ve Q eklense bile 28-53 ppm alifatik aralık kullanılır.
+   Heptan, siklohekzan, CH3I için 150 ppm Q artık oluşmaz.
+
+C) MS -H2O kaybı: Sadece molekül O içeriyorsa (k.counts.O>0) VE alkol/asit/exch H
+   varsa eklenir. Asetonitril, CH3I gibi O içermeyenlerde -H2O kaybı üretilmez.
+
+================================================================================
+18. GOLDEN EXPECTATIONS (30 MOLEKÜL)
+================================================================================
+
+GOLDEN_EXPECTATIONS_30.json dosyası 30 referans molekül için must_have/must_not_have
+kurallarını içerir. Teyit motoru bu spec'e göre genişletilebilir. FP_RULES ile
+senkron tutulması önerilir; eksik SMILES için missing_library_items çıktısında
+suggested_sources olarak belirtilir.
+
+PPM aralıkları:
+  Alifatik CH3: 0.8-2.2
+  O-CH / N-CH: 2.2-4.5
+  Aromatik: 6.2-8.8
+  Aldehit: 9.3-10.5
+  COOH: 10.5-13.8
+
+IR: C≡N 2210-2260, C=O 1650-1800, OH/NH 3200-3600
+
+================================================================================
+19. UI – TEYİT RAPORU GÖSTERİMİ
+================================================================================
+
+Tetikleyici: "SONUÇLARI TEYİT ET" butonu → runVerificationForReport(report) → runVerification(...)
+
+Gösterilen alanlar:
+  - Genel durum: status/overall, summary, Güven skoru (confidence_score/100)
+  - Provenance: smiles_raw, smiles_canonical, salt_stripped, formula_source, ms_mode_assumed, preprocess_steps
+  - Doğrulanmış formül: verifiedFormula, verifiedFormulaNeutral, verifiedFormulaObserved
+  - Veto / Hard fail: veto_flags listesi (error_code, modality, rule_name, why, evidence, missing_expected); Evidence tıklanabilir (ppm listesi kopyala)
+  - Hata sebepleri (Root cause): root_cause_analysis (error_code, modality, what_failed, why)
+  - Veri bütünlüğü (data_completeness): 1H, 13C, HSQC, COSY, HMBC, MS, FT-IR (ftir_expected_coverage kullanılır)
+  - Eksik kütüphane verisi: missing_library_items (table, key, required_parameters_to_add, suggested_sources, suggested_rule_template)
+  - Kod önerileri (Patch): patch_recommendations (file_path, function_name, change_type, description)
+  - Modül kartları: c13 (c13_overproduction_ratio), h1, hsqc, cosy, hmbc, noesy, ms (require_isotope_pattern), ftir (ftir_expected_coverage)
+  - Öneriler: recommendations
+  - "TEYIT RAPORU JSON kopyala": status, overall, confidence_score, veto_flags, warnings, data_completeness, root_cause_analysis, missing_library_items, patch_recommendations, modules, verifiedFormula, verifiedFormulaNeutral, verifiedFormulaObserved, provenance, seed, rng_version
+  - "Minimal Repro kopyala": { smiles, seed, config, inputs } tek JSON (tekrarlanabilir test için)
+
+================================================================================
+20. KÜTÜPHANE ŞEMALARI (lib/spectra/library)
+================================================================================
+
+  - teyit_raporu_schema.json: TEYIT RAPORU çıktı şeması (status, veto_flags, warnings, data_completeness, root_cause_analysis, missing_library_items, patch_recommendations, modules, …)
+  - verification_library_schema.json: functional_group_shift_priors, J_coupling_priors, IR_band_priors, MS_adduct_rules, solvent_impurity_catalog, isotope_rules
+  - README.md: Klasör amacı, dosya açıklamaları, yeni SMILES ekleme, kaynak önerileri (NMRShiftDB, in-house, GOLDEN_EXPECTATIONS_30.json)
+
+================================================================================
+21. TEYİT MOTORU HATA KODLARI (ERROR_CODE) ÖZETİ
+================================================================================
+
+Veto (hard fail):
+  VETO_C13_CARBONYL_STRUCTURE   VETO_IR_CARBONYL_STRUCTURE   VETO_IR_OH_NH_STRUCTURE
+  VETO_H1_AROMATIC_INTEGRAL     VETO_HMBC_CARBONYL_STRUCTURE  VETO_C13_TFA_ALIPHATIC
+  VETO_H1_SATURATED_HC_ABOVE_45 VETO_H1_NITRILE_ACID_REGION   VETO_H1_CHCL3_SINGLET
+  VETO_H1_ALDEHYDE_MISSING      VETO_H1_COOH_MISSING
+
+1H verify (check):
+  H1_INTEGRAL_MISMATCH          H1_INTEGRAL_WARN              H1_PPM_WINDOW_INCONSISTENT
+  H1_FINGERPRINT_FAIL           H1_FINGERPRINT_WARN           LIBRARY_FINGERPRINT_NOT_FOUND
+  H1_J_COUPLING_OUTLIER
+
+Warnings: WARN_13C, WARN_1H, WARN_HSQC, WARN_COSY, WARN_HMBC, WARN_NOESY, WARN_MS, WARN_FTIR (modül notlarından türetilir)
+
+================================================================================
+SON
+================================================================================

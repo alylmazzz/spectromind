@@ -1,0 +1,99 @@
+{
+  "version": "1.5.0",
+  "codename": "Singularity",
+  "description": "SpectroMind De Novo Engine Configuration",
+
+  "meta_parameters": {
+    "allow_mixtures": true,
+    "impurity_threshold": 0.10,
+    "confidence_policy": "research",
+    "rmsd_tolerances": {
+      "aromatic": 1.5,
+      "aliphatic": 2.5,
+      "heterocyclic": 3.0,
+      "carbonyl": 2.0,
+      "default": 2.5
+    }
+  },
+
+  "chemical_context": {
+    "default_solvent": "DMSO-d6",
+    "temperature_k": 298,
+    "ph_estimate": 7.0
+  },
+
+  "engines": {
+    "mixture_detector": {
+      "enabled": true,
+      "min_major_component": 0.70
+    },
+    "carbon_skeleton": {
+      "enabled": true,
+      "prefer_13c": true,
+      "silent_cq_penalty": 0.0
+    },
+    "forward_predictor": {
+      "enabled": true,
+      "method": "hose",
+      "fallback_method": "ml"
+    },
+    "solvent_physics": {
+      "enabled": true,
+      "model_exchangeable": true
+    },
+    "correlations_2d": {
+      "enabled": true,
+      "noesy_enabled": true,
+      "hmbc_enabled": true
+    },
+    "certified_validator": {
+      "enabled": true,
+      "strict_mode": false
+    }
+  },
+
+  "solvent_database": {
+    "DMSO-d6": {
+      "residual_peak": 2.50,
+      "water_peak": 3.33,
+      "exchangeable_shifts": {
+        "OH": 4.5,
+        "NH": 7.5,
+        "NH2": 6.5
+      }
+    },
+    "CDCl3": {
+      "residual_peak": 7.26,
+      "water_peak": 1.56,
+      "exchangeable_shifts": {
+        "OH": 2.5,
+        "NH": 4.5,
+        "NH2": 3.5
+      }
+    },
+    "D2O": {
+      "residual_peak": 4.79,
+      "exchangeable_shifts": {
+        "OH": null,
+        "NH": null,
+        "NH2": null
+      },
+      "note": "Exchangeable protons not visible"
+    }
+  },
+
+  "exclusions": {
+    "dft_quantum": {
+      "enabled": false,
+      "reason": "Too slow for industrial use"
+    },
+    "solid_state_nmr": {
+      "enabled": false,
+      "reason": "Solution-state only"
+    },
+    "retrosynthesis": {
+      "enabled": false,
+      "reason": "Structure elucidation focus"
+    }
+  }
+}

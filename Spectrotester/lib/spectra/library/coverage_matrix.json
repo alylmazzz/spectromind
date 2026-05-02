@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "COVERAGE_MATRIX",
+  "description": "Veri seti kimyasal çeşitlilik matrisi. Molekül standardı: mol_id, name, smiles, category_ids, expected_modalities, edge_case_tags, scenarios.",
+  "version": "1.1",
+  "scenario_profiles": [
+    { "id": "400MHz_DMSO", "fieldMHz": 400, "solvent": "DMSO-d6", "snr": "normal" },
+    { "id": "400MHz_CDCl3", "fieldMHz": 400, "solvent": "CDCl3", "snr": "normal" },
+    { "id": "600MHz_CDCl3", "fieldMHz": 600, "solvent": "CDCl3", "snr": "normal" },
+    { "id": "400MHz_DMSO_lowSNR", "fieldMHz": 400, "solvent": "DMSO-d6", "snr": "low" },
+    { "id": "600MHz_CDCl3_lowSNR", "fieldMHz": 600, "solvent": "CDCl3", "snr": "low" }
+  ],
+  "categories": [
+    {
+      "id": "aromatic",
+      "label": "Aromatik",
+      "target_count": 20,
+      "current_count": 5,
+      "subcategories": [
+        { "id": "mono_ortho_meta_para", "label": "mono/ortho/meta/para her biri ≥4", "target_count": 16 },
+        { "id": "heteroaromatic", "label": "heteroaromatik (pyridine, furan, thiophene)", "target_count": 6 }
+      ],
+      "molecules": [
+        { "mol_id": "arom-1", "name": "Anisol", "smiles": "COc1ccccc1", "category_ids": ["aromatic"], "expected_modalities": ["1H", "13C", "HSQC", "IR"], "edge_case_tags": ["methoxy"], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "arom-2", "name": "Toluen", "smiles": "Cc1ccccc1", "category_ids": ["aromatic"], "expected_modalities": ["1H", "13C", "COSY"], "edge_case_tags": ["methyl"], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "arom-3", "name": "Klorobenzen", "smiles": "Clc1ccccc1", "category_ids": ["aromatic", "halogen"], "expected_modalities": ["1H", "13C", "MS"], "edge_case_tags": ["halogen"], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "arom-4", "name": "Piridin", "smiles": "c1ccncc1", "category_ids": ["aromatic"], "expected_modalities": ["1H", "13C", "HSQC"], "edge_case_tags": ["heteroaromatic"], "scenarios": ["400MHz_DMSO"] },
+        { "mol_id": "arom-5", "name": "Tiyofen", "smiles": "c1ccsc1", "category_ids": ["aromatic"], "expected_modalities": ["1H", "13C"], "edge_case_tags": ["heteroaromatic"], "scenarios": ["400MHz_CDCl3"] }
+      ]
+    },
+    {
+      "id": "carbonyl",
+      "label": "Karbonil",
+      "target_count": 20,
+      "current_count": 5,
+      "subcategories": [
+        { "id": "ester", "target_count": 6 },
+        { "id": "amide", "target_count": 6 },
+        { "id": "ketone", "target_count": 4 },
+        { "id": "acid", "target_count": 4 }
+      ],
+      "molecules": [
+        { "mol_id": "carb-1", "name": "Aseton", "smiles": "CC(=O)C", "category_ids": ["carbonyl"], "expected_modalities": ["1H", "13C", "HSQC", "IR"], "edge_case_tags": ["ketone"], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "carb-2", "name": "Etil asetat", "smiles": "CC(=O)OCC", "category_ids": ["carbonyl"], "expected_modalities": ["1H", "13C", "HMBC"], "edge_case_tags": ["ester"], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "carb-3", "name": "Asetamid", "smiles": "CC(=O)N", "category_ids": ["carbonyl"], "expected_modalities": ["1H", "13C", "IR"], "edge_case_tags": ["amide", "exchangeable"], "scenarios": ["400MHz_DMSO"] },
+        { "mol_id": "carb-4", "name": "Benzoik asit", "smiles": "c1ccccc1C(=O)O", "category_ids": ["carbonyl", "aromatic"], "expected_modalities": ["1H", "13C", "IR"], "edge_case_tags": ["acid"], "scenarios": ["400MHz_DMSO"] },
+        { "mol_id": "carb-5", "name": "Asetofenon", "smiles": "CC(=O)c1ccccc1", "category_ids": ["carbonyl", "aromatic"], "expected_modalities": ["1H", "13C", "HMBC"], "edge_case_tags": ["ketone"], "scenarios": ["400MHz_CDCl3"] }
+      ]
+    },
+    {
+      "id": "nitrile",
+      "label": "Nitril",
+      "target_count": 6,
+      "current_count": 5,
+      "molecules": [
+        { "mol_id": "nit-1", "name": "Asetonitril", "smiles": "CC#N", "category_ids": ["nitrile"], "expected_modalities": ["1H", "13C", "IR"], "edge_case_tags": [], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "nit-2", "name": "Benzonitril", "smiles": "c1ccccc1C#N", "category_ids": ["nitrile", "aromatic"], "expected_modalities": ["1H", "13C", "IR"], "edge_case_tags": [], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "nit-3", "name": "Akrilonitril", "smiles": "C=CC#N", "category_ids": ["nitrile"], "expected_modalities": ["1H", "13C"], "edge_case_tags": ["vinyl"], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "nit-4", "name": "Malononitril", "smiles": "C(C#N)C#N", "category_ids": ["nitrile"], "expected_modalities": ["1H", "13C"], "edge_case_tags": [], "scenarios": ["400MHz_DMSO"] },
+        { "mol_id": "nit-5", "name": "4-Klorobenzonitril", "smiles": "Clc1ccc(C#N)cc1", "category_ids": ["nitrile", "halogen"], "expected_modalities": ["1H", "13C", "MS"], "edge_case_tags": ["halogen"], "scenarios": ["400MHz_CDCl3"] }
+      ]
+    },
+    {
+      "id": "halogen",
+      "label": "Halojen",
+      "target_count": 10,
+      "current_count": 5,
+      "subcategories": [{ "id": "cl_br", "label": "Cl/Br", "target_count": 6 }],
+      "molecules": [
+        { "mol_id": "hal-1", "name": "Klorobenzen", "smiles": "Clc1ccccc1", "category_ids": ["halogen", "aromatic"], "expected_modalities": ["1H", "13C", "MS"], "edge_case_tags": [], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "hal-2", "name": "Bromoetan", "smiles": "CCBr", "category_ids": ["halogen"], "expected_modalities": ["1H", "13C", "MS"], "edge_case_tags": [], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "hal-3", "name": "1,2-Dikloroetan", "smiles": "ClCCCl", "category_ids": ["halogen"], "expected_modalities": ["1H", "13C", "MS"], "edge_case_tags": [], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "hal-4", "name": "Bromobenzen", "smiles": "Brc1ccccc1", "category_ids": ["halogen", "aromatic"], "expected_modalities": ["1H", "13C", "MS"], "edge_case_tags": [], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "hal-5", "name": "İyodobenzen", "smiles": "Ic1ccccc1", "category_ids": ["halogen", "aromatic"], "expected_modalities": ["1H", "13C", "MS"], "edge_case_tags": [], "scenarios": ["400MHz_CDCl3"] }
+      ]
+    },
+    {
+      "id": "symmetry_high",
+      "label": "Simetri yüksek",
+      "target_count": 10,
+      "current_count": 5,
+      "molecules": [
+        { "mol_id": "sym-1", "name": "Benzen", "smiles": "c1ccccc1", "category_ids": ["symmetry_high", "aromatic"], "expected_modalities": ["1H", "13C"], "edge_case_tags": ["symmetry"], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "sym-2", "name": "p-Diklorobenzen", "smiles": "Clc1ccc(Cl)cc1", "category_ids": ["symmetry_high", "halogen"], "expected_modalities": ["1H", "13C"], "edge_case_tags": ["symmetry"], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "sym-3", "name": "Mesitilen", "smiles": "Cc1cc(C)cc(C)c1", "category_ids": ["symmetry_high", "aromatic"], "expected_modalities": ["1H", "13C"], "edge_case_tags": ["symmetry"], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "sym-4", "name": "Neopentan", "smiles": "CC(C)(C)C", "category_ids": ["symmetry_high"], "expected_modalities": ["1H", "13C"], "edge_case_tags": ["symmetry"], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "sym-5", "name": "1,4-Dioksan", "smiles": "C1COCCO1", "category_ids": ["symmetry_high"], "expected_modalities": ["1H", "13C"], "edge_case_tags": ["symmetry"], "scenarios": ["400MHz_CDCl3"] }
+      ]
+    },
+    {
+      "id": "exchangeable",
+      "label": "Exchangeable (OH/NH/COOH)",
+      "target_count": 15,
+      "current_count": 5,
+      "molecules": [
+        { "mol_id": "ex-1", "name": "Fenol", "smiles": "Oc1ccccc1", "category_ids": ["exchangeable", "aromatic"], "expected_modalities": ["1H", "13C", "IR"], "edge_case_tags": ["exchangeable"], "scenarios": ["400MHz_DMSO"] },
+        { "mol_id": "ex-2", "name": "Anilin", "smiles": "Nc1ccccc1", "category_ids": ["exchangeable", "aromatic"], "expected_modalities": ["1H", "13C"], "edge_case_tags": ["exchangeable"], "scenarios": ["400MHz_DMSO"] },
+        { "mol_id": "ex-3", "name": "Asetik asit", "smiles": "CC(=O)O", "category_ids": ["exchangeable", "carbonyl"], "expected_modalities": ["1H", "13C", "IR"], "edge_case_tags": ["exchangeable"], "scenarios": ["400MHz_DMSO"] },
+        { "mol_id": "ex-4", "name": "Etanol", "smiles": "CCO", "category_ids": ["exchangeable"], "expected_modalities": ["1H", "13C"], "edge_case_tags": ["exchangeable"], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "ex-5", "name": "Üre", "smiles": "C(=O)(N)N", "category_ids": ["exchangeable"], "expected_modalities": ["1H", "13C", "IR"], "edge_case_tags": ["exchangeable"], "scenarios": ["400MHz_DMSO"] }
+      ]
+    },
+    {
+      "id": "overlap_hard",
+      "label": "Overlap zor örnekler",
+      "target_count": 10,
+      "current_count": 5,
+      "molecules": [
+        { "mol_id": "ov-1", "name": "Etilbenzen", "smiles": "CCc1ccccc1", "category_ids": ["overlap_hard", "aromatic"], "expected_modalities": ["1H", "13C", "COSY"], "edge_case_tags": ["overlap"], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "ov-2", "name": "o-Ksilen", "smiles": "Cc1ccccc1C", "category_ids": ["overlap_hard", "aromatic"], "expected_modalities": ["1H", "13C"], "edge_case_tags": ["overlap"], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "ov-3", "name": "m-Ksilen", "smiles": "Cc1cccc(C)c1", "category_ids": ["overlap_hard", "aromatic"], "expected_modalities": ["1H", "13C"], "edge_case_tags": ["overlap"], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "ov-4", "name": "Kümolen", "smiles": "CC(C)c1ccccc1", "category_ids": ["overlap_hard", "aromatic"], "expected_modalities": ["1H", "13C"], "edge_case_tags": ["overlap"], "scenarios": ["400MHz_CDCl3"] },
+        { "mol_id": "ov-5", "name": "Sikloheksanon", "smiles": "C1CCC(=O)CC1", "category_ids": ["overlap_hard", "carbonyl"], "expected_modalities": ["1H", "13C"], "edge_case_tags": ["overlap", "multiplet"], "scenarios": ["400MHz_CDCl3"] }
+      ]
+    },
+    {
+      "id": "no_2d_or_low_snr",
+      "label": "No 2D available / low SNR simülasyon",
+      "target_count": 10,
+      "current_count": 5,
+      "molecules": [
+        { "mol_id": "low-1", "name": "Toluen (lowSNR)", "smiles": "Cc1ccccc1", "category_ids": ["no_2d_or_low_snr"], "expected_modalities": ["1H"], "edge_case_tags": ["low_snr"], "scenarios": ["400MHz_DMSO_lowSNR"] },
+        { "mol_id": "low-2", "name": "Etanol (lowSNR)", "smiles": "CCO", "category_ids": ["no_2d_or_low_snr"], "expected_modalities": ["1H"], "edge_case_tags": ["low_snr"], "scenarios": ["600MHz_CDCl3_lowSNR"] },
+        { "mol_id": "low-3", "name": "Aseton (lowSNR)", "smiles": "CC(=O)C", "category_ids": ["no_2d_or_low_snr"], "expected_modalities": ["1H", "13C"], "edge_case_tags": ["low_snr"], "scenarios": ["400MHz_CDCl3_lowSNR"] },
+        { "mol_id": "low-4", "name": "Benzen (lowSNR)", "smiles": "c1ccccc1", "category_ids": ["no_2d_or_low_snr"], "expected_modalities": ["1H"], "edge_case_tags": ["low_snr"], "scenarios": ["600MHz_CDCl3_lowSNR"] },
+        { "mol_id": "low-5", "name": "Fenol (lowSNR)", "smiles": "Oc1ccccc1", "category_ids": ["no_2d_or_low_snr"], "expected_modalities": ["1H"], "edge_case_tags": ["low_snr"], "scenarios": ["400MHz_DMSO_lowSNR"] }
+      ]
+    }
+  ],
+  "missing_categories": [
+    { "category_id": "aromatic", "missing_count": 15, "suggested_molecules": ["naftalin", "antrasen", "fenantren", "indol", "kinolin"], "notes": "Heteroaromatic ve çok halkalı artırılmalı" },
+    { "category_id": "carbonyl", "missing_count": 15, "suggested_molecules": ["benzaldehit", "formaldehit", "sikloheksanon", "asetaldehit"], "notes": "Ester/amide/keton/asit dağılımı" }
+  ],
+  "coverage_rules": {
+    "aromatic": { "heteroaromatic_min": 2, "mono_ortho_meta_para_each_min": 2 },
+    "carbonyl": { "ester_min": 2, "amide_min": 2, "ketone_min": 2, "acid_min": 2 },
+    "halogen": { "cl_br_min": 2, "mixed_halogen_optional": true }
+  },
+  "validation_script_note": "validateCoverage(matrix, moleculeList) ile current_count ve missing_categories güncellenir."
+}

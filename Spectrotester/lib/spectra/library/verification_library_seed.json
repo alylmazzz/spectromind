@@ -1,0 +1,98 @@
+{
+  "functional_group_shift_priors": {
+    "h1": {
+      "aliphatic": { "min": 0.6, "max": 2.2, "context": "CH3/CH2/CH sp3" },
+      "methoxy_functional": { "min": 2.2, "max": 4.5, "context": "O-CH, N-CH" },
+      "vinylic": { "min": 4.5, "max": 6.5, "context": "alkene" },
+      "aromatic": { "min": 6.3, "max": 8.8, "context": "aromatic H" },
+      "aldehyde": { "min": 9.3, "max": 10.5, "context": "CHO" },
+      "acid_phenol_exchangeable": { "min": 10.5, "max": 13.8, "context": "COOH, OH broad" },
+      "benzylic_ch": { "min": 2.2, "max": 3.2, "context": "Ar-CH2/CH" },
+      "alpha_to_carbonyl": { "min": 2.0, "max": 2.8, "context": "H alpha to C=O" },
+      "amide_nh_exchangeable": { "min": 5.0, "max": 9.5, "context": "NH amide, exchangeable" },
+      "phenolic_oh": { "min": 8.5, "max": 12.5, "context": "Ar-OH broad" },
+      "anomeric_o_ch": { "min": 4.5, "max": 5.8, "context": "O-CH anomeric" }
+    },
+    "c13": {
+      "aliphatic": { "min": 0, "max": 55, "context": "sp3 C" },
+      "oxygenated_sp3": { "min": 50, "max": 90, "context": "C-O, C-N" },
+      "olefinic_aromatic": { "min": 100, "max": 160, "context": "sp2 C" },
+      "carbonyl_ester_amide": { "min": 160, "max": 185, "context": "C=O" },
+      "carbonyl_ketone_aldehyde": { "min": 190, "max": 220, "context": "C=O" },
+      "nitrile": { "min": 115, "max": 125, "context": "C≡N" },
+      "aromatic_quaternary": { "min": 125, "max": 155, "context": "Ar Cq" },
+      "acetal_anomeric": { "min": 95, "max": 110, "context": "O-CH-O" },
+      "alkyne_sp": { "min": 65, "max": 95, "context": "C≡C" },
+      "carbonyl_acid": { "min": 170, "max": 182, "context": "COOH" },
+      "carbonyl_amide": { "min": 165, "max": 175, "context": "CONH" }
+    }
+  },
+  "J_coupling_priors": {
+    "vicinal_aliphatic": { "min": 6, "max": 9, "unit": "Hz", "note": "3JHH typical" },
+    "trans_alkene": { "min": 12, "max": 18, "unit": "Hz", "note": "trans vinyl" },
+    "cis_alkene": { "min": 6, "max": 12, "unit": "Hz", "note": "cis vinyl" },
+    "aromatic_ortho": { "min": 6, "max": 9, "unit": "Hz", "note": "ortho" },
+    "aromatic_meta": { "min": 1, "max": 3, "unit": "Hz", "note": "meta" },
+    "geminal": { "min": 0, "max": 20, "unit": "Hz", "note": "2JHH variable" },
+    "allylic_3J": { "min": 4, "max": 7, "unit": "Hz", "note": "allylic 3J" },
+    "long_range_4J_aromatic": { "min": 0, "max": 2, "unit": "Hz", "note": "meta/para aromatic" },
+    "vinyl_geminal": { "min": 0, "max": 3, "unit": "Hz", "note": "vinyl 2J" },
+    "axial_axial_cyclohexane": { "min": 8, "max": 13, "unit": "Hz", "note": "cyclohexane aa" },
+    "axial_equatorial_cyclohexane": { "min": 2, "max": 6, "unit": "Hz", "note": "cyclohexane ae" }
+  },
+  "IR_band_priors": {
+    "OH_Hbonded": { "min": 3200, "max": 3550, "intensity": "broad", "assign": "O-H (H-bonded)" },
+    "CO_ketone": { "min": 1705, "max": 1725, "intensity": "strong", "assign": "C=O (Ketone)" },
+    "CN_nitrile": { "min": 2210, "max": 2260, "intensity": "medium", "assign": "C≡N (Nitrile)" },
+    "CC_aromatic": { "min": 1450, "max": 1600, "intensity": "medium_multiple", "assign": "Ar C=C (Ring)" },
+    "CH_aliphatic": { "min": 2850, "max": 2960, "intensity": "strong", "assign": "C-H (Aliphatic)" },
+    "NO2_nitro": { "min": 1500, "max": 1550, "intensity": "strong", "assign": "N-O (Nitro Asym)" },
+    "SO_sulfoxide": { "min": 1030, "max": 1070, "intensity": "strong", "assign": "S=O (Sulfoxide)" },
+    "CO_ester": { "min": 1735, "max": 1750, "intensity": "strong", "assign": "C=O (Ester)" },
+    "CO_amide": { "min": 1630, "max": 1690, "intensity": "strong", "assign": "C=O (Amide)" },
+    "CO_acid": { "min": 1700, "max": 1725, "intensity": "strong", "assign": "C=O (Acid); broad OH 2500-3300" },
+    "NH_stretch": { "min": 3300, "max": 3500, "intensity": "medium", "assign": "N-H stretch" },
+    "CCl_stretch": { "min": 600, "max": 800, "intensity": "medium", "assign": "C-Cl" }
+  },
+  "MS_adduct_rules": {
+    "positive": [
+      { "label": "[M+H]+", "massDelta": 1.007276, "name": "Protonation" },
+      { "label": "[M+Na]+", "massDelta": 22.989222, "name": "Sodium Adduct" },
+      { "label": "[M+K]+", "massDelta": 38.963158, "name": "Potassium Adduct" },
+      { "label": "[M+NH4]+", "massDelta": 18.033823, "name": "Ammonium Adduct" },
+      { "label": "[M+ACN+H]+", "massDelta": 42.033823, "name": "Acetonitrile Adduct" },
+      { "label": "[2M+H]+", "massDelta": 0, "name": "Dimer (2*M+1)" }
+    ],
+    "negative": [
+      { "label": "[M-H]-", "massDelta": -1.007276, "name": "Deprotonation" },
+      { "label": "[M+HCOO]-", "massDelta": 44.998201, "name": "Formate Adduct" },
+      { "label": "[M+Cl]-", "massDelta": 34.969402, "name": "Chloride Adduct" },
+      { "label": "[M+CH3COO]-", "massDelta": 59.013851, "name": "Acetate Adduct" }
+    ]
+  },
+  "solvent_impurity_catalog": [
+    { "name": "CDCl3", "ppm_1h": 7.26, "pattern": "singlet", "note": "residual CHCl3" },
+    { "name": "DMSO-d6", "ppm_1h": 2.5, "pattern": "multiplet", "note": "residual DMSO" },
+    { "name": "acetone-d6", "ppm_1h": 2.05, "pattern": "singlet", "note": "residual acetone" },
+    { "name": "CD3OD", "ppm_1h": 3.31, "pattern": "multiplet", "note": "residual MeOD" },
+    { "name": "water", "ppm_1h": 1.56, "note": "D2O exchange; 4.7-4.8 H2O" },
+    { "name": "TMS", "ppm_1h": 0, "pattern": "singlet", "note": "reference" },
+    { "name": "DMF-d7", "ppm_1h": 2.9, "pattern": "multiplet", "note": "residual DMF" },
+    { "name": "THF-d8", "ppm_1h": 1.7, "pattern": "multiplet", "note": "residual THF" },
+    { "name": "EtOAc", "ppm_1h": 2.0, "pattern": "singlet", "note": "ethyl acetate impurity" },
+    { "name": "hexane", "ppm_1h": 1.2, "pattern": "multiplet", "note": "aliphatic impurity" },
+    { "name": "DCM", "ppm_1h": 5.3, "pattern": "multiplet", "note": "CH2Cl2 residual" },
+    { "name": "benzene-d6", "ppm_1h": 7.16, "pattern": "singlet", "note": "residual C6H6" },
+    { "name": "pyridine-d5", "ppm_1h": 7.2, "pattern": "multiplet", "note": "residual pyridine" },
+    { "name": "acetonitrile-d3", "ppm_1h": 1.94, "pattern": "singlet", "note": "residual MeCN" }
+  ],
+  "isotope_rules": {
+    "Cl": { "M2_ratio_min": 0.31, "M2_ratio_max": 0.34, "per_atom": true },
+    "Br": { "M2_ratio_min": 0.97, "M2_ratio_max": 1.01, "per_atom": true },
+    "I": { "M2_ratio_min": 0, "M2_ratio_max": 0.02, "per_atom": true, "note": "M+2 weak; characteristic frag" },
+    "S": { "M2_ratio_min": 0.04, "M2_ratio_max": 0.045, "per_atom": true },
+    "Si": { "M2_ratio_min": 0.05, "M2_ratio_max": 0.06, "per_atom": true, "note": "TMS/Si" },
+    "B": { "M2_ratio_min": 0.2, "M2_ratio_max": 0.25, "per_atom": true },
+    "multi_halogen": { "note": "Cl2/Br2: M+2/M+4 compound rule" }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spectromind.local/schemas/orchestrator_output_schema_v1.json",
+  "title": "OrchestratorOutputV1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "task_class",
+    "active_subagent_set",
+    "coverage_gaps",
+    "quality_risks",
+    "decisions",
+    "final_quality_verdict",
+    "acceptance_status"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "task_class": { "type": "string", "minLength": 3 },
+    "active_subagent_set": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "prompt_reinforcement": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "coverage_gaps": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "quality_risks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["category", "action"],
+        "properties": {
+          "category": { "type": "string" },
+          "action": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "final_quality_verdict": {
+      "type": "string",
+      "enum": ["STRONG", "PARTIAL", "REWORK"]
+    },
+    "acceptance_status": {
+      "type": "string",
+      "enum": ["PASS", "FAIL"]
+    }
+  }
+}

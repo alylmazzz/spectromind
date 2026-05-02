@@ -1,0 +1,196 @@
+<mxfile host="65bd71144e">
+    <diagram name="SpectroMind Architecture" id="system-architecture">
+        <mxGraphModel dx="1465" dy="883" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="2400" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="header" value="SpectroMind - NMR Spektroskopi Analiz Sistemi&#xa;Detaylı Sistem Mimarisi ve Kimyasal Yöntemler" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="400" y="20" width="800" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="frontend-layer" value="FRONTEND LAYER (React/Next.js)" style="swimlane;html=1;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="40" y="100" width="1520" height="430" as="geometry"/>
+                </mxCell>
+                <mxCell id="page-component" value="app/page.tsx (176 satır)&#xa;Main Component" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1" parent="frontend-layer" vertex="1">
+                    <mxGeometry x="20" y="60" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="page-state" value="State Management:&#xa;• peaks: NMRPeak[]&#xa;• ftirPeaks: FTIRPeak[]&#xa;• spectrumType: &#39;nmr&#39;|&#39;ftir&#39;&#xa;• solvent: string&#xa;• frequency: number&#xa;• formula: string" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=10" parent="frontend-layer" vertex="1">
+                    <mxGeometry x="20" y="150" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sidebar" value="components/sidebar/Sidebar.tsx&#xa;Kullanıcı Girişi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1" parent="frontend-layer" vertex="1">
+                    <mxGeometry x="260" y="60" width="180" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="sidebar-inputs" value="Peak Girişi:&#xa;• Chemical Shift (δ ppm)&#xa;• Integration (H sayısı)&#xa;• Multiplicity (s,d,t,q,m)&#xa;&#xa;Deney Koşulları:&#xa;• Solvent (DMSO, CDCl3, D2O)&#xa;• Frequency (300-600 MHz)&#xa;• Temperature (RT)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=9" parent="frontend-layer" vertex="1">
+                    <mxGeometry x="260" y="130" width="180" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="bulkinput" value="components/sidebar/BulkInput.tsx&#xa;PubChem Entegrasyonu" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1" parent="frontend-layer" vertex="1">
+                    <mxGeometry x="260" y="270" width="180" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="bulkinput-func" value="Fonksiyonlar:&#xa;• searchPubChem(query, type)&#xa;• loadFromPubChem(cid)&#xa;• Arama Tipleri: name, cid, formula" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=9" parent="frontend-layer" vertex="1">
+                    <mxGeometry x="260" y="340" width="180" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="charts" value="components/charts/&#xa;Spektrum Görselleştirme" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1" parent="frontend-layer" vertex="1">
+                    <mxGeometry x="480" y="60" width="180" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="nmr-chart" value="NMRChart.tsx&#xa;• Recharts LineChart&#xa;• Peak rendering&#xa;• Solvent peak markers&#xa;• Chemical shift axis (δ ppm)&#xa;• Integration curves" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=9" parent="frontend-layer" vertex="1">
+                    <mxGeometry x="480" y="130" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="ftir-chart" value="FTIRChart.tsx&#xa;• Recharts AreaChart&#xa;• Wavenumber axis (cm⁻¹)&#xa;• Transmittance (%)&#xa;• Peak width calculation&#xa;• Functional group markers" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=9" parent="frontend-layer" vertex="1">
+                    <mxGeometry x="480" y="220" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="analysis-display" value="components/analysis/&#xa;AnalysisResultDisplay.tsx&#xa;(144 satır)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1" parent="frontend-layer" vertex="1">
+                    <mxGeometry x="700" y="60" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="analysis-content" value="Görüntülenen Bilgiler:&#xa;• Molekül adı (Common + IUPAC)&#xa;• 2D yapı (PubChem PNG)&#xa;• Moleküler formül&#xa;• Güven skoru (%)&#xa;• Fonksiyonel gruplar&#xa;• AI&#39;nin yapısal analizi&#xa;• Tahmini FTIR pikleri&#xa;• Alternatif moleküller" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=9" parent="frontend-layer" vertex="1">
+                    <mxGeometry x="700" y="150" width="200" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="spectral-hook" value="lib/hooks/useSpectralAnalysis.ts&#xa;(634 satır) - Ana Analiz Logic" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1" parent="frontend-layer" vertex="1">
+                    <mxGeometry x="940" y="60" width="260" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="hook-functions" value="analyzeSpectrum() Adımları:&#xa;&#xa;1. Known Molecule Validation&#xa;   • localStorage kontrolü&#xa;   • Peak karşılaştırma (±0.3 ppm)&#xa;   • Mixture detection&#xa;&#xa;2. Library Search (Local)&#xa;   • 794 moleküllü kütüphane&#xa;   • Tolerance: ±0.15 ppm&#xa;   • Solvent correction&#xa;   • Frequency normalization&#xa;&#xa;3. PubChem Integration&#xa;   • searchPubChem()&#xa;   • NMR data extraction&#xa;&#xa;4. AI Analysis (Gemini/ChatGPT)&#xa;   • Structural elucidation&#xa;   • FTIR prediction&#xa;   • Confidence scoring&#xa;&#xa;5. Result Processing&#xa;   • Enhanced library update&#xa;   • localStorage caching" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=9" parent="frontend-layer" vertex="1">
+                    <mxGeometry x="940" y="150" width="260" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="services" value="lib/services/&#xa;Servis Katmanı" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad9d5;strokeColor=#ae4132;fontSize=11;fontStyle=1" parent="frontend-layer" vertex="1">
+                    <mxGeometry x="1240" y="60" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="services-list" value="MoleculeValidator.ts (196 satır)&#xa;• getKnownMolecule()&#xa;• validateKnownMolecule()&#xa;• detectMixture()&#xa;• comparePeaks()&#xa;&#xa;PubChemService.ts (158 satır)&#xa;• searchByName()&#xa;• searchByCID()&#xa;• getNMRData()&#xa;• parsePeakData()&#xa;&#xa;RDKitService.ts (163 satır)&#xa;• Python backend connection&#xa;• SMILES → Structure&#xa;• Substructure matching&#xa;• Aromaticity detection" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=9" parent="frontend-layer" vertex="1">
+                    <mxGeometry x="1240" y="130" width="240" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="backend-layer" value="BACKEND LAYER (Next.js API Routes + Python)" style="swimlane;html=1;startSize=40;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="40" y="540" width="1520" height="480" as="geometry"/>
+                </mxCell>
+                <mxCell id="pubchem-api" value="app/api/pubchem/route.ts&#xa;PubChem REST API Wrapper" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1" parent="backend-layer" vertex="1">
+                    <mxGeometry x="20" y="60" width="220" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="pubchem-endpoints" value="GET /api/pubchem&#xa;&#xa;Parameters:&#xa;• type: &#39;name&#39; | &#39;cid&#39; | &#39;formula&#39; | &#39;nmr&#39;&#xa;• query: search string&#xa;&#xa;Workflow (type=name):&#xa;1. Name → CID lookup&#xa;   REST: /pug/compound/name/{name}/cids/JSON&#xa;&#xa;2. Parallel NMR check (max 3 CIDs)&#xa;   REST: /pug_view/data/compound/{cid}/JSON&#xa;   Section: &#39;1D NMR Spectra&#39;&#xa;   Subsection: &#39;1H NMR Spectra&#39;&#xa;   Data: &#39;Shifts [ppm]:Intensity&#39;&#xa;&#xa;3. Molecule properties&#xa;   REST: /pug/compound/cid/{cid}/property/&#xa;         MolecularFormula,Title/JSON&#xa;&#xa;4. Enhanced library search&#xa;   • Local JSON file&#xa;   • Name/formula matching&#xa;&#xa;Response:&#xa;{ success, molecules[], total,&#xa;  searched, foundWithNMR }" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=8" parent="backend-layer" vertex="1">
+                    <mxGeometry x="20" y="150" width="220" height="300" as="geometry"/>
+                </mxCell>
+                <mxCell id="chatgpt-api" value="lib/api/openai.ts&#xa;OpenAI ChatGPT Integration" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1" parent="backend-layer" vertex="1">
+                    <mxGeometry x="540" y="60" width="220" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="chatgpt-func" value="fetchChatGPTAnalysis()&#xa;&#xa;Same input as Gemini&#xa;&#xa;Model: gpt-4o&#xa;Temperature: 0.3 (low for accuracy)&#xa;&#xa;Enhanced Features:&#xa;• Known molecule enforcement&#xa;• Mixture detection warnings&#xa;• FTIR IR correlation tables&#xa;• Functional group analysis&#xa;• Stereochemistry consideration&#xa;&#xa;JSON Response Parsing:&#xa;• Strict schema validation&#xa;• Fallback error handling&#xa;• Confidence normalization" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=8" parent="backend-layer" vertex="1">
+                    <mxGeometry x="540" y="150" width="220" height="300" as="geometry"/>
+                </mxCell>
+                <mxCell id="python-backend" value="backend/ (Python + RDKit)&#xa;Kimyasal Yapı İşleme" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;fontStyle=1" parent="backend-layer" vertex="1">
+                    <mxGeometry x="800" y="60" width="240" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="python-funcs" value="RDKit Fonksiyonları:&#xa;&#xa;1. elucidateStructure()&#xa;   • SMILES parsing&#xa;   • Mol object creation&#xa;   • 2D coordinate generation&#xa;&#xa;2. analyzeSubstructures()&#xa;   • Aromatic ring detection&#xa;   • Functional group recognition&#xa;   • Fragment analysis&#xa;&#xa;3. predictNMR()&#xa;   • Atom environment analysis&#xa;   • Chemical shift prediction&#xa;   • Coupling constant estimation&#xa;&#xa;4. predictFTIR()&#xa;   • Functional group → IR freq&#xa;   • Intensity estimation&#xa;   • Peak width calculation&#xa;&#xa;Libraries Used:&#xa;• rdkit (cheminformatics)&#xa;• numpy (numerical)&#xa;• flask (API server)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=8" parent="backend-layer" vertex="1">
+                    <mxGeometry x="800" y="150" width="240" height="300" as="geometry"/>
+                </mxCell>
+                <mxCell id="enhanced-lib" value="lib/utils/enhancedLibrary.ts&#xa;AI-Analyzed Molecule Cache" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1" parent="backend-layer" vertex="1">
+                    <mxGeometry x="1080" y="60" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="enhanced-funcs" value="Functions:&#xa;• searchEnhancedLibrary()&#xa;• addToEnhancedLibrary()&#xa;• loadEnhancedLibraryFromFile()&#xa;&#xa;Storage:&#xa;• Client: localStorage&#xa;• Server: JSON file&#xa;&#xa;Data Structure:&#xa;{&#xa;  version: &#39;2.0.0&#39;,&#xa;  molecules: {&#xa;    [name]: {&#xa;      usageCount: number,&#xa;      lastUsed: timestamp,&#xa;      analyses: [{&#xa;        timestamp,&#xa;        provider: &#39;gemini&#39;|&#39;chatgpt&#39;,&#xa;        peaks: NMRPeak[],&#xa;        conditions: {...},&#xa;        aiResult: AIAnalysisResult&#xa;      }]&#xa;    }&#xa;  }&#xa;}" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=8" parent="backend-layer" vertex="1">
+                    <mxGeometry x="1080" y="150" width="200" height="300" as="geometry"/>
+                </mxCell>
+                <mxCell id="library-search" value="lib/utils/librarySearch.ts&#xa;Local NMR Database" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1" parent="backend-layer" vertex="1">
+                    <mxGeometry x="1320" y="60" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="library-funcs" value="searchMoleculeLibrary()&#xa;&#xa;Algorithm:&#xa;1. Load library (794 molecules)&#xa;2. Get solvent-corrected peaks&#xa;3. For each molecule:&#xa;   • Match user peaks&#xa;   • Match library peaks&#xa;   • Calculate coverage&#xa;   • Score = weighted average&#xa;4. Filter by threshold (75%)&#xa;5. Sort by score DESC&#xa;&#xa;getPeaksForConditions()&#xa;• Solvent shift correction&#xa;• Frequency normalization&#xa;• Temperature compensation&#xa;&#xa;Tolerance: ±0.15 ppm&#xa;&#xa;Data Source:&#xa;• lib/data/moleculeLibrary.ts&#xa;• Categories: organic acids,&#xa;  alcohols, ketones, amines,&#xa;  aromatics, etc." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=8" parent="backend-layer" vertex="1">
+                    <mxGeometry x="1320" y="150" width="180" height="300" as="geometry"/>
+                </mxCell>
+                <mxCell id="chemistry-layer" value="KİMYASAL YÖNTEMLER VE TEORİ" style="swimlane;html=1;startSize=40;fillColor=#fad7ac;strokeColor=#b46504;fontSize=14;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="40" y="1060" width="1520" height="910" as="geometry"/>
+                </mxCell>
+                <mxCell id="nmr-theory" value="¹H NMR SPEKTROSKOPİSİ TEORİSİ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=12;fontStyle=1" parent="chemistry-layer" vertex="1">
+                    <mxGeometry x="20" y="60" width="340" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nmr-details" value="Kimyasal Kayma (δ, ppm):&#xa;• Elektronik çevre etkisi&#xa;• Shielding/Deshielding&#xa;• Referans: TMS (0 ppm)&#xa;&#xa;Karakteristik Bölgeler:&#xa;• 0-2 ppm: Alifatik C-H (alkil)&#xa;• 2-3 ppm: α-carbonyl, N-CH&#xa;• 3-4 ppm: O-CH (eter, alkol)&#xa;• 4-6 ppm: Vinylic, allyl&#xa;• 6-8 ppm: Aromatic H&#xa;• 9-10 ppm: Aldehyde H&#xa;• 10-13 ppm: Carboxylic acid H&#xa;&#xa;Multiplicity (Spin-Spin Coupling):&#xa;• Singlet (s): n=0 komşu&#xa;• Doublet (d): n=1&#xa;• Triplet (t): n=2&#xa;• Quartet (q): n=3&#xa;• Multiplet (m): karmaşık&#xa;• n+1 rule&#xa;&#xa;Integration:&#xa;• Peak alanı ∝ H sayısı&#xa;• Normalize edilir&#xa;&#xa;Coupling Constants (J, Hz):&#xa;• ³J(vicinal): 6-8 Hz&#xa;• ²J(geminal): 12-15 Hz&#xa;• ⁴J(long range): 0-3 Hz" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=9" parent="chemistry-layer" vertex="1">
+                    <mxGeometry x="20" y="110" width="340" height="330" as="geometry"/>
+                </mxCell>
+                <mxCell id="solvent-effects" value="SOLVENT (ÇÖZÜCÜ) ETKİLERİ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=12;fontStyle=1" parent="chemistry-layer" vertex="1">
+                    <mxGeometry x="20" y="450" width="340" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="solvent-details" value="Residual Solvent Peaks:&#xa;&#xa;DMSO-d₆:&#xa;• Residual: 2.50 ppm (quintet)&#xa;• Water: 3.33 ppm&#xa;&#xa;CDCl₃:&#xa;• Residual: 7.26 ppm (singlet)&#xa;• Water: 1.56 ppm&#xa;&#xa;D₂O:&#xa;• HDO: 4.79 ppm (variable)&#xa;• pH dependent&#xa;&#xa;Solvent Shift Effects:&#xa;• Aromatic solvent ring current&#xa;• H-bonding interactions&#xa;• Polarity effects&#xa;&#xa;Correction Algorithm:&#xa;δ_corrected = δ_obs + Δδ_solvent" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=9" parent="chemistry-layer" vertex="1">
+                    <mxGeometry x="20" y="500" width="340" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="ftir-theory" value="FTIR SPEKTROSKOPİSİ TEORİSİ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=12;fontStyle=1" parent="chemistry-layer" vertex="1">
+                    <mxGeometry x="400" y="60" width="340" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="ftir-details" value="Wavenumber (ν̃, cm⁻¹):&#xa;ν̃ = 1/λ = ν/c&#xa;&#xa;Fonksiyonel Grup Frekansları:&#xa;&#xa;O-H stretch:&#xa;• Alkol: 3200-3600 cm⁻¹ (broad)&#xa;• Carboxylic acid: 2500-3300 cm⁻¹ (very broad)&#xa;&#xa;N-H stretch:&#xa;• Primary amine: 3300-3500 cm⁻¹ (2 peaks)&#xa;• Secondary amine: 3300-3500 cm⁻¹ (1 peak)&#xa;• Amide: 3100-3500 cm⁻¹&#xa;&#xa;C-H stretch:&#xa;• Aliphatic: 2850-3000 cm⁻¹&#xa;• Aromatic: 3000-3100 cm⁻¹&#xa;• Aldehyde: 2720-2820 cm⁻¹ (2 peaks)&#xa;&#xa;C=O stretch:&#xa;• Ketone: 1705-1725 cm⁻¹ (strong)&#xa;• Aldehyde: 1720-1740 cm⁻¹&#xa;• Ester: 1735-1750 cm⁻¹&#xa;• Carboxylic acid: 1700-1725 cm⁻¹&#xa;• Amide (I): 1630-1690 cm⁻¹&#xa;&#xa;C=C stretch:&#xa;• Aromatic: 1450-1600 cm⁻¹ (multiple)&#xa;• Alkene: 1620-1680 cm⁻¹&#xa;&#xa;C-O stretch:&#xa;• Alcohol, ether, ester: 1000-1300 cm⁻¹&#xa;&#xa;Aromatic C-H bend:&#xa;• Out-of-plane: 650-900 cm⁻¹&#xa;• Substitution pattern indicator&#xa;&#xa;Fingerprint Region:&#xa;• 400-1500 cm⁻¹&#xa;• Molecule-specific" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=8" parent="chemistry-layer" vertex="1">
+                    <mxGeometry x="400" y="110" width="340" height="470" as="geometry"/>
+                </mxCell>
+                <mxCell id="structure-eluc" value="YAPI AYDINLATMA (STRUCTURE ELUCIDATION)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=12;fontStyle=1" parent="chemistry-layer" vertex="1">
+                    <mxGeometry x="780" y="60" width="360" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="eluc-steps" value="Sistematik Yaklaşım:&#xa;&#xa;1. Moleküler Formül Belirleme&#xa;   • Elemental analysis&#xa;   • Mass spectrometry&#xa;   • Degree of unsaturation:&#xa;     DBE = (2C + 2 + N - H - X)/2&#xa;&#xa;2. Fonksiyonel Grup Tespiti&#xa;   • FTIR karakteristik pikler&#xa;   • Diagnostic regions&#xa;&#xa;3. ¹H NMR Analizi&#xa;   • Peak sayısı → H tipleri&#xa;   • Integration → H sayıları&#xa;   • Multiplicity → komşuluk&#xa;   • Chemical shift → elektron çevre&#xa;&#xa;4. Parça Birleştirme&#xa;   • Substructure identification&#xa;   • Connectivity determination&#xa;   • COSY, HSQC data (if available)&#xa;&#xa;5. Yapı Doğrulama&#xa;   • Tüm NMR peaks explained?&#xa;   • FTIR consistent?&#xa;   • Stereochemistry?&#xa;   • Literature comparison&#xa;&#xa;AI-Assisted Method:&#xa;• Pattern recognition&#xa;• Database matching&#xa;• Probability scoring&#xa;• Alternative structures" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=9" parent="chemistry-layer" vertex="1">
+                    <mxGeometry x="780" y="110" width="360" height="400" as="geometry"/>
+                </mxCell>
+                <mxCell id="peak-matching" value="PEAK EŞLEŞTIRME ALGORİTMASI" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=12;fontStyle=1" parent="chemistry-layer" vertex="1">
+                    <mxGeometry x="780" y="520" width="360" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="matching-algo" value="Algorithm (librarySearch.ts):&#xa;&#xa;function matchPeaks(userPeaks, libPeaks, tolerance):&#xa;  matched_user = 0&#xa;  matched_lib = 0&#xa;  &#xa;  for each user_peak in userPeaks:&#xa;    if exists lib_peak where:&#xa;       |user_peak.shift - lib_peak.shift| ≤ tolerance&#xa;    then:&#xa;       matched_user++&#xa;  &#xa;  for each lib_peak in libPeaks:&#xa;    if exists user_peak where:&#xa;       |lib_peak.shift - user_peak.shift| ≤ tolerance&#xa;    then:&#xa;       matched_lib++&#xa;  &#xa;  coverage = (matched_user / userPeaks.length) * 0.6 +&#xa;             (matched_lib / libPeaks.length) * 0.4&#xa;  &#xa;  return coverage * 100  // percentage&#xa;&#xa;Tolerance: ±0.15 ppm (strict)&#xa;Threshold: 75% minimum match" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=8;fontFamily=Courier New;" parent="chemistry-layer" vertex="1">
+                    <mxGeometry x="780" y="580" width="360" height="330" as="geometry"/>
+                </mxCell>
+                <mxCell id="validation" value="DOĞRULAMA YÖNTEMLERİ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=12;fontStyle=1" parent="chemistry-layer" vertex="1">
+                    <mxGeometry x="1180" y="60" width="320" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="validation-methods" value="1. Spectroscopic Validation:&#xa;   • All peaks accounted for&#xa;   • Integration ratios correct&#xa;   • Coupling patterns consistent&#xa;   • Chemical shifts reasonable&#xa;&#xa;2. Structural Validation:&#xa;   • Molecular formula matches&#xa;   • Functional groups present&#xa;   • Stereochemistry possible&#xa;   • No forbidden structures&#xa;&#xa;3. Database Cross-Reference:&#xa;   • PubChem CID lookup&#xa;   • Literature NMR comparison&#xa;   • Known compound verification&#xa;&#xa;4. AI Confidence Scoring:&#xa;   • 90-100%: High confidence&#xa;   • 75-90%: Moderate confidence&#xa;   • 50-75%: Low confidence&#xa;   • &lt;50%: Unreliable&#xa;&#xa;5. Mixture Detection:&#xa;   • Extra peaks present?&#xa;   • Integration anomalies?&#xa;   • Multiple molecular sources?&#xa;&#xa;6. Known Molecule Enforcement:&#xa;   • localStorage cache&#xa;   • Force structure if &gt;95% match&#xa;   • Detailed peak assignment" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=9" parent="chemistry-layer" vertex="1">
+                    <mxGeometry x="1180" y="110" width="320" height="380" as="geometry"/>
+                </mxCell>
+                <mxCell id="error-handling" value="HATA YÖNETİMİ VE GÜVENİLİRLİK" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=12;fontStyle=1" parent="chemistry-layer" vertex="1">
+                    <mxGeometry x="1190" y="510" width="320" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="error-details" value="Common Issues:&#xa;&#xa;• Solvent peaks misidentified&#xa;  → Auto-detection and filtering&#xa;&#xa;• Integration errors&#xa;  → Normalize to smallest&#xa;&#xa;• Overlapping peaks&#xa;  → Deconvolution needed&#xa;&#xa;• Impurities present&#xa;  → Threshold filtering&#xa;&#xa;• AI hallucination&#xa;  → Multi-model consensus&#xa;  → Database validation&#xa;  → Confidence scoring&#xa;&#xa;• API failures&#xa;  → Retry logic&#xa;  → Fallback providers&#xa;  → Cached results" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontSize=9" parent="chemistry-layer" vertex="1">
+                    <mxGeometry x="1180" y="580" width="320" height="330" as="geometry"/>
+                </mxCell>
+                <mxCell id="dataflow-layer" value="VERİ AKIŞI DİYAGRAMI" style="swimlane;html=1;startSize=40;fillColor=#d0cee2;strokeColor=#56517e;fontSize=14;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="30" y="2010" width="1520" height="570" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow-1" value="1. User Input&#xa;Peaks + Conditions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="dataflow-layer" vertex="1">
+                    <mxGeometry x="75" y="130" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow-2" value="2. Validation&#xa;Format check&#xa;Range check" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="dataflow-layer" vertex="1">
+                    <mxGeometry x="255" y="130" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow-3" value="3. Known Mol?&#xa;localStorage" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="dataflow-layer" vertex="1">
+                    <mxGeometry x="440" y="120" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow-4" value="4. Library Search&#xa;794 molecules&#xa;±0.15 ppm" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="dataflow-layer" vertex="1">
+                    <mxGeometry x="605" y="130" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow-5" value="5. High Match?&#xa;&gt;95%" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="dataflow-layer" vertex="1">
+                    <mxGeometry x="790" y="120" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow-6" value="6. PubChem&#xa;Lookup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="dataflow-layer" vertex="1">
+                    <mxGeometry x="955" y="130" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow-7" value="7. AI Analysis&#xa;Gemini/ChatGPT&#xa;Structure + FTIR" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="dataflow-layer" vertex="1">
+                    <mxGeometry x="1140" y="130" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow-8" value="8. Result Display&#xa;Molecule + Analysis" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="dataflow-layer" vertex="1">
+                    <mxGeometry x="1325" y="130" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow-9" value="9. Cache&#xa;Enhanced Library&#xa;localStorage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad9d5;strokeColor=#ae4132;" parent="dataflow-layer" vertex="1">
+                    <mxGeometry x="1140" y="250" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow-1-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;" parent="dataflow-layer" source="flow-1" target="flow-2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow-2-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="dataflow-layer" source="flow-2" target="flow-3" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow-3-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="dataflow-layer" source="flow-3" target="flow-4" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow-4-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="dataflow-layer" source="flow-4" target="flow-5" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow-5-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;" parent="dataflow-layer" source="flow-5" target="flow-6" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow-6-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="dataflow-layer" source="flow-6" target="flow-7" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow-7-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="dataflow-layer" source="flow-7" target="flow-8" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow-7-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;" parent="dataflow-layer" source="flow-7" target="flow-9" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="footer" value="SpectroMind v2.0 - NMR/FTIR Analiz Sistemi&#xa;Refactored Architecture: 888 → 176 lines (page.tsx)&#xa;Total System: Frontend (React) + Backend (Next.js API) + Python (RDKit) + AI (Gemini/ChatGPT)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=2" parent="dataflow-layer" vertex="1">
+                    <mxGeometry x="395" y="390" width="800" height="60" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

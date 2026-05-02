@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "task_classes": {
+    "authority_parity_verdict_governance": {
+      "primary": "spectromind-subagent-orchestrator",
+      "secondary": [
+        "spectromind-regression-guardian",
+        "spectrotester-rule-engine-architect"
+      ],
+      "fallback": [
+        "spectromind-chart-parity-architect",
+        "spectromind-fid-processing-lead",
+        "spectromind-cheminformatics-auditor"
+      ]
+    },
+    "chart_domain_parity": {
+      "primary": "spectromind-chart-parity-architect",
+      "secondary": [
+        "spectromind-subagent-orchestrator"
+      ],
+      "fallback": [
+        "spectromind-regression-guardian"
+      ]
+    },
+    "rule_engine_drift": {
+      "primary": "spectrotester-rule-engine-architect",
+      "secondary": [
+        "spectromind-subagent-orchestrator",
+        "spectromind-regression-guardian"
+      ],
+      "fallback": [
+        "spectromind-cheminformatics-auditor"
+      ]
+    }
+  }
+}

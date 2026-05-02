@@ -1,0 +1,9 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Disallow private API routes
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://spectromind.app/sitemap.xml

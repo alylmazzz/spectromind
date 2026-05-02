@@ -1,0 +1,11 @@
+# Python virtual environment
+venv_rdkit/
+
+# Local development
+.env.local
+
+# Build artifacts
+.next/
+
+# Node modules (already in .gitignore but adding for safety)
+node_modules/

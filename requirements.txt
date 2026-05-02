@@ -1,0 +1,14 @@
+# Python Dependencies for Spectromind
+# Install: pip install -r requirements.txt
+
+# RDKit - Chemistry Toolkit
+rdkit-pypi>=2022.9.1
+
+# NMR Processing
+nmrglue>=0.9
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Alternative installation methods:
+# Method 1 (recommended): pip install rdkit-pypi
+# Method 2 (conda): conda install -c conda-forge rdkit

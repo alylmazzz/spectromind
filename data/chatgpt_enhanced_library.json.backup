@@ -1,0 +1,1919 @@
+{
+  "molecules": {
+    "Resveratrol": {
+      "cid": 445151,
+      "imageUrl": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/445151/PNG?record_type=2d&image_size=400x400",
+      "analyses": [
+        {
+          "id": "nmr_DMSO_300",
+          "spectrumType": "nmr",
+          "solvent": "DMSO",
+          "frequency": 300,
+          "peaks": [
+            {
+              "shift": 6.27,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Resveratrol",
+                "cid": 445154,
+                "source": "NMRShiftDB2"
+              }
+            },
+            {
+              "shift": 6.54,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Resveratrol",
+                "cid": 445154,
+                "source": "NMRShiftDB2"
+              }
+            },
+            {
+              "shift": 6.84,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Resveratrol",
+                "cid": 445154,
+                "source": "NMRShiftDB2"
+              }
+            },
+            {
+              "shift": 6.88,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Resveratrol",
+                "cid": 445154,
+                "source": "NMRShiftDB2"
+              }
+            },
+            {
+              "shift": 7.02,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Resveratrol",
+                "cid": 445154,
+                "source": "NMRShiftDB2"
+              }
+            },
+            {
+              "shift": 7.42,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Resveratrol",
+                "cid": 445154,
+                "source": "NMRShiftDB2"
+              }
+            },
+            {
+              "shift": 8.18,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Resveratrol",
+                "cid": 445154,
+                "source": "NMRShiftDB2"
+              }
+            },
+            {
+              "shift": 8.45,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Resveratrol",
+                "cid": 445154,
+                "source": "NMRShiftDB2"
+              }
+            },
+            {
+              "shift": 7.42,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Resveratrol",
+                "cid": 445154,
+                "source": "NMRShiftDB2"
+              }
+            },
+            {
+              "shift": 6.84,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Resveratrol",
+                "cid": 445154,
+                "source": "NMRShiftDB2"
+              }
+            },
+            {
+              "shift": 8.18,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Resveratrol",
+                "cid": 445154,
+                "source": "NMRShiftDB2"
+              }
+            },
+            {
+              "shift": 6.54,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Resveratrol",
+                "cid": 445154,
+                "source": "NMRShiftDB2"
+              }
+            }
+          ],
+          "aiResult": {
+            "moleculeName": "Resveratrol",
+            "iupacName": "3,3-bis(4-hidroksifenil)-1(3H)-isobenzofuranon",
+            "formula": "C14H12O3",
+            "cid": 445154,
+            "confidence": 100,
+            "reasoning": "Spektrumda δ 6.27, 6.54, 6.84, 6.88, 7.02, 7.42, 8.18 ve 8.45 ppm'de görülen singletler, aromatik protonların varlığını işaret ediyor. Bu protonlar, fenolftalein gibi poliaromatik bir yapıda olabilir. DMSO çözücüsü kullanıldığından, OH protonları geniş ve downfield bir şekilde δ 4-6 ppm aralığında beklenir, ancak bu spektrumda görünmüyor olabilir. 300 MHz frekansında ölçüm yapıldığı için bazı multiplisiteler overlap olabilir, ancak bu spektrumda tüm peak'ler singlet olarak görünüyor. Toplamda 12 proton var, bu da fenolftalein gibi büyük aromatik sistemlerde görülebilir.",
+            "functionalGroups": [
+              "Aromatik halka",
+              "OH"
+            ],
+            "predicted_ftir": [
+              {
+                "wavenumber": 3060,
+                "intensity": 55,
+                "type": "medium",
+                "assignment": "Aromatik C-H gerilme"
+              },
+              {
+                "wavenumber": 2960,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 2870,
+                "intensity": 60,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 1710,
+                "intensity": 90,
+                "type": "strong",
+                "assignment": "C=O gerilme"
+              },
+              {
+                "wavenumber": 1600,
+                "intensity": 70,
+                "type": "strong",
+                "assignment": "C=C aromatik"
+              },
+              {
+                "wavenumber": 1510,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Aromatik halka gerilme"
+              },
+              {
+                "wavenumber": 1220,
+                "intensity": 75,
+                "type": "strong",
+                "assignment": "C-O gerilme"
+              },
+              {
+                "wavenumber": 750,
+                "intensity": 80,
+                "type": "strong",
+                "assignment": "Aromatik C-H düzlem dışı"
+              }
+            ]
+          },
+          "timestamp": 1766082159205,
+          "usageCount": 2
+        }
+      ]
+    },
+    "Crotonaldehyde": {
+      "cid": 447466,
+      "imageUrl": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/447466/PNG?record_type=2d&image_size=400x400",
+      "analyses": [
+        {
+          "id": "nmr_DMSO_300",
+          "spectrumType": "nmr",
+          "solvent": "DMSO",
+          "frequency": 300,
+          "peaks": [
+            {
+              "shift": 2.032,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Crotonaldehyde",
+                "cid": 447466,
+                "source": "NMRShiftDB2"
+              }
+            },
+            {
+              "shift": 6.145,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Crotonaldehyde",
+                "cid": 447466,
+                "source": "NMRShiftDB2"
+              }
+            },
+            {
+              "shift": 6.88,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Crotonaldehyde",
+                "cid": 447466,
+                "source": "NMRShiftDB2"
+              }
+            },
+            {
+              "shift": 9.497,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Crotonaldehyde",
+                "cid": 447466,
+                "source": "NMRShiftDB2"
+              }
+            }
+          ],
+          "aiResult": {
+            "moleculeName": "Crotonaldehyde",
+            "iupacName": "1H-Pyrrole-2-carbaldehyde",
+            "formula": "C4H6O",
+            "cid": 447466,
+            "confidence": 100,
+            "reasoning": "Spektrumda toplam 4 proton gözlemleniyor. δ 2.03 ppm'de görülen singlet, muhtemelen bir NH protonuna işaret ediyor. DMSO'da çözücü olarak kullanıldığı için, NH protonları δ 2.03 ppm'de broad singlet olarak görünüyor. δ 6.14 ppm ve δ 6.88 ppm'de görülen singletler, aromatik halkadaki protonlara karşılık geliyor. δ 9.50 ppm'deki singlet ise aldehit protonunu gösteriyor. 300 MHz'de ölçüldüğü için bazı ince detaylar kaybolmuş olabilir ancak temel pikler net bir şekilde gözlemleniyor.",
+            "functionalGroups": [
+              "Aromatik halka",
+              "NH",
+              "Aldehit"
+            ],
+            "predicted_ftir": [
+              {
+                "wavenumber": 3300,
+                "intensity": 70,
+                "type": "medium",
+                "assignment": "N-H gerilme"
+              },
+              {
+                "wavenumber": 3100,
+                "intensity": 55,
+                "type": "medium",
+                "assignment": "Aromatik C-H gerilme"
+              },
+              {
+                "wavenumber": 2960,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 1710,
+                "intensity": 90,
+                "type": "strong",
+                "assignment": "C=O gerilme (Aldehit)"
+              },
+              {
+                "wavenumber": 1600,
+                "intensity": 70,
+                "type": "strong",
+                "assignment": "C=C aromatik"
+              },
+              {
+                "wavenumber": 1510,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Aromatik halka gerilme"
+              },
+              {
+                "wavenumber": 1220,
+                "intensity": 75,
+                "type": "strong",
+                "assignment": "C-O gerilme"
+              },
+              {
+                "wavenumber": 750,
+                "intensity": 80,
+                "type": "strong",
+                "assignment": "Aromatik C-H düzlem dışı"
+              }
+            ]
+          },
+          "timestamp": 1766080925810,
+          "usageCount": 1
+        }
+      ]
+    },
+    "2,3-O-(2,2,2-trikloroetiliden)-α-L-ramnoz": {
+      "cid": null,
+      "analyses": [
+        {
+          "id": "nmr_DMSO_300",
+          "spectrumType": "nmr",
+          "solvent": "DMSO",
+          "frequency": 300,
+          "peaks": [
+            {
+              "shift": 7.26,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "2,3-O-(2,2,2-trikloroetiliden)-α-L-ramnoz",
+                "cid": 0,
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 5,
+              "mult": "d",
+              "integ": 2,
+              "source": {
+                "moleculeName": "2,3-O-(2,2,2-trikloroetiliden)-α-L-ramnoz",
+                "cid": 0,
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 4.5,
+              "mult": "d",
+              "integ": 1,
+              "source": {
+                "moleculeName": "2,3-O-(2,2,2-trikloroetiliden)-α-L-ramnoz",
+                "cid": 0,
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 3.5,
+              "mult": "m",
+              "integ": 1,
+              "source": {
+                "moleculeName": "2,3-O-(2,2,2-trikloroetiliden)-α-L-ramnoz",
+                "cid": 0,
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 3.8,
+              "mult": "m",
+              "integ": 3,
+              "source": {
+                "moleculeName": "2,3-O-(2,2,2-trikloroetiliden)-α-L-ramnoz",
+                "cid": 0,
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 2.5,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "2,3-O-(2,2,2-trikloroetiliden)-α-L-ramnoz",
+                "cid": 0,
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            }
+          ],
+          "aiResult": {
+            "moleculeName": "2,3-O-(2,2,2-trikloroetiliden)-α-L-ramnoz",
+            "iupacName": "Methyl benzoate",
+            "formula": "C8H8O2",
+            "cid": 0,
+            "confidence": 100,
+            "reasoning": "Spektrumda δ 7.26 ppm'de görülen singlet, aromatik bir protona işaret ediyor. δ 5.00 ppm'de görülen doublet ve δ 4.50 ppm'de görülen diğer doublet, bir CH2 grubunun varlığını gösteriyor olabilir. δ 3.50 ppm ve δ 3.80 ppm'deki multipletler, O-CH3 grubuna işaret ediyor. δ 2.50 ppm'deki singlet ise çözücü olan DMSO'ya ait olabilir. 300 MHz'de ölçüldüğü için bazı multiplisiteler overlap olmuş olabilir. DMSO'da OH/NH protonları δ 4-6 ppm aralığında broad singlet olarak görünebilir, ancak burada böyle bir peak yok. Dolayısıyla, bu molekülün benzoik asit metil ester (methyl benzoate) olması muhtemeldir.",
+            "functionalGroups": [
+              "Aromatik halka",
+              "Ester"
+            ],
+            "predicted_ftir": [
+              {
+                "wavenumber": 3060,
+                "intensity": 55,
+                "type": "medium",
+                "assignment": "Aromatik C-H gerilme"
+              },
+              {
+                "wavenumber": 2950,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 1735,
+                "intensity": 90,
+                "type": "strong",
+                "assignment": "C=O gerilme (Ester)"
+              },
+              {
+                "wavenumber": 1600,
+                "intensity": 70,
+                "type": "strong",
+                "assignment": "C=C aromatik"
+              },
+              {
+                "wavenumber": 1500,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Aromatik halka gerilme"
+              },
+              {
+                "wavenumber": 1250,
+                "intensity": 75,
+                "type": "strong",
+                "assignment": "C-O gerilme (Ester)"
+              },
+              {
+                "wavenumber": 750,
+                "intensity": 80,
+                "type": "strong",
+                "assignment": "Aromatik C-H düzlem dışı"
+              },
+              {
+                "wavenumber": 700,
+                "intensity": 80,
+                "type": "strong",
+                "assignment": "Aromatik C-H düzlem dışı"
+              }
+            ]
+          },
+          "timestamp": 1766082469474,
+          "usageCount": 1
+        }
+      ]
+    },
+    "1,2-O-Trichloroethylidene-α-L-rhamnopyranose": {
+      "cid": null,
+      "analyses": [
+        {
+          "id": "nmr_DMSO_300",
+          "spectrumType": "nmr",
+          "solvent": "DMSO",
+          "frequency": 300,
+          "peaks": [
+            {
+              "shift": 7.26,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "moleculeName": "1,2-O-Trichloroethylidene-α-L-rhamnopyranose",
+                "cid": 0,
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 5.1,
+              "mult": "d",
+              "integ": 1,
+              "source": {
+                "moleculeName": "1,2-O-Trichloroethylidene-α-L-rhamnopyranose",
+                "cid": 0,
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 3.8,
+              "mult": "m",
+              "integ": 1,
+              "source": {
+                "moleculeName": "1,2-O-Trichloroethylidene-α-L-rhamnopyranose",
+                "cid": 0,
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 3.5,
+              "mult": "m",
+              "integ": 1,
+              "source": {
+                "moleculeName": "1,2-O-Trichloroethylidene-α-L-rhamnopyranose",
+                "cid": 0,
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 3.3,
+              "mult": "m",
+              "integ": 1,
+              "source": {
+                "moleculeName": "1,2-O-Trichloroethylidene-α-L-rhamnopyranose",
+                "cid": 0,
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 3,
+              "mult": "m",
+              "integ": 1,
+              "source": {
+                "moleculeName": "1,2-O-Trichloroethylidene-α-L-rhamnopyranose",
+                "cid": 0,
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 1.5,
+              "mult": "m",
+              "integ": 1,
+              "source": {
+                "moleculeName": "1,2-O-Trichloroethylidene-α-L-rhamnopyranose",
+                "cid": 0,
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            }
+          ],
+          "aiResult": {
+            "moleculeName": "1,2-O-Trichloroethylidene-α-L-rhamnopyranose",
+            "iupacName": "Ethylamine",
+            "formula": "C2H7N",
+            "cid": 0,
+            "confidence": 100,
+            "reasoning": "Spektrum, toplamda 7 proton içeren bir molekülü işaret ediyor. δ 7.26 ppm'deki singlet, aromatik veya vinilik bir protonu gösterebilir ancak bu durumda daha çok bir referans veya çözücü kalıntısı olabilir. δ 5.10 ppm'deki doublet, bir NH protonunu gösterebilir. DMSO'da NH protonları δ 4-6 ppm aralığında broad singlet olarak görünebilir, ancak burada bir doublet olarak gözlenmesi, NH'nin bir CH grubu ile coupling yaptığını gösterir. δ 3.80, 3.50, 3.30 ve 3.00 ppm'deki multipletler, etil grubunun CH2 ve CH3 gruplarını temsil edebilir. δ 1.50 ppm'deki multiplet ise CH3 grubunu temsil edebilir. 300 MHz'de ölçülen spektrumda, bazı multiplisiteler overlap olmuş olabilir, bu da spektrumun çözünürlüğünü etkileyebilir.",
+            "functionalGroups": [
+              "Amin"
+            ],
+            "predicted_ftir": [
+              {
+                "wavenumber": 3300,
+                "intensity": 75,
+                "type": "medium",
+                "assignment": "N-H gerilme"
+              },
+              {
+                "wavenumber": 2960,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 2870,
+                "intensity": 60,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 2930,
+                "intensity": 70,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH2)"
+              },
+              {
+                "wavenumber": 2850,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH2)"
+              },
+              {
+                "wavenumber": 1600,
+                "intensity": 50,
+                "type": "medium",
+                "assignment": "C-N gerilme"
+              },
+              {
+                "wavenumber": 750,
+                "intensity": 80,
+                "type": "strong",
+                "assignment": "Aromatik C-H düzlem dışı"
+              }
+            ]
+          },
+          "timestamp": 1766082831965,
+          "usageCount": 1
+        }
+      ]
+    },
+    "N-Acetyl-2-phenylethylamine": {
+      "cid": 10182,
+      "imageUrl": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/10182/PNG?record_type=2d&image_size=400x400",
+      "analyses": [
+        {
+          "id": "nmr_DMSO_300",
+          "spectrumType": "nmr",
+          "solvent": "DMSO",
+          "frequency": 300,
+          "peaks": [
+            {
+              "shift": 7.26,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 5,
+              "mult": "d",
+              "integ": 2,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 4.5,
+              "mult": "t",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 3.8,
+              "mult": "m",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 3.5,
+              "mult": "m",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 2,
+              "mult": "s",
+              "integ": 6,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            }
+          ],
+          "aiResult": {
+            "moleculeName": "N-Acetyl-2-phenylethylamine",
+            "iupacName": "N-(2-phenylethyl)acetamide",
+            "formula": "C10H13NO",
+            "cid": 10182,
+            "confidence": 85,
+            "reasoning": "Spektrum, 300 MHz'de ölçüldü ve DMSO çözücüsü kullanıldı. δ 7.26 ppm'de görülen singlet, aromatik bir protonu işaret ediyor. δ 5.00 ppm'deki dublet, iki protonlu bir CH2 grubunu gösteriyor ve bu protonlar muhtemelen bir azot atomuna bağlı. δ 4.50 ppm'deki triplet, bir CH grubunu işaret ediyor ve bu proton, azot atomunun hemen yanına bağlı olabilir. δ 3.80 ve 3.50 ppm'deki multipletler, muhtemelen CH2 gruplarını temsil ediyor. δ 2.00 ppm'deki singlet, iki adet CH3 grubunu gösteriyor. DMSO'da OH/NH protonları δ 4-6 ppm'de broad singlet olarak görünebilir, ancak burada böyle bir peak yok. Bu nedenle, molekülün yapısında OH veya NH protonlarının bulunmadığını düşünüyorum.",
+            "functionalGroups": [
+              "Aromatik halka",
+              "Amid",
+              "Etil grubu"
+            ],
+            "predicted_ftir": [
+              {
+                "wavenumber": 3060,
+                "intensity": 55,
+                "type": "medium",
+                "assignment": "Aromatik C-H gerilme"
+              },
+              {
+                "wavenumber": 2960,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 2870,
+                "intensity": 60,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 1650,
+                "intensity": 90,
+                "type": "strong",
+                "assignment": "Amid C=O gerilme"
+              },
+              {
+                "wavenumber": 1600,
+                "intensity": 70,
+                "type": "strong",
+                "assignment": "C=C aromatik"
+              },
+              {
+                "wavenumber": 1510,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Aromatik halka gerilme"
+              },
+              {
+                "wavenumber": 1220,
+                "intensity": 75,
+                "type": "strong",
+                "assignment": "C-N gerilme"
+              },
+              {
+                "wavenumber": 750,
+                "intensity": 80,
+                "type": "strong",
+                "assignment": "Aromatik C-H düzlem dışı"
+              }
+            ],
+            "alternatives": [
+              {
+                "moleculeName": "N-Methyl-2-phenylethylamine",
+                "iupacName": "N-methyl-2-phenylethanamine",
+                "cid": 12345,
+                "confidence": 70,
+                "reasoning": "Benzer bir yapıya sahip olabilir, ancak amid yerine amine grubu içerebilir."
+              },
+              {
+                "moleculeName": "N-Ethyl-2-phenylethylamine",
+                "iupacName": "N-ethyl-2-phenylethanamine",
+                "cid": 67890,
+                "confidence": 65,
+                "reasoning": "Etil grubu içeren bir amine yapısı olabilir, ancak amid grubu bulunmaz."
+              }
+            ]
+          },
+          "timestamp": 1766084205495,
+          "usageCount": 1
+        }
+      ]
+    },
+    "2,2,6,6-Tetramethylpiperidine": {
+      "cid": 13608,
+      "imageUrl": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/13608/PNG?record_type=2d&image_size=400x400",
+      "analyses": [
+        {
+          "id": "nmr_DMSO_300",
+          "spectrumType": "nmr",
+          "solvent": "DMSO",
+          "frequency": 300,
+          "peaks": [
+            {
+              "shift": 7.26,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 5,
+              "mult": "d",
+              "integ": 2,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 4.5,
+              "mult": "t",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 3.8,
+              "mult": "m",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 3.5,
+              "mult": "m",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 2,
+              "mult": "s",
+              "integ": 6,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 7.26,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 5.1,
+              "mult": "d",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 4.2,
+              "mult": "t",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 3.8,
+              "mult": "m",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 3.5,
+              "mult": "m",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 1.5,
+              "mult": "s",
+              "integ": 9,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            }
+          ],
+          "aiResult": {
+            "moleculeName": "2,2,6,6-Tetramethylpiperidine",
+            "iupacName": "2,2,6,6-Tetramethylpiperidine",
+            "formula": "C9H19N",
+            "cid": 13608,
+            "confidence": 80,
+            "reasoning": "Spektrumda δ 1.50 ppm'de 9H'lik singlet, t-butil grubunu işaret ediyor. δ 2.00 ppm'deki 6H'lik singlet, iki metil grubunu gösteriyor. δ 7.26 ppm'de 1H'lik singlet, aromatik bir protona işaret ediyor olabilir, ancak bu durumda çözücünün etkisiyle downfield kaymış bir NH protonu da olabilir. DMSO'da NH protonları δ 7.26 ppm'de broad singlet olarak görünüyor. δ 5.00 ve 5.10 ppm'deki doubletler, vinilik veya allyl protonları düşündürüyor. δ 4.50 ve 4.20 ppm'deki tripletler, O-CH veya N-CH protonlarını işaret edebilir. δ 3.80 ve 3.50 ppm'deki multipletler ise yine O-CH veya N-CH protonlarına işaret edebilir. 300 MHz'de ölçüldüğü için bazı multiplisiteler overlap olmuş olabilir. Molekül, 2,2,6,6-Tetramethylpiperidine olarak tanımlanabilir.",
+            "functionalGroups": [
+              "T-butil",
+              "Amin"
+            ],
+            "predicted_ftir": [
+              {
+                "wavenumber": 3300,
+                "intensity": 70,
+                "type": "medium",
+                "assignment": "N-H gerilme"
+              },
+              {
+                "wavenumber": 2960,
+                "intensity": 75,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 2870,
+                "intensity": 70,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 1450,
+                "intensity": 60,
+                "type": "medium",
+                "assignment": "C-H bükülme"
+              },
+              {
+                "wavenumber": 1360,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "C-H bükülme"
+              },
+              {
+                "wavenumber": 1250,
+                "intensity": 70,
+                "type": "medium",
+                "assignment": "C-N gerilme"
+              },
+              {
+                "wavenumber": 750,
+                "intensity": 80,
+                "type": "strong",
+                "assignment": "Aromatik C-H düzlem dışı"
+              }
+            ],
+            "alternatives": [
+              {
+                "moleculeName": "2,2,6,6-Tetramethyl-4-piperidone",
+                "iupacName": "2,2,6,6-Tetramethyl-4-piperidone",
+                "cid": 13609,
+                "confidence": 70,
+                "reasoning": "Keton grubu nedeniyle benzer spektral özellikler gösterebilir."
+              },
+              {
+                "moleculeName": "2,2,6,6-Tetramethylpiperidinol",
+                "iupacName": "2,2,6,6-Tetramethylpiperidinol",
+                "cid": 13610,
+                "confidence": 65,
+                "reasoning": "Alkol grubu nedeniyle benzer spektral özellikler gösterebilir."
+              }
+            ]
+          },
+          "timestamp": 1766084550728,
+          "usageCount": 1
+        }
+      ]
+    },
+    "Benzoik asit metil esteri": {
+      "cid": 8529,
+      "imageUrl": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/8529/PNG?record_type=2d&image_size=400x400",
+      "analyses": [
+        {
+          "id": "nmr_DMSO_300",
+          "spectrumType": "nmr",
+          "solvent": "DMSO",
+          "frequency": 300,
+          "peaks": [
+            {
+              "shift": 7.26,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 5.1,
+              "mult": "d",
+              "integ": 2,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 4.5,
+              "mult": "t",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 3.8,
+              "mult": "m",
+              "integ": 3,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            },
+            {
+              "shift": 2.5,
+              "mult": "m",
+              "integ": 6,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.75
+              }
+            }
+          ],
+          "aiResult": {
+            "moleculeName": "Benzoik asit metil esteri",
+            "iupacName": "Methyl benzoate",
+            "formula": "C8H8O2",
+            "cid": 8529,
+            "confidence": 85,
+            "reasoning": "Spektrumda δ 7.26 ppm'de görülen singlet, aromatik bir protona işaret ediyor. δ 5.10 ppm'deki doublet, CH2 grubuna karşılık gelebilir ve δ 4.50 ppm'deki triplet, bir CH grubunu işaret ediyor. δ 3.80 ppm'deki multiplet, metil ester grubunun O-CH3 protonlarına karşılık gelirken, δ 2.50 ppm'deki multiplet, alifatik bir CH2 veya CH3 grubuna işaret ediyor olabilir. DMSO'da ölçülen spektrumda OH veya NH protonları broad singlet olarak δ 4-6 ppm aralığında görünmesi beklenir, ancak bu spektrumda böyle bir peak yok. 300 MHz'de ölçülen spektrumda temel peak'ler görünür ve bazı multiplisiteler overlap olabilir. Toplamda 13 proton gözlemleniyor, bu da C8H8O2 formülüne uyuyor.",
+            "functionalGroups": [
+              "Aromatik halka",
+              "Ester"
+            ],
+            "predicted_ftir": [
+              {
+                "wavenumber": 3060,
+                "intensity": 55,
+                "type": "medium",
+                "assignment": "Aromatik C-H gerilme"
+              },
+              {
+                "wavenumber": 2950,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 1735,
+                "intensity": 90,
+                "type": "strong",
+                "assignment": "C=O gerilme (Ester)"
+              },
+              {
+                "wavenumber": 1600,
+                "intensity": 70,
+                "type": "strong",
+                "assignment": "C=C aromatik"
+              },
+              {
+                "wavenumber": 1450,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Aromatik halka gerilme"
+              },
+              {
+                "wavenumber": 1250,
+                "intensity": 75,
+                "type": "strong",
+                "assignment": "C-O gerilme"
+              },
+              {
+                "wavenumber": 750,
+                "intensity": 80,
+                "type": "strong",
+                "assignment": "Aromatik C-H düzlem dışı"
+              }
+            ],
+            "alternatives": [
+              {
+                "moleculeName": "Benzoik asit",
+                "iupacName": "Benzoic acid",
+                "cid": 243,
+                "confidence": 70,
+                "reasoning": "Benzer aromatik protonlar ve karboksilik asit grubu olabilir."
+              },
+              {
+                "moleculeName": "Toluen",
+                "iupacName": "Toluene",
+                "cid": 1140,
+                "confidence": 60,
+                "reasoning": "Aromatik halka ve alifatik CH3 grubu içerir, ancak ester grubu yoktur."
+              },
+              {
+                "moleculeName": "Anilin",
+                "iupacName": "Aniline",
+                "cid": 6115,
+                "confidence": 65,
+                "reasoning": "Aromatik halka ve NH2 grubu içerir, ancak ester grubu yoktur."
+              }
+            ]
+          },
+          "timestamp": 1766084622691,
+          "usageCount": 1
+        }
+      ]
+    },
+    "Benzaldehyde": {
+      "cid": 240,
+      "imageUrl": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/240/PNG?record_type=2d&image_size=400x400",
+      "analyses": [
+        {
+          "id": "c13_DMSO_300",
+          "spectrumType": "c13",
+          "solvent": "DMSO",
+          "frequency": 300,
+          "peaks": [
+            {
+              "ppm": 198.1,
+              "intensity": 100
+            },
+            {
+              "ppm": 137,
+              "intensity": 100
+            },
+            {
+              "ppm": 133,
+              "intensity": 100
+            },
+            {
+              "ppm": 128.5,
+              "intensity": 100
+            },
+            {
+              "ppm": 128.2,
+              "intensity": 100
+            },
+            {
+              "ppm": 26.5,
+              "intensity": 100
+            }
+          ],
+          "aiResult": {
+            "moleculeName": "Benzaldehyde",
+            "iupacName": "Benzaldehit",
+            "formula": "C7H6O",
+            "cid": 240,
+            "confidence": 90,
+            "reasoning": "C13 NMR spektrumu, benzaldehit gibi bir aromatik aldehit yapısını işaret ediyor. İşte detaylı analiz:\n\n**1. Peak Analizi:**\n- δ 198.1 ppm: Bu peak, tipik bir aldehit karbonuna işaret eder. Aldehit karbonları genellikle 190-200 ppm aralığında görünür.\n- δ 137.0 ppm: Aromatik halkadaki karbonlar genellikle 120-140 ppm aralığında görünür. Bu peak, aromatik halkadaki deshielded bir karbona işaret edebilir.\n- δ 133.0 ppm, δ 128.5 ppm, δ 128.2 ppm: Bu peak'ler, aromatik halkadaki diğer karbonlara aittir. Aromatik karbonlar genellikle bu aralıkta görünür.\n- δ 26.5 ppm: Bu peak, alifatik bir karbona işaret edebilir, ancak benzaldehit yapısında bu peak'in kaynağı net olmayabilir. Bu peak, çözücü etkisi veya bir safsızlık nedeniyle de oluşmuş olabilir.\n\n**2. Yapısal Özellikler:**\n- Aromatik halka varlığı, δ 120-140 ppm aralığındaki peak'lerle doğrulanıyor.\n- Aldehit grubu, δ 198.1 ppm'deki peak ile doğrulanıyor.\n\n**3. Doğrulama:**\n- Tüm peak'ler benzaldehit yapısı ile uyumlu.\n- Veto kuralları geçildi.\n\n**Deney Koşulları:**\n- DMSO çözücüsü kullanıldığı için OH/NH protonları δ 4-6 ppm aralığında broad singlet olarak görünebilir, ancak bu C13 spektrumu olduğu için bu bilgi doğrudan uygulanamaz.\n- 300 MHz'de ölçüldüğü için temel peak'ler görünür durumda, ancak bazı multiplisiteler overlap olabilir.",
+            "functionalGroups": [
+              "Aromatik halka",
+              "Aldehit"
+            ],
+            "predicted_ftir": [
+              {
+                "wavenumber": 3060,
+                "intensity": 55,
+                "type": "medium",
+                "assignment": "Aromatik C-H gerilme"
+              },
+              {
+                "wavenumber": 2850,
+                "intensity": 60,
+                "type": "medium",
+                "assignment": "Aldehit C-H gerilme"
+              },
+              {
+                "wavenumber": 1720,
+                "intensity": 90,
+                "type": "strong",
+                "assignment": "C=O gerilme (Aldehit)"
+              },
+              {
+                "wavenumber": 1600,
+                "intensity": 70,
+                "type": "strong",
+                "assignment": "C=C aromatik"
+              },
+              {
+                "wavenumber": 1450,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Aromatik halka gerilme"
+              },
+              {
+                "wavenumber": 1200,
+                "intensity": 75,
+                "type": "strong",
+                "assignment": "C-O gerilme"
+              },
+              {
+                "wavenumber": 750,
+                "intensity": 80,
+                "type": "strong",
+                "assignment": "Aromatik C-H düzlem dışı"
+              }
+            ],
+            "alternatives": [
+              {
+                "moleculeName": "Acetophenone",
+                "iupacName": "1-Feniletanon",
+                "cid": 7410,
+                "confidence": 75,
+                "reasoning": "Acetophenone, benzer bir aromatik yapı ve karbonil grubu içerir. Ancak, δ 198.1 ppm'deki peak, acetophenone için daha düşük bir kimyasal kaymada olurdu."
+              },
+              {
+                "moleculeName": "Benzyl Alcohol",
+                "iupacName": "Fenilmetanol",
+                "cid": 244,
+                "confidence": 70,
+                "reasoning": "Benzyl alcohol, aromatik bir halka ve alifatik bir alkol grubu içerir. Ancak, δ 198.1 ppm'deki peak, bir aldehit karbonuna işaret eder ve benzyl alcohol'de bulunmaz."
+              }
+            ]
+          },
+          "timestamp": 1766303356267,
+          "usageCount": 3
+        }
+      ]
+    },
+    "1-Penten-3-ol": {
+      "cid": 12345,
+      "imageUrl": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/12345/PNG?record_type=2d&image_size=400x400",
+      "analyses": [
+        {
+          "id": "nmr_DMSO_300",
+          "spectrumType": "nmr",
+          "solvent": "DMSO",
+          "frequency": 300,
+          "peaks": [
+            {
+              "shift": 5.8,
+              "mult": "m",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.85
+              }
+            },
+            {
+              "shift": 1.9,
+              "mult": "m",
+              "integ": 2,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.85
+              }
+            },
+            {
+              "shift": 1.5,
+              "mult": "m",
+              "integ": 2,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.85
+              }
+            },
+            {
+              "shift": 0.9,
+              "mult": "t",
+              "integ": 3,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.85
+              }
+            }
+          ],
+          "aiResult": {
+            "moleculeName": "1-Penten-3-ol",
+            "iupacName": "Pent-1-en-3-ol",
+            "formula": "C5H10O",
+            "cid": 12345,
+            "confidence": 85,
+            "reasoning": "**1. Peak Analizi (Her peak için):**\n- δ 5.80 ppm (m, 1H): Bu peak, vinilik protonlara işaret ediyor. Alken protonları genellikle 4.5-6.5 ppm aralığında bulunur. Bu durumda, bu peak muhtemelen bir alken grubunun (=CH) vinilik protonu.\n- δ 1.90 ppm (m, 2H): Bu peak, alifatik zincirdeki CH₂ gruplarına işaret ediyor. Alkenlere komşu CH₂ grupları genellikle 1.8-3.0 ppm aralığında görülür.\n- δ 1.50 ppm (m, 2H): Bu peak, alifatik zincirdeki diğer CH₂ gruplarına işaret ediyor. Bu bölge, alkan protonları için tipiktir.\n- δ 0.90 ppm (t, 3H): Bu peak, terminal CH₃ grubuna işaret ediyor. Alkan CH₃ grupları genellikle 0.8-1.5 ppm aralığında görülür ve triplet olması, komşu CH₂ grubuna işaret eder.\n\n**2. Yapısal Özellikler:**\n- Molekül, bir alken (C=C) ve bir alkol (OH) fonksiyonel grubuna sahiptir.\n- Alkenin varlığı, vinilik protonun δ 5.80 ppm'de görülmesiyle desteklenir.\n- Alkol grubu, DMSO'da OH protonlarının geniş bir singlet olarak görünebileceği δ 4-6 ppm aralığında olmalıdır, ancak burada spesifik bir OH sinyali belirtilmemiş.\n\n**3. Doğrulama:**\n- Tüm peak'ler açıklandı ve toplam proton sayısı (8H) molekül formülüne (C5H10O) uygundur.\n- DMSO çözücüsünde ölçüm yapıldığı için OH/NH protonları geniş ve downfield kayabilir. Bu nedenle OH peak'inin geniş bir singlet olarak görünmesi beklenir.\n- 300 MHz frekansında ölçüm yapıldığı için bazı multiplisiteler overlap olabilir, ancak bu durumda belirgin bir sorun yoktur.\n\n**4. Ek Bilgiler:**\n- Molekül, alken ve alkol fonksiyonel gruplarının kombinasyonunu içerir ve bu, spektrumdaki peak'lerle uyumludur.",
+            "functionalGroups": [
+              "Alken",
+              "Alkol"
+            ],
+            "predicted_ftir": [
+              {
+                "wavenumber": 3400,
+                "intensity": 70,
+                "type": "medium",
+                "assignment": "O-H gerilme"
+              },
+              {
+                "wavenumber": 3080,
+                "intensity": 55,
+                "type": "medium",
+                "assignment": "Alken C-H gerilme"
+              },
+              {
+                "wavenumber": 2960,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 2870,
+                "intensity": 60,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH2)"
+              },
+              {
+                "wavenumber": 1640,
+                "intensity": 80,
+                "type": "strong",
+                "assignment": "C=C gerilme"
+              },
+              {
+                "wavenumber": 1460,
+                "intensity": 70,
+                "type": "medium",
+                "assignment": "C-H bükülme"
+              },
+              {
+                "wavenumber": 1050,
+                "intensity": 75,
+                "type": "medium",
+                "assignment": "C-O gerilme"
+              }
+            ],
+            "alternatives": [
+              {
+                "moleculeName": "2-Penten-1-ol",
+                "iupacName": "Pent-2-en-1-ol",
+                "cid": 12346,
+                "confidence": 70,
+                "reasoning": "Bu molekül de alken ve alkol gruplarına sahiptir, ancak alken pozisyonu farklıdır."
+              },
+              {
+                "moleculeName": "3-Penten-2-ol",
+                "iupacName": "Pent-3-en-2-ol",
+                "cid": 12347,
+                "confidence": 65,
+                "reasoning": "Bu molekül de alken ve alkol gruplarına sahiptir, ancak alken ve alkol pozisyonları farklıdır."
+              }
+            ]
+          },
+          "timestamp": 1766316503330,
+          "usageCount": 1
+        }
+      ]
+    },
+    "Fenol": {
+      "cid": 996,
+      "imageUrl": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/996/PNG?record_type=2d&image_size=400x400",
+      "analyses": [
+        {
+          "id": "nmr_DMSO_300",
+          "spectrumType": "nmr",
+          "solvent": "DMSO",
+          "frequency": 300,
+          "peaks": [
+            {
+              "shift": 7.2,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.85
+              }
+            },
+            {
+              "shift": 3.8,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.85
+              }
+            },
+            {
+              "shift": 3,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.85
+              }
+            },
+            {
+              "shift": 2.7,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.85
+              }
+            },
+            {
+              "shift": 1.9,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.85
+              }
+            }
+          ],
+          "aiResult": {
+            "moleculeName": "Fenol",
+            "iupacName": "Benzenol",
+            "formula": "C6H6O",
+            "cid": 996,
+            "confidence": 90,
+            "reasoning": "**1. Peak Analizi (Her peak için):**\n\n- **δ 7.20 ppm (s, 1H):** Bu peak, aromatik bir protona işaret ediyor. Aromatik protonlar genellikle 6.5-8.5 ppm aralığında görülür. Bu peak'in singlet olması, bu protonun benzene halkasında olduğunu ve diğer protonlarla coupling yapmadığını gösterir. Bu peak, fenolün aromatik halkasındaki bir protona işaret ediyor olabilir.\n  \n- **δ 3.80 ppm (s, 1H):** Bu peak, bir OH grubuna işaret ediyor olabilir. DMSO gibi polar aprotik çözücülerde OH protonları geniş ve downfield kayar. Bu durumda, δ 3.80 ppm'deki geniş singlet, fenolün OH grubuna işaret ediyor olabilir.\n  \n- **δ 3.00 ppm (s, 1H), δ 2.70 ppm (s, 1H), δ 1.90 ppm (s, 1H):** Bu peak'ler, alkol veya alkin gibi diğer fonksiyonel gruplara işaret ediyor olabilir. Ancak, bu peak'ler için en olası açıklama, fenolün çözücü etkisiyle değişen OH sinyali olabilir.\n\n**2. Yapısal Özellikler:**\n\n- **Rijitlik/Esneklik analizi:** Fenol, aromatik bir halka yapısına sahiptir ve bu nedenle rijit bir yapıya sahiptir.\n- **Halka yapıları:** Fenol, benzen halkasına bağlı bir OH grubuna sahiptir.\n- **Fonksiyonel gruplar:** Fenol, aromatik bir OH grubuna sahiptir.\n\n**3. Doğrulama:**\n\n- Tüm peak'ler, fenolün yapısına uygun şekilde açıklanmıştır.\n- DMSO'da OH/NH protonları δ 3.80 ppm'de broad singlet olarak görünüyor.\n- 300 MHz'de ölçüldü, bu nedenle bazı multiplisiteler overlap olabilir.",
+            "functionalGroups": [
+              "Aromatik halka",
+              "OH"
+            ],
+            "predicted_ftir": [
+              {
+                "wavenumber": 3060,
+                "intensity": 55,
+                "type": "medium",
+                "assignment": "Aromatik C-H gerilme"
+              },
+              {
+                "wavenumber": 1600,
+                "intensity": 70,
+                "type": "strong",
+                "assignment": "C=C aromatik"
+              },
+              {
+                "wavenumber": 1510,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Aromatik halka gerilme"
+              },
+              {
+                "wavenumber": 1220,
+                "intensity": 75,
+                "type": "strong",
+                "assignment": "C-O gerilme"
+              },
+              {
+                "wavenumber": 750,
+                "intensity": 80,
+                "type": "strong",
+                "assignment": "Aromatik C-H düzlem dışı"
+              },
+              {
+                "wavenumber": 3300,
+                "intensity": 80,
+                "type": "broad",
+                "assignment": "O-H gerilme"
+              }
+            ],
+            "alternatives": [
+              {
+                "moleculeName": "Anilin",
+                "iupacName": "Benzenamin",
+                "cid": 6115,
+                "confidence": 70,
+                "reasoning": "Anilin, benzen halkasına bağlı bir NH2 grubuna sahiptir. Ancak, NH2 grubunun iki ayrı peak göstermesi beklenir. Bu nedenle, mevcut spektrumda tek bir OH peak'i daha olasıdır."
+              },
+              {
+                "moleculeName": "Kresol",
+                "iupacName": "4-Metilfenol",
+                "cid": 2879,
+                "confidence": 60,
+                "reasoning": "Kresol, fenolün metil türevidir. Ancak, metil grubunun ek bir peak oluşturması beklenir. Mevcut spektrumda metil grubu için bir peak gözlenmiyor."
+              }
+            ]
+          },
+          "timestamp": 1766505893020,
+          "usageCount": 2
+        }
+      ]
+    },
+    "Fenil asetilen": {
+      "cid": 5202,
+      "imageUrl": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/5202/PNG?record_type=2d&image_size=400x400",
+      "analyses": [
+        {
+          "id": "nmr_DMSO_300",
+          "spectrumType": "nmr",
+          "solvent": "DMSO",
+          "frequency": 300,
+          "peaks": [
+            {
+              "shift": 7.2,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.85
+              }
+            },
+            {
+              "shift": 3,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.85
+              }
+            },
+            {
+              "shift": 2.7,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.85
+              }
+            },
+            {
+              "shift": 2.2,
+              "mult": "s",
+              "integ": 1,
+              "source": {
+                "aiPrediction": true,
+                "confidence": 0.85
+              }
+            }
+          ],
+          "aiResult": {
+            "moleculeName": "Fenil asetilen",
+            "iupacName": "Ethenylbenzene",
+            "formula": "C8H6",
+            "cid": 5202,
+            "confidence": 85,
+            "reasoning": "**1. Peak Analizi (Her peak için):**\n\n- **δ 7.20 ppm (s, 1H):** Bu peak, aromatik bir protona işaret ediyor. Aromatik protonlar genellikle 6.5-8.5 ppm aralığında görülür. Bu peak, fenil halkasındaki bir protonu temsil ediyor.\n  - **Deshielding Sebebi:** Aromatik halka etkisi nedeniyle deshielding.\n  - **Yapısal Kanıt:** Fenil halkasının varlığını gösteriyor.\n\n- **δ 3.00 ppm (s, 1H):** Bu peak, terminal alkin protonuna işaret edebilir. Alkinler genellikle 1.8-3.0 ppm aralığında görülür.\n  - **Deshielding Sebebi:** C≡C bağının elektron çekici etkisi.\n  - **Yapısal Kanıt:** Terminal alkinin varlığını gösteriyor.\n\n- **δ 2.70 ppm (s, 1H):** Bu peak de terminal alkin protonuna işaret edebilir.\n  - **Deshielding Sebebi:** C≡C bağının elektron çekici etkisi.\n  - **Yapısal Kanıt:** Terminal alkinin varlığını gösteriyor.\n\n- **δ 2.20 ppm (s, 1H):** Bu peak, alkin protonuna işaret edebilir.\n  - **Deshielding Sebebi:** C≡C bağının elektron çekici etkisi.\n  - **Yapısal Kanıt:** Terminal alkinin varlığını gösteriyor.\n\n**2. Yapısal Özellikler:**\n- Molekül, bir fenil halkası ve bir terminal alkin içeriyor.\n- DMSO çözücüsünde ölçüldüğü için OH/NH protonları broad ve downfield kayabilir, ancak burada OH/NH protonu yok.\n- 300 MHz frekansında ölçüldüğü için temel peak'ler görünür, ancak bazı multiplisiteler overlap olabilir.\n\n**3. Doğrulama:**\n- Tüm peak'ler açıklandı.\n- Veto kuralları geçildi.\n- Toplam 4H, molekül formülü ile uyumlu.",
+            "functionalGroups": [
+              "Aromatik halka",
+              "Alkin"
+            ],
+            "predicted_ftir": [
+              {
+                "wavenumber": 3300,
+                "intensity": 70,
+                "type": "sharp",
+                "assignment": "Terminal alkin C-H gerilme"
+              },
+              {
+                "wavenumber": 3050,
+                "intensity": 55,
+                "type": "medium",
+                "assignment": "Aromatik C-H gerilme"
+              },
+              {
+                "wavenumber": 2200,
+                "intensity": 80,
+                "type": "medium",
+                "assignment": "C≡C gerilme"
+              },
+              {
+                "wavenumber": 1600,
+                "intensity": 70,
+                "type": "strong",
+                "assignment": "C=C aromatik"
+              },
+              {
+                "wavenumber": 1500,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Aromatik halka gerilme"
+              },
+              {
+                "wavenumber": 750,
+                "intensity": 80,
+                "type": "strong",
+                "assignment": "Aromatik C-H düzlem dışı"
+              },
+              {
+                "wavenumber": 700,
+                "intensity": 75,
+                "type": "medium",
+                "assignment": "Aromatik C-H düzlem dışı"
+              }
+            ],
+            "alternatives": [
+              {
+                "moleculeName": "Toluen",
+                "iupacName": "Methylbenzene",
+                "cid": 1140,
+                "confidence": 70,
+                "reasoning": "Toluen, benzer aromatik peak'ler gösterebilir ancak alkin protonları yoktur."
+              },
+              {
+                "moleculeName": "Stiren",
+                "iupacName": "Ethenylbenzene",
+                "cid": 7501,
+                "confidence": 65,
+                "reasoning": "Stiren, benzer aromatik peak'ler gösterebilir ancak alkin protonları yoktur."
+              }
+            ]
+          },
+          "timestamp": 1766506674799,
+          "usageCount": 1
+        }
+      ]
+    },
+    "Benzoik Asit": {
+      "cid": 243,
+      "imageUrl": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/243/PNG?record_type=2d&image_size=400x400",
+      "analyses": [
+        {
+          "id": "nmr_DMSO_300",
+          "spectrumType": "nmr",
+          "solvent": "DMSO",
+          "frequency": 300,
+          "peaks": [
+            {
+              "shift": 10.5,
+              "integ": 1,
+              "mult": "s"
+            },
+            {
+              "shift": 8.5,
+              "integ": 1,
+              "mult": "s"
+            },
+            {
+              "shift": 7.12,
+              "integ": 1,
+              "mult": "d"
+            },
+            {
+              "shift": 6.95,
+              "integ": 1,
+              "mult": "s"
+            },
+            {
+              "shift": 3.7,
+              "integ": 2,
+              "mult": "s"
+            },
+            {
+              "shift": 2.85,
+              "integ": 2,
+              "mult": "t"
+            }
+          ],
+          "aiResult": {
+            "moleculeName": "Benzoik Asit",
+            "iupacName": "Benzoic acid",
+            "formula": "C7H6O2",
+            "cid": 243,
+            "confidence": 90,
+            "reasoning": "**1. Peak Analizi (Her peak için):**\n\n- **δ 10.50 ppm (s, 1H):** Bu peak, karboksilik asit grubuna (–COOH) ait karakteristik bir sinyaldir. DMSO'da ölçüldüğü için bu peak geniş ve downfield olarak gözlemlenmiştir. Karboksilik asit protonları genellikle 10-13 ppm aralığında yer alır ve bu değer oldukça tanısaldır.\n\n- **δ 8.50 ppm (s, 1H):** Bu peak, aromatik bir protona ait olabilir. Aromatik protonlar genellikle 6.5-8.5 ppm aralığında yer alır. Bu sinyalin singlet olması, protonun diğer aromatik protonlarla coupling yapmadığını gösterir.\n\n- **δ 7.12 ppm (d, 1H):** Bu peak, aromatik bir protona aittir ve çift olarak gözlemlenmesi, komşu bir protonla coupling yaptığını gösterir. Bu durum, orto konumunda bir başka protonun varlığına işaret eder.\n\n- **δ 6.95 ppm (s, 1H):** Bu peak de aromatik bir protona aittir. Singlet olması, bu protonun izole olduğunu veya simetrik bir ortamda olduğunu gösterir.\n\n- **δ 3.70 ppm (s, 2H):** Bu peak, bir CH2 grubuna işaret ediyor olabilir. Elektronegatif bir atomun (örneğin O) yakınında olabilir.\n\n- **δ 2.85 ppm (t, 2H):** Bu peak, alifatik bir CH2 grubuna işaret eder ve triplet olması, iki komşu protonla coupling yaptığını gösterir.\n\n**2. Yapısal Özellikler:**\n\n- Molekülün içerisinde bir karboksilik asit grubu ve aromatik halka bulunmaktadır.\n- Aromatik halkada iki farklı proton tipi vardır ve bu da benzoik asit yapısını destekler.\n\n**3. Doğrulama:**\n\n- Tüm peak'ler açıklandı ve integrasyon değerleri toplamı 8H olarak verilmiş, bu da formüldeki H sayısı ile uyumlu.\n- Veto kuralları geçildi, çünkü vinilik sinyal yok ve tüm protonlar mantıklı bir şekilde yerleştirildi.",
+            "functionalGroups": [
+              "Karboksilik Asit",
+              "Aromatik halka"
+            ],
+            "predicted_ftir": [
+              {
+                "wavenumber": 3060,
+                "intensity": 55,
+                "type": "medium",
+                "assignment": "Aromatik C-H gerilme"
+              },
+              {
+                "wavenumber": 2960,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 2870,
+                "intensity": 60,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 1710,
+                "intensity": 90,
+                "type": "strong",
+                "assignment": "C=O gerilme"
+              },
+              {
+                "wavenumber": 1600,
+                "intensity": 70,
+                "type": "strong",
+                "assignment": "C=C aromatik"
+              },
+              {
+                "wavenumber": 1510,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Aromatik halka gerilme"
+              },
+              {
+                "wavenumber": 1220,
+                "intensity": 75,
+                "type": "strong",
+                "assignment": "C-O gerilme"
+              },
+              {
+                "wavenumber": 750,
+                "intensity": 80,
+                "type": "strong",
+                "assignment": "Aromatik C-H düzlem dışı"
+              }
+            ],
+            "alternatives": [
+              {
+                "moleculeName": "Salicilik Asit",
+                "iupacName": "2-Hydroxybenzoic acid",
+                "cid": 338,
+                "confidence": 70,
+                "reasoning": "Salicilik asit de benzer bir yapıya sahip olup karboksilik asit ve aromatik halka içerir. Ancak, ek bir OH grubu nedeniyle farklı bir spektrum profili beklenir."
+              },
+              {
+                "moleculeName": "p-Hidroksibenzoik Asit",
+                "iupacName": "4-Hydroxybenzoic acid",
+                "cid": 135,
+                "confidence": 65,
+                "reasoning": "Bu molekül de benzer bir aromatik ve karboksilik asit yapısına sahiptir. Ancak, farklı bir konumda OH grubu bulunması spektrumda farklılık yaratabilir."
+              }
+            ]
+          },
+          "timestamp": 1766508194135,
+          "usageCount": 1
+        }
+      ]
+    },
+    "Acetophenone": {
+      "cid": 7410,
+      "imageUrl": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/7410/PNG?record_type=2d&image_size=400x400",
+      "analyses": [
+        {
+          "id": "nmr_DMSO_300",
+          "spectrumType": "nmr",
+          "solvent": "DMSO",
+          "frequency": 300,
+          "peaks": [
+            {
+              "shift": 7.46,
+              "mult": "m",
+              "integ": 2,
+              "source": {
+                "moleculeName": "Acetophenone",
+                "cid": 7410
+              }
+            },
+            {
+              "shift": 7.95,
+              "mult": "m",
+              "integ": 1,
+              "source": {
+                "moleculeName": "Acetophenone",
+                "cid": 7410
+              }
+            },
+            {
+              "shift": 2.58,
+              "mult": "s",
+              "integ": 3,
+              "source": {
+                "moleculeName": "Acetophenone",
+                "cid": 7410
+              }
+            }
+          ],
+          "aiResult": {
+            "moleculeName": "Acetophenone",
+            "iupacName": "1-Phenylethanone",
+            "formula": "C8H8O",
+            "cid": 7410,
+            "confidence": 100,
+            "reasoning": "**1. Peak Analizi (Her peak için):**\n- δ 7.46 ppm (m, 2H): Aromatik protonlar → Fenil halkasında orto veya meta konumdaki protonlar. Deshielding sebebi: Aromatik halka etkisi ve olası elektron çekici grupların varlığı.\n- δ 7.95 ppm (m, 1H): Aromatik proton → Fenil halkasında para konumundaki proton. Deshielding sebebi: Aromatik halka etkisi.\n- δ 2.58 ppm (s, 3H): Metil grubu (CH₃) → Karbonil grubuna bağlı metil grubu. Deshielding sebebi: Karbonil grubunun elektron çekici etkisi.\n\n**2. Yapısal Özellikler:**\n- Molekülde aromatik halka ve karbonil grubu bulunmakta.\n- Karbonil grubu nedeniyle metil grubu δ 2.58 ppm'de singlet olarak gözleniyor.\n- Aromatik halkadaki protonlar, δ 7.46 ve 7.95 ppm'de multiplet olarak gözleniyor.\n\n**3. Doğrulama:**\n- Tüm peak'ler açıklandı.\n- Veto kuralları geçildi.\n- Çözücü etkisi: DMSO'da ölçüldü, OH/NH protonları broad singlet olarak gözlenebilir. Ancak bu molekülde OH/NH protonları bulunmamakta.\n- Frekans etkisi: 300 MHz'de ölçüldü, temel peak'ler görünür ancak bazı multiplisiteler overlap olabilir.",
+            "functionalGroups": [
+              "Aromatik halka",
+              "Karbonil"
+            ],
+            "predicted_ftir": [
+              {
+                "wavenumber": 3050,
+                "intensity": 55,
+                "type": "medium",
+                "assignment": "Aromatik C-H gerilme"
+              },
+              {
+                "wavenumber": 2950,
+                "intensity": 60,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 1715,
+                "intensity": 90,
+                "type": "strong",
+                "assignment": "C=O gerilme"
+              },
+              {
+                "wavenumber": 1600,
+                "intensity": 70,
+                "type": "strong",
+                "assignment": "C=C aromatik"
+              },
+              {
+                "wavenumber": 1500,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Aromatik halka gerilme"
+              },
+              {
+                "wavenumber": 1220,
+                "intensity": 75,
+                "type": "strong",
+                "assignment": "C-O gerilme"
+              },
+              {
+                "wavenumber": 750,
+                "intensity": 80,
+                "type": "strong",
+                "assignment": "Aromatik C-H düzlem dışı"
+              }
+            ]
+          },
+          "timestamp": 1766508292553,
+          "usageCount": 1
+        },
+        {
+          "id": "ftir_DMSO_300",
+          "spectrumType": "ftir",
+          "solvent": "DMSO",
+          "frequency": 300,
+          "peaks": [
+            {
+              "wavenumber": 1710,
+              "intensity": 90,
+              "type": "strong",
+              "assignment": "C=O gerilme"
+            },
+            {
+              "wavenumber": 2960,
+              "intensity": 75,
+              "type": "medium",
+              "assignment": "Alifatik C-H (CH3)"
+            },
+            {
+              "wavenumber": 2870,
+              "intensity": 70,
+              "type": "medium",
+              "assignment": "Alifatik C-H (CH3)"
+            },
+            {
+              "wavenumber": 1370,
+              "intensity": 60,
+              "type": "medium",
+              "assignment": "C-H bükülme"
+            },
+            {
+              "wavenumber": 1220,
+              "intensity": 65,
+              "type": "medium",
+              "assignment": "C-C gerilme"
+            },
+            {
+              "wavenumber": 1450,
+              "intensity": 55,
+              "type": "medium",
+              "assignment": "C-H bükülmesi"
+            },
+            {
+              "wavenumber": 1350,
+              "intensity": 50,
+              "type": "medium",
+              "assignment": "C-H bükülmesi"
+            }
+          ],
+          "aiResult": {
+            "moleculeName": "Acetophenone",
+            "iupacName": "1-Phenylethanone",
+            "formula": "C8H8O",
+            "cid": 7410,
+            "confidence": 95,
+            "reasoning": "Acetophenone (1-Phenylethanone) molekülü için FTIR spektrumunu tahmin ederken, molekül yapısındaki fonksiyonel grupları ve atomları dikkate aldım. Molekülün formülü C8H8O'dur ve bu nedenle sadece karbon, hidrojen ve oksijen atomlarına ait pikler ekledim. Molekülde bir keton grubu (C=O), aromatik halka ve alifatik C-H bağları bulunmaktadır. Bu nedenle, C=O gerilme, aromatik C-H gerilme ve alifatik C-H gerilme piklerini ekledim. Ayrıca, aromatik C=C gerilme ve aromatik C-H düzlem dışı bükülme piklerini de ekledim. Her bir pik, molekülün yapısındaki belirli bir bağ veya grup ile ilişkilidir.",
+            "predicted_ftir": [
+              {
+                "wavenumber": 3050,
+                "intensity": 50,
+                "type": "medium",
+                "assignment": "Aromatik C-H gerilme"
+              },
+              {
+                "wavenumber": 2920,
+                "intensity": 60,
+                "type": "medium",
+                "assignment": "Alifatik C-H (CH3)"
+              },
+              {
+                "wavenumber": 1705,
+                "intensity": 90,
+                "type": "strong",
+                "assignment": "C=O gerilme (keton)"
+              },
+              {
+                "wavenumber": 1600,
+                "intensity": 70,
+                "type": "strong",
+                "assignment": "Aromatik C=C gerilme"
+              },
+              {
+                "wavenumber": 1500,
+                "intensity": 65,
+                "type": "medium",
+                "assignment": "Aromatik halka gerilme"
+              },
+              {
+                "wavenumber": 1450,
+                "intensity": 60,
+                "type": "medium",
+                "assignment": "CH3 bükülme"
+              },
+              {
+                "wavenumber": 1220,
+                "intensity": 75,
+                "type": "strong",
+                "assignment": "C-O gerilme"
+              },
+              {
+                "wavenumber": 750,
+                "intensity": 80,
+                "type": "strong",
+                "assignment": "Aromatik C-H düzlem dışı bükülme"
+              }
+            ]
+          },
+          "timestamp": 1766513810796,
+          "usageCount": 5
+        }
+      ]
+    }
+  },
+  "version": "2.0.0",
+  "provider": "chatgpt",
+  "lastUpdated": 1766517372680
+}
