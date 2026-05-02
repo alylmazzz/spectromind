@@ -150,7 +150,8 @@ export default function FIDUploader({ theoreticalPeaks, onProcessingComplete }: 
       processFormData.append('format', 'auto');
       processFormData.append('processingSpec', JSON.stringify(createProcessingSpec()));
 
-      // Include files + relative paths directly for production (serverless isolation)
+      // Production: include ALL files + paths in process request
+      // This is critical for Vercel serverless — /tmp is not shared between instances
       const relativePaths: string[] = [];
       files.forEach((file) => {
         processFormData.append('files', file);
