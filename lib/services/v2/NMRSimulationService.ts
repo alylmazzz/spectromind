@@ -342,7 +342,7 @@ export class NMRSimulationService {
     conformers: Conformer[],
     solvent: Solvent,
     config: NMRSimulationConfig
-  ): Proton[] {
+  ): any[] {
     return inputs.map(input => {
       // Temel proton nesnesi
       const proton = {
