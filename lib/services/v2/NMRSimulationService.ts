@@ -466,7 +466,7 @@ export class NMRSimulationService {
           p2,
           conformers,
           [],
-          config.jCoupling
+          (config as any).jCoupling
         );
         
         if (jResult.jHz > 0.5) {  // Minimum J threshold
