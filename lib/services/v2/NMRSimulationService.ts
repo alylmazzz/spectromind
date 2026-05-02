@@ -527,14 +527,13 @@ export class NMRSimulationService {
       // Linewidth
       const isExchangeable = groupProtons.some(p => p.isExchangeable);
       const linewidthResult = calculateLinewidth({
-        baseLinewidthHz: config.lineShape.baseLinewidthHz,
+        baseLinewidthHz: config.lineShape.baseFWHMHz,
         solvent,
         isExchangeable,
       });
       
       // Peak oluştur
       peaks.push({
-        id: `peak_${group.id}`,
         protonIds: group.protonIds,
         centerPPM,
         integral: group.integral,

@@ -241,7 +241,7 @@ async function fallbackSearch(
 
     if (query.type === 'molecule' || query.type === 'substructure') {
       // Search by SMILES similarity (simple string matching for now)
-      const querySmiles = query.data.toUpperCase();
+      const querySmiles = query.data?.toUpperCase() ?? '';
       
       for (const mol of library) {
         if (!mol.smiles) continue;
