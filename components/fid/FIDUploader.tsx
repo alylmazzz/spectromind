@@ -150,10 +150,16 @@ export default function FIDUploader({ theoreticalPeaks, onProcessingComplete }: 
       processFormData.append('format', 'auto');
       processFormData.append('processingSpec', JSON.stringify(createProcessingSpec()));
 
-      // Include files directly for production (serverless isolation)
+      // Include files + relative paths directly for production (serverless isolation)
+      const relativePaths: string[] = [];
       files.forEach((file) => {
-        processFormData.append('fid', file);
+        processFormData.append('files', file);
+        // @ts-ignore - webkitRelativePath is available in directory upload
+        const relPath = (file as any).webkitRelativePath || file.name;
+        relativePaths.push(relPath);
+        processFormData.append('paths', relPath);
       });
+      processFormData.append('relativePaths', JSON.stringify(relativePaths));
 
       if (theoreticalPeaks && theoreticalPeaks.length > 0) {
         processFormData.append('theoreticalPeaks', JSON.stringify(theoreticalPeaks));

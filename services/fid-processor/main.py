@@ -45,6 +45,8 @@ async def health():
 @app.post("/process-fid")
 async def process_fid(
     dataset: UploadFile = File(None),
+    files: list[UploadFile] = File(default_factory=list),
+    paths: list[str] = Form(default_factory=list),
     format: str = Form("auto"),
     processingSpec: Optional[str] = Form(None),
     api_key: Optional[str] = Form(None),
@@ -53,8 +55,8 @@ async def process_fid(
     Process FID dataset.
 
     Accepts:
-    - Single file upload (fid/ser) via 'dataset'
-    - Or must be preceded by /upload-fid to stage dataset on server
+    - Single file via 'dataset' field
+    - Multiple files + relative paths via 'files'/'paths' fields (folder upload)
 
     Returns JSON with ppm, intensity, metadata, peaks, qc.
     """
@@ -66,15 +68,47 @@ async def process_fid(
     try:
         work_dir = tempfile.mkdtemp(prefix="fid_proc_")
 
-        if dataset:
-            # Single file mode
+        # Folder upload mode: reconstruct directory structure
+        if files:
+            if len(files) != len(paths):
+                return {
+                    "success": False,
+                    "error_code": "FID_PATH_MISMATCH",
+                    "error_message": f"files={len(files)} paths={len(paths)} mismatch",
+                }
+
+            for file, rel_path in zip(files, paths):
+                safe_rel = os.path.normpath(rel_path).lstrip("/\\")
+                if safe_rel.startswith("..") or os.path.isabs(safe_rel):
+                    continue
+                target = os.path.join(work_dir, safe_rel)
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                content = await file.read()
+                with open(target, "wb") as f:
+                    f.write(content)
+
+            # Recursively find raw FID file
+            input_path = _find_raw_fid(work_dir)
+            if not input_path:
+                return {
+                    "success": False,
+                    "error_code": "FID_RAW_FILE_NOT_FOUND",
+                    "error_message": "Klasörde 'fid' veya 'ser' ham veri dosyası bulunamadı.",
+                    "received_files": len(files),
+                    "searched_root": work_dir,
+                }
+        elif dataset:
             safe_name = Path(dataset.filename or "fid").name
             input_path = os.path.join(work_dir, safe_name)
             content = await dataset.read()
             with open(input_path, "wb") as f:
                 f.write(content)
         else:
-            raise HTTPException(status_code=400, detail="No dataset file provided")
+            return {
+                "success": False,
+                "error_code": "FID_NO_DATASET_FILE",
+                "error_message": "No dataset file provided",
+            }
 
         # Run fid_process.py as subprocess (same interface as local dev)
         args = [
@@ -183,6 +217,20 @@ async def upload_fid(
     except Exception:
         shutil.rmtree(base_dir, ignore_errors=True)
         raise HTTPException(status_code=500, detail="Upload failed")
+
+
+def _find_raw_fid(root_dir: str) -> Optional[str]:
+    """Recursively search for raw FID file (fid/ser) in directory tree."""
+    for dirpath, _, filenames in os.walk(root_dir):
+        for name in filenames:
+            if name.lower() in ("fid", "ser"):
+                return os.path.join(dirpath, name)
+    # Also check root directly
+    for name in ("fid", "ser"):
+        p = os.path.join(root_dir, name)
+        if os.path.isfile(p):
+            return p
+    return None
 
 
 if __name__ == "__main__":

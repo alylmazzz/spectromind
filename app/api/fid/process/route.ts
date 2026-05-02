@@ -800,7 +800,7 @@ function compareWithTheoretical(
 
 /**
  * Proxy FID processing to remote Python processor (production mode).
- * Detects datasetId-based flow and reads actual files from /tmp.
+ * Supports: folder upload (files+paths), single file (fid), datasetId (/tmp fallback).
  */
 async function handleRemoteProcessing(
   request: NextRequest,
@@ -819,61 +819,73 @@ async function handleRemoteProcessing(
     remoteForm.append('format', format);
     if (processingSpecJson) remoteForm.append('processingSpec', processingSpecJson);
 
+    // Folder upload mode: multiple files with paths
+    const folderFiles = formData.getAll('files') as File[];
+    const folderPaths = formData.getAll('paths') as string[];
+
+    if (folderFiles.length > 0) {
+      console.log(`📁 Folder upload: ${folderFiles.length} files`);
+      for (let i = 0; i < folderFiles.length; i++) {
+        const file = folderFiles[i];
+        const relPath = folderPaths[i] || file.name;
+        remoteForm.append('files', file, relPath);
+        remoteForm.append('paths', relPath);
+      }
+    }
     // DatasetId mode: read actual FID files from /tmp staging area
-    // NOTE: On Vercel serverless, /tmp files from upload route may not be visible
-    // in process route (different instances). Prefer direct file upload.
-    if (datasetId) {
+    else if (datasetId) {
       const baseDir = path.join(os.tmpdir(), 'spectromind', datasetId);
-
-      // Find the raw FID file (fid or ser)
       let rawFile: string | null = null;
-      for (const candidate of ['fid', 'ser']) {
-        const p = path.join(baseDir, candidate);
-        try { await fs.access(p); rawFile = p; break; } catch {}
+      try { await fs.access(baseDir); } catch { rawFile = null; }
+
+      if (rawFile !== null || true) {
+        // Try direct find
+        for (const candidate of ['fid', 'ser']) {
+          const p = path.join(baseDir, candidate);
+          try { await fs.access(p); rawFile = p; break; } catch {}
+        }
+        if (!rawFile) {
+          const found = await findFileRecursive(baseDir, 'fid')
+            || await findFileRecursive(baseDir, 'ser');
+          if (found) rawFile = found;
+        }
       }
 
-      if (!rawFile) {
-        const found = await findFileRecursive(baseDir, 'fid') || await findFileRecursive(baseDir, 'ser');
-        if (found) rawFile = found;
-      }
-
-      if (!rawFile) {
-        // Serverless isolation: staged files unavailable: tell client to use single-step.
-        // Also check if files included directly in this request
+      if (rawFile) {
+        const fileBuffer = await fs.readFile(rawFile);
+        remoteForm.append('files', new Blob([fileBuffer]), path.basename(rawFile));
+        console.log(`📦 Staged FID: ${rawFile}`);
+      } else {
+        // /tmp files not found (serverless isolation): check direct file fallback
         const directFile = formData.get('fid') as File | null;
         if (directFile) {
-          remoteForm.append('dataset', directFile, directFile.name);
-          console.log(`📎 Direct file attached: ${directFile.name}`);
+          remoteForm.append('files', directFile, directFile.name);
         } else {
           return NextResponse.json(
             finalizeFidFailure({
               error_message:
-                'FID dosyası bulunamadı. Production ortamda lütfen dosyayı doğrudan process isteğine ekleyin (fid field).',
+                'FID dosyası bulunamadı. Klasör yüklemesinde tüm dosyaları process isteğine ekleyin.',
               error_code: FidErrorCodes.RAW_FILE_NOT_FOUND,
               debugId,
-              processing_steps: [{ step: 'remote_prepare', ok: false, detail: 'serverless isolation: no staged files' }],
+              processing_steps: [{ step: 'remote_prepare', ok: false, detail: 'no raw file' }],
             }),
             { status: 400 }
           );
         }
-      } else {
-        const fileBuffer = await fs.readFile(rawFile);
-        remoteForm.append('dataset', new Blob([fileBuffer]), path.basename(rawFile));
-        console.log(`📦 Attached staged FID file: ${rawFile} (${fileBuffer.length} bytes)`);
       }
     }
-    // Direct file upload mode: file already in FormData
+    // Single file upload mode
     else {
-      const file = formData.get('fid') as File | null;
-      if (file) {
-        remoteForm.append('dataset', file, file.name);
+      const directFile = formData.get('fid') as File | null;
+      if (directFile) {
+        remoteForm.append('files', directFile, directFile.name);
       } else {
         return NextResponse.json(
           finalizeFidFailure({
-            error_message: 'No FID file provided (dataset or fid field required)',
+            error_message: 'No FID file provided',
             error_code: FidErrorCodes.MISSING_INPUT,
             debugId,
-            processing_steps: [{ step: 'remote_prepare', ok: false, detail: 'no file in request' }],
+            processing_steps: [{ step: 'remote_prepare', ok: false, detail: 'no file' }],
           }),
           { status: 400 }
         );
@@ -881,7 +893,7 @@ async function handleRemoteProcessing(
     }
 
     const url = processorUrl.replace(/\/+$/, '') + '/process-fid';
-    console.log(`🔄 Proxying FID process to: ${url}`);
+    console.log(`🔄 Proxying to: ${url}`);
 
     const res = await fetch(url, {
       method: 'POST',
