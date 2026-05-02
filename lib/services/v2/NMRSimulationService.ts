@@ -384,7 +384,7 @@ export class NMRSimulationService {
         const weights: number[] = [];
         
         for (const conf of conformers) {
-          const coords = conf.coordinates[input.atomIndex];
+          const coords = (conf as any).atoms?.[input.atomIndex]?.coords;
           if (!coords) continue;
           
           const shiftResult = calculateShiftForConformer(
