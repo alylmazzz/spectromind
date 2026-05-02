@@ -406,7 +406,7 @@ export class NMRSimulationService {
         }
         
         // Boltzmann ağırlıklı ortalama
-        const result = calculateBoltzmannWeightedShift(shifts);
+        const result = calculateBoltzmannWeightedShift(shifts as any);
         
         proton.deltaFinal = result.total;
         
