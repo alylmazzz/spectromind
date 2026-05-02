@@ -345,10 +345,10 @@ export class NMRSimulationService {
   ): Proton[] {
     return inputs.map(input => {
       // Temel proton nesnesi
-      const proton: Proton = {
+      const proton = {
         id: input.id,
         atomIndex: input.atomIndex,
-        type: input.type as Proton['type'],
+        type: input.type,
         hybridization: input.hybridization as 'sp3' | 'sp2' | 'sp',
         topoClass: input.topoClass,
         stereoClass: (input.stereoClass === 'none' ? 'unknown' : input.stereoClass) ?? 'unknown',
