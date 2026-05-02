@@ -125,7 +125,37 @@ async def process_fid(
         ]
 
         if processingSpec:
-            args.extend(["--processingSpec", processingSpec])
+            try:
+                spec = json.loads(processingSpec)
+            except json.JSONDecodeError:
+                spec = {}
+            apo = spec.get("apodization", {})
+            if isinstance(apo, dict) and "lb_hz" in apo:
+                args.extend(["--lb", str(apo["lb_hz"])])
+            zf = spec.get("zeroFill", {})
+            if isinstance(zf, dict) and "factor" in zf:
+                args.extend(["--zf", str(zf["factor"])])
+            phase = spec.get("phase", {})
+            if isinstance(phase, dict):
+                mode = phase.get("mode", "")
+                if mode in ("auto_entropy", "regions_analysis", "manual_ph0_ph1"):
+                    args.extend(["--phase_method", mode])
+                if mode == "manual_ph0_ph1":
+                    if "ph0_deg" in phase:
+                        args.extend(["--ph0", str(phase["ph0_deg"])])
+                    if "ph1_deg" in phase:
+                        args.extend(["--ph1", str(phase["ph1_deg"])])
+            baseline = spec.get("baseline", {})
+            if isinstance(baseline, dict) and "algorithm" in baseline:
+                args.extend(["--baseline_method", baseline["algorithm"]])
+            reference = spec.get("reference", {})
+            if isinstance(reference, dict):
+                if "method" in reference:
+                    args.extend(["--reference_method", reference["method"]])
+                if "target_ppm" in reference:
+                    args.extend(["--reference_target_ppm", str(reference["target_ppm"])])
+                if "solvent" in reference:
+                    args.extend(["--reference_solvent", reference["solvent"]])
 
         result = subprocess.run(
             args,
