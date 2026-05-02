@@ -538,6 +538,7 @@ export class NMRSimulationService {
         centerPPM,
         integral: group.integral,
         multiplicity,
+        jHz: groupCouplings.map(c => c.jHz),
         couplings: groupCouplings.map(c => ({
           partnerProtonId: group.protonIds.includes(c.proton1Id) ? c.proton2Id : c.proton1Id,
           jHz: c.jHz,
@@ -547,12 +548,13 @@ export class NMRSimulationService {
         linewidthHz: linewidthResult.totalFWHM,
         assignment: this.generateAssignment(groupProtons),
         confidence: group.confidence,
+        source: 'model' as const,
         provenance: {
           shiftSource: 'model',
           jSource: 'karplus+library',
           conformerCount: 0,
           boltzmannWeighted: false,
-        },
+        } as any,
       });
     }
     

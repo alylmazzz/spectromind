@@ -371,6 +371,11 @@ export interface NMRPeakSimulated {
   multiplicity: string;        // s, d, t, q, dd, dt, m, br s, etc.
   integral: number;            // H sayısı
   jHz: number[];               // Coupling sabitleri
+  couplings?: Array<{           // Detaylı coupling bilgisi
+    partnerProtonId: string;
+    jHz: number;
+    bondClass: string;
+  }>;
   assignment: string;          // H-2, CH3, Ar-H ortho, etc.
   confidence: number;
   source: 'simulation' | 'model' | 'llm' | 'consensus';
