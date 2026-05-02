@@ -845,7 +845,7 @@ async function handleRemoteProcessing(
     return NextResponse.json(
       finalizeFidSuccess({
         debugId,
-        ...normalizeFidPythonPayload(data),
+        data: normalizeFidPythonPayload(data),
         processing_steps: [{ step: 'remote_process', ok: true, detail: processorUrl }],
       })
     );
