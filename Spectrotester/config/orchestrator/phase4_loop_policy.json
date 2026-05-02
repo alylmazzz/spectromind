@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "loop_id": "spectromind_phase4_continuity",
+  "cadence": {
+    "on_pr": true,
+    "on_push_main": true,
+    "nightly": false
+  },
+  "quality_gates": {
+    "max_blocker_incidents": 0,
+    "max_parity_drift_index_p95": 0.2,
+    "max_authority_unknown_count": 0
+  },
+  "escalation": {
+    "repeat_root_cause_threshold": 3,
+    "auto_pairing_optimization_threshold": 2
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TEYIT RAPORU",
+  "description": "Spectral Teyit / Verify Results – bilimsel teyit raporu çıktı şeması",
+  "type": "object",
+  "required": ["status", "overall", "summary", "confidence_score"],
+  "properties": {
+    "status": { "type": "string", "enum": ["PASS", "FAIL", "PARTIAL", "INCONCLUSIVE"] },
+    "root_cause_code": { "type": "string", "description": "Standardized root cause (e.g. PARSER_FAIL:VALENCE_ERROR, RULE_VIOLATION:...)" },
+    "recommended_action": { "type": "string", "description": "Next steps for the user" },
+    "evidence": { "type": "array", "items": { "type": "object" }, "description": "Rule-based justifications" },
+    "overall": { "type": "string", "enum": ["PASS", "WARN", "FAIL", "BELIRSIZ"] },
+    "summary": { "type": "string" },
+    "confidence_score": { "type": "number", "minimum": 0, "maximum": 100 },
+    "veto_flags": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "error_code": { "type": "string" },
+          "modality": { "type": "string", "enum": ["1H", "13C", "HSQC", "COSY", "HMBC", "NOESY", "IR", "FT-IR", "MS"] },
+          "rule_name": { "type": "string" },
+          "why": { "type": "string" },
+          "evidence": { "type": "array" },
+          "missing_expected": { "type": "array" }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "error_code": { "type": "string" },
+          "modality": { "type": "string" },
+          "message": { "type": "string" },
+          "evidence": { "type": "array" }
+        }
+      }
+    },
+    "data_completeness": {
+      "type": "object",
+      "properties": {
+        "h1": { "type": "number", "minimum": 0, "maximum": 1 },
+        "c13": { "type": "number", "minimum": 0, "maximum": 1 },
+        "hsqc": { "type": "number", "minimum": 0, "maximum": 1 },
+        "cosy": { "type": "number", "minimum": 0, "maximum": 1 },
+        "hmbc": { "type": "number", "minimum": 0, "maximum": 1 },
+        "ms": { "type": "number", "minimum": 0, "maximum": 1 },
+        "ftir": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "root_cause_analysis": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "error_code": { "type": "string" },
+          "modality": { "type": "string" },
+          "what_failed": { "type": "string" },
+          "why": { "type": "string" },
+          "evidence": { "type": "array" },
+          "missing_expected": { "type": "array" }
+        }
+      }
+    },
+    "missing_library_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "table": { "type": "string" },
+          "key": { "type": "string" },
+          "required_parameters_to_add": { "type": "string" },
+          "suggested_sources": { "type": "string" }
+        }
+      }
+    },
+    "patch_recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file_path": { "type": "string" },
+          "function_name": { "type": "string" },
+          "change_type": { "type": "string", "enum": ["FIX", "ADD", "REFACTOR"] },
+          "description": { "type": "string" },
+          "tests": { "type": "string" }
+        }
+      }
+    },
+    "modules": { "type": "object" },
+    "recommendations": { "type": "array", "items": { "type": "string" } },
+    "verifiedFormula": { "type": ["string", "null"] },
+    "traceId": { "type": ["string", "null"] },
+    "engine_used": { "type": "string", "enum": ["spectromind", "spectrotester", "hybrid"], "description": "Hangi motor kullanıldı" },
+    "inputs_echo": { "type": "object", "properties": { "smiles": { "type": "string" }, "solvent": { "type": "string" }, "fieldMHz": { "type": "number" }, "params": { "type": "object" } }, "description": "Echo of request params" },
+    "timings_ms": { "type": "object", "properties": { "parse": { "type": "number" }, "generate": { "type": "number" }, "verify": { "type": "number" } }, "description": "Süreler ms" },
+    "artifact_hashes": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Çıktı hashleri immutability" },
+    "trace": { "type": "object", "properties": { "parse_summary": { "type": "string" }, "peak_counts": { "type": "object" }, "fallback_flags": { "type": "array" } }, "description": "Debug trace" },
+    "feature_snapshot": {
+      "type": "object",
+      "description": "Kernel/feature extraction çıktısı; debug ve audit için. Yoksa run FAIL kabul edilir.",
+      "properties": {
+        "aromatic_atom_count": { "type": "number" },
+        "aromatic_CH_count": { "type": "number" },
+        "sp2_count": { "type": "number" },
+        "sp3_count": { "type": "number" },
+        "double_bond_count": { "type": "number" },
+        "CH_count": { "type": "number" },
+        "CH2_count": { "type": "number" },
+        "CH3_count": { "type": "number" },
+        "quaternary_count": { "type": "number" },
+        "has_carbonyl": { "type": "boolean" },
+        "has_oh": { "type": "boolean" },
+        "has_nh": { "type": "boolean" },
+        "expected_unique_C": { "type": "number" },
+        "expected_unique_C_after_symmetry": { "type": "number" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

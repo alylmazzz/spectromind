@@ -1,0 +1,84 @@
+name: Scientific Release Gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  governance-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Phase3 Mandatory Gates
+        run: npm run phase3:gate
+
+  governance-telemetry:
+    runs-on: ubuntu-latest
+    needs: governance-gates
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Emit Governance Telemetry
+        run: |
+          npm run build:spectrotester
+          npm run telemetry:governance
+
+      - name: Generate Incident-driven Tests
+        run: npm run incident:tests:generate
+
+      - name: Upload Governance Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: governance-artifacts
+          path: Spectrotester/artifacts/governance/
+
+  orchestrator-continuity:
+    runs-on: ubuntu-latest
+    needs: governance-telemetry
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Run Phase4 Continuity Cycle
+        run: |
+          npm run build:spectrotester
+          npm run telemetry:governance
+          npm run phase4:cycle
+
+      - name: Upload Phase4 Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase4-continuity-artifacts
+          path: Spectrotester/artifacts/governance/

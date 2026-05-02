@@ -1,0 +1,284 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SPECTRAL VERIFICATION LIBRARY v2",
+  "description": "Teyit motoru referans verisi (genişletilmiş): ShiftPrior bileşenleri, solvent çoklu pik, izotop pattern_generation, 2d_expected_connectivity_priors. Geriye uyumlu.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "functional_group_shift_priors",
+    "J_coupling_priors",
+    "IR_band_priors",
+    "MS_adduct_rules",
+    "solvent_impurity_catalog",
+    "isotope_rules"
+  ],
+  "definitions": {
+    "RangeNumber": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "unit": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "RefItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id"],
+      "properties": {
+        "type": { "type": "string", "enum": ["doi", "pmid", "url", "internal", "note"] },
+        "id": { "type": "string" },
+        "label": { "type": "string" }
+      }
+    },
+    "ShiftComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode_ppm", "sigma_ppm", "weight"],
+      "properties": {
+        "label": { "type": "string" },
+        "mode_ppm": { "type": "number" },
+        "sigma_ppm": { "type": "number" },
+        "weight": { "type": "number", "minimum": 0 }
+      }
+    },
+    "ApplicabilityCommon": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "solvents": { "type": "array", "items": { "type": "string" } },
+        "field_mhz": { "$ref": "#/definitions/RangeNumber" },
+        "temperature_c": { "$ref": "#/definitions/RangeNumber" },
+        "notes": { "type": "string" }
+      }
+    },
+    "DetectionHints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "exchangeable": { "type": "boolean" },
+        "hsqc_expected": { "type": "boolean" },
+        "cosy_expected": { "type": "boolean" },
+        "hmbc_expected": { "type": "boolean" },
+        "notes": { "type": "string" }
+      }
+    },
+    "ShiftPrior": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "context": { "type": "string" },
+        "shape": { "type": "string", "enum": ["uniform", "triangular", "gaussian", "mixture"] },
+        "mode_ppm": { "type": "number" },
+        "sigma_ppm": { "type": "number", "minimum": 0 },
+        "weight": { "type": "number", "minimum": 0 },
+        "components": { "type": "array", "items": { "$ref": "#/definitions/ShiftComponent" } },
+        "applicability": { "$ref": "#/definitions/ApplicabilityCommon" },
+        "detection": { "$ref": "#/definitions/DetectionHints" },
+        "notes": { "type": "string" },
+        "refs": { "type": "array", "items": { "$ref": "#/definitions/RefItem" } }
+      }
+    },
+    "JCouplingPrior": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max", "unit"],
+      "properties": {
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "unit": { "type": "string" },
+        "note": { "type": "string" },
+        "confidence_weight": { "type": "number", "minimum": 0, "maximum": 2 },
+        "refs": { "type": "array", "items": { "$ref": "#/definitions/RefItem" } }
+      }
+    },
+    "IRBandPrior": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "intensity": { "type": "string" },
+        "assign": { "type": "string" },
+        "paired_bands": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": { "min": { "type": "number" }, "max": { "type": "number" }, "assign": { "type": "string" } }
+          }
+        },
+        "notes": { "type": "string" },
+        "refs": { "type": "array", "items": { "$ref": "#/definitions/RefItem" } }
+      }
+    },
+    "SolventPeak": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ppm"],
+      "properties": {
+        "ppm": { "type": "number" },
+        "pattern": { "type": "string" },
+        "tolerance_ppm": { "type": "number", "minimum": 0 },
+        "label": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "SolventProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "ppm_1h": { "type": "number" },
+        "pattern": { "type": "string" },
+        "note": { "type": "string" },
+        "peaks_1h": { "type": "array", "items": { "$ref": "#/definitions/SolventPeak" } }
+      }
+    },
+    "AdductRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "name"],
+      "properties": {
+        "label": { "type": "string" },
+        "name": { "type": "string" },
+        "massDelta": { "type": "number" },
+        "formula": { "type": "string" },
+        "z": { "type": "integer" },
+        "priority": { "type": "integer", "minimum": 1 },
+        "notes": { "type": "string" }
+      }
+    },
+    "MSAdductRuleSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["positive", "negative"],
+      "properties": {
+        "positive": { "type": "array", "items": { "$ref": "#/definitions/AdductRule" } },
+        "negative": { "type": "array", "items": { "$ref": "#/definitions/AdductRule" } },
+        "neutral_losses": { "type": "array", "items": { "type": "object", "properties": { "label": { "type": "string" }, "massDelta": { "type": "number" } } } },
+        "notes": { "type": "string" }
+      }
+    },
+    "ElementIsotopeRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "signature": { "type": "string" },
+        "M2_ratio_min": { "type": "number", "minimum": 0 },
+        "M2_ratio_max": { "type": "number", "minimum": 0 },
+        "per_atom": { "type": "boolean" },
+        "notes": { "type": "string" },
+        "confidence_weight": { "type": "number", "minimum": 0, "maximum": 2 }
+      }
+    },
+    "IsotopePatternGeneration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "method": { "type": "string", "enum": ["multinomial_convolution", "lookup_table", "none"] },
+        "max_isotope_peaks": { "type": "integer", "minimum": 1 },
+        "min_rel_intensity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "notes": { "type": "string" }
+      }
+    },
+    "TwoDConnectivityPrior": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allowed_bond_distance": { "type": "array", "items": { "type": "integer" } },
+        "exchangeable_h_policy": { "type": "string", "enum": ["relax", "ignore", "strict"] },
+        "notes": { "type": "string" }
+      }
+    }
+  },
+  "properties": {
+    "functional_group_shift_priors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["h1", "c13"],
+      "properties": {
+        "h1": { "type": "object", "additionalProperties": { "$ref": "#/definitions/ShiftPrior" } },
+        "c13": { "type": "object", "additionalProperties": { "$ref": "#/definitions/ShiftPrior" } }
+      }
+    },
+    "J_coupling_priors": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/JCouplingPrior" }
+    },
+    "IR_band_priors": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/IRBandPrior" }
+    },
+    "MS_adduct_rules": { "$ref": "#/definitions/MSAdductRuleSet" },
+    "solvent_impurity_catalog": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/SolventProfile" }
+    },
+    "isotope_rules": {
+      "type": "object",
+      "properties": {
+        "multi_halogen": {
+          "type": "object",
+          "properties": {
+            "rules": { "type": "array", "items": { "type": "object", "properties": { "if": { "type": "object" }, "expect": { "type": "object" } } } },
+            "notes": { "type": "string" }
+          }
+        },
+        "pattern_generation": { "$ref": "#/definitions/IsotopePatternGeneration" }
+      },
+      "additionalProperties": { "$ref": "#/definitions/ElementIsotopeRule" }
+    },
+    "peakshape_priors": {
+      "type": "object",
+      "properties": {
+        "nmr_h1": { "type": "object", "properties": { "default_shape": { "type": "string" }, "fwhm_ppm": { "$ref": "#/definitions/RangeNumber" } } },
+        "nmr_c13": { "type": "object", "properties": { "default_shape": { "type": "string" }, "fwhm_ppm": { "$ref": "#/definitions/RangeNumber" } } },
+        "ir": { "type": "object" },
+        "ms": { "type": "object" }
+      }
+    },
+    "solvent_shift_offsets": {
+      "type": "object",
+      "properties": {
+        "global": { "type": "object", "properties": { "h1_offset_ppm": { "type": "number" }, "c13_offset_ppm": { "type": "number" } } },
+        "by_solvent": { "type": "object", "additionalProperties": { "type": "object" } }
+      }
+    },
+    "noise_model_priors": {
+      "type": "object",
+      "properties": {
+        "snr_thresholds": { "type": "object" },
+        "baseline": { "type": "object" },
+        "peak_detection_priors": { "type": "object" }
+      }
+    },
+    "fragmentation_rules_ms": {
+      "type": "object",
+      "properties": {
+        "neutral_losses": { "type": "array" },
+        "diagnostic_ions": { "type": "array" }
+      }
+    },
+    "2d_expected_connectivity_priors": {
+      "type": "object",
+      "properties": {
+        "hsqc": { "$ref": "#/definitions/TwoDConnectivityPrior" },
+        "hmbc": {
+          "type": "object",
+          "properties": {
+            "allowed_bond_distance": { "type": "array", "items": { "type": "integer" } },
+            "carbonyl_gate": { "type": "object", "properties": { "require_alpha_h_if_carbonyl_present": { "type": "boolean" } } }
+          }
+        },
+        "cosy": { "$ref": "#/definitions/TwoDConnectivityPrior" }
+      }
+    }
+  }
+}

@@ -80,16 +80,16 @@ export interface IdentityResult {
 
 export interface StructureResult {
   /** Canonical SMILES (always present if structure resolved) */
-  canonicalSmiles: string | undefined;
+  canonicalSmiles: string | null;
   
   /** Isomeric SMILES (with stereochemistry) */
-  isomericSmiles: string | undefined;
+  isomericSmiles: string | null;
   
   /** InChI string */
-  inchi: string | undefined;
+  inchi: string | null;
   
   /** InChI Key */
-  inchiKey: string | undefined;
+  inchiKey: string | null;
   
   /** Stereochemistry status */
   stereoStatus: 'full' | 'partial' | 'none';

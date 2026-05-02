@@ -1,0 +1,1172 @@
+═══════════════════════════════════════════════════════════════════════════════
+  SPECTROMIND: 2D YAPIDAN TEORİK SPEKTRUM BELİRLEME MEKANİZMASI
+  Detaylı Teknik Dokümantasyon
+═══════════════════════════════════════════════════════════════════════════════
+
+YAZAR: SpectroMind Development Team
+TARİH: 2024
+VERSİYON: 1.0
+DİL: Türkçe
+
+═══════════════════════════════════════════════════════════════════════════════
+  İÇİNDEKİLER
+═══════════════════════════════════════════════════════════════════════════════
+
+1. GİRİŞ VE GENEL BAKIŞ
+   1.1. SpectroMind'ın Teorik Spektrum Tahmin Sistemi
+   1.2. Sistem Mimarisi
+   1.3. Veri Akışı
+
+2. SMILES PARSİNG VE MOLEKÜLER YAPI ANALİZİ
+   2.1. SMILES String'den Moleküler Graf Oluşturma
+   2.2. Atom ve Bağ Tespiti
+   2.3. Fonksiyonel Grup Tespiti
+   2.4. Simetri ve Eşdeğerlik Analizi
+   2.5. Hybridization (Melezleşme) Ataması
+
+3. NMR SPEKTRUM TAHMİNİ (¹H NMR)
+   3.1. AI Destekli Tahmin Sistemi
+   3.2. Silverstein Metodolojisi
+   3.3. Fonksiyonel Grup Kütüphanesi Entegrasyonu
+   3.4. Kimyasal Kayma Hesaplama (Shoolery Kuralları)
+   3.5. Multiplisite Belirleme (n+1 Kuralı + Karplus Eşitliği)
+   3.6. Coupling Constant (J Değerleri) Hesaplama
+   3.7. İntegrasyon Hesaplama
+   3.8. Literatür Verileri Entegrasyonu
+
+4. FTIR SPEKTRUM TAHMİNİ
+   4.1. Hooke's Law Temelli Yaklaşım
+   4.2. Normal Mode Analizi
+   4.3. Force Constant (Kuvvet Sabiti) Hesaplama
+   4.4. Vibrasyonel Frekans Hesaplama
+   4.5. İntensite (Şiddet) Hesaplama
+   4.6. Fingerprint Region Analizi
+
+5. 10 MODÜLLÜ TEORİK SPEKTRUM GELİŞTİRME SİSTEMİ
+   5.1. Modül 1: Boltzmann Ağırlıklandırma
+   5.2. Modül 2: NMR Zaman Ölçeği Analizi
+   5.3. Modül 3: Second-Order Spin Hamiltonian
+   5.4. Modül 4: Elektronik Etki Non-Linearleştirme
+   5.5. Modül 5: IR Normal Mode Coupling
+   5.6. Modül 6: Dinamik Simetri Kırılması
+   5.7. Modül 7: Through-Space Manyetik Etki
+   5.8. Modül 8: Gelişmiş Solvent Etkileşim
+   5.9. Modül 9: ¹³C Dinamik NOE Modeli
+   5.10. Modül 10: Spektrumlar Arası Çapraz Doğrulama
+
+6. VALİDASYON VE DOĞRULAMA MEKANİZMALARI
+   6.1. Formül Doğrulama
+   6.2. İntegrasyon Kontrolü
+   6.3. Peak Sayısı Validasyonu
+   6.4. Multiplisite Kontrolü
+   6.5. Veto Kuralları
+
+7. ÖRNEKLER VE UYGULAMALAR
+   7.1. Basit Molekül Örneği: Aspirin
+   7.2. Kompleks Molekül Örneği: Paclitaxel
+   7.3. Aromatik Molekül Örneği: Resveratrol
+
+═══════════════════════════════════════════════════════════════════════════════
+  1. GİRİŞ VE GENEL BAKIŞ
+═══════════════════════════════════════════════════════════════════════════════
+
+1.1. SpectroMind'ın Teorik Spektrum Tahmin Sistemi
+
+SpectroMind, moleküler yapı bilgisinden (SMILES, InChI, moleküler formül) 
+teorik NMR ve FTIR spektrumlarını tahmin eden gelişmiş bir sistemdir. Sistem, 
+üç ana bileşenden oluşur:
+
+1. YAPISAL ANALİZ MODÜLÜ
+   - SMILES string'den moleküler graf oluşturma
+   - Atom ve bağ tespiti
+   - Fonksiyonel grup tanıma
+   - Simetri analizi
+
+2. AI DESTEKLİ TAHMİN MOTORU
+   - GPT-4O modeli ile spektrum tahmini
+   - Silverstein NMR metodolojisi
+   - 80+ fonksiyonel grup kütüphanesi
+   - Literatür verileri entegrasyonu
+
+3. FİZİKSEL MODELLER
+   - Hooke's Law (FTIR için)
+   - Normal mode analizi
+   - Karplus eşitliği (NMR coupling için)
+   - Boltzmann ağırlıklandırma
+
+1.2. Sistem Mimarisi
+
+┌─────────────────────────────────────────────────────────────────┐
+│                    KULLANICI GİRİŞİ                             │
+│  (Molekül Adı, SMILES, InChI, Formül, Literatür Referansları)  │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              YAPISAL ANALİZ MODÜLÜ                              │
+│  • SMILES Parsing                                               │
+│  • Fonksiyonel Grup Tespiti                                     │
+│  • Simetri Analizi                                              │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│            AI TAHMİN MOTORU (GPT-4O)                            │
+│  • Silverstein Metodolojisi                                     │
+│  • Fonksiyonel Grup Kütüphanesi                                 │
+│  • Literatür Abstract'ları                                      │
+│  • HOSE Predictions (RDKit)                                     │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│        10 MODÜLLÜ GELİŞTİRME SİSTEMİ                            │
+│  • Boltzmann Ağırlıklandırma                                    │
+│  • NMR Zaman Ölçeği Analizi                                     │
+│  • Second-Order Spin Hamiltonian                                 │
+│  • ... (10 modül)                                                │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              VALİDASYON VE DOĞRULAMA                             │
+│  • Formül Kontrolü                                              │
+│  • İntegrasyon Kontrolü                                          │
+│  • Peak Sayısı Validasyonu                                       │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    TEORİK SPEKTRUM ÇIKTI                         │
+│  • NMR Peak'leri (δ, multiplisite, J, integrasyon)              │
+│  • FTIR Peak'leri (wavenumber, intensity, assignment)            │
+│  • Confidence Score                                             │
+└─────────────────────────────────────────────────────────────────┘
+
+1.3. Veri Akışı
+
+ADIM 1: GİRİŞ VERİLERİNİN TOPLANMASI
+   - Molekül adı (örn: "Aspirin")
+   - SMILES string (örn: "CC(=O)Oc1ccccc1C(=O)O")
+   - InChI (opsiyonel)
+   - Moleküler formül (örn: "C9H8O4")
+   - Literatür referansları (DOI listesi)
+
+ADIM 2: SMILES ÇÖZÜMLEME (Eğer SMILES yoksa)
+   - PubChem API'den molekül adı ile SMILES çekme
+   - OPSIN API ile IUPAC adından SMILES türetme
+   - Başarısız olursa hata döndürme
+
+ADIM 3: YAPISAL ANALİZ
+   - SMILES parsing → MolecularGraph
+   - Fonksiyonel grup tespiti
+   - Aromatik halka sayısı
+   - Atom sayıları (C, H, N, O, vb.)
+
+ADIM 4: LİTERATÜR VERİLERİNİN ÇEKİLMESİ
+   - Crossref API'den abstract'ları çekme
+   - NMR verilerini extract etme
+   - Context'e ekleme
+
+ADIM 5: AI TAHMİNİ
+   - Enhanced prompt oluşturma (Silverstein metodolojisi + fonksiyonel grup kütüphanesi)
+   - GPT-4O API çağrısı
+   - JSON formatında spektrum tahmini
+
+ADIM 6: VALİDASYON
+   - Toplam integrasyon kontrolü (formül H sayısı ile karşılaştırma)
+   - Peak sayısı kontrolü
+   - Multiplisite kontrolü
+   - Hata varsa retry mekanizması
+
+ADIM 7: 10 MODÜLLÜ GELİŞTİRME
+   - AI tahminlerini fizik/kimya kurallarıyla güçlendirme
+   - Konformer analizi
+   - Solvent etkisi
+   - Sıcaklık etkisi
+
+ADIM 8: FİNAL ÇIKTI
+   - Geliştirilmiş spektrum
+   - Confidence score
+   - Warnings ve validasyon sonuçları
+
+═══════════════════════════════════════════════════════════════════════════════
+  2. SMILES PARSİNG VE MOLEKÜLER YAPI ANALİZİ
+═══════════════════════════════════════════════════════════════════════════════
+
+2.1. SMILES String'den Moleküler Graf Oluşturma
+
+SMILES (Simplified Molecular Input Line Entry System), moleküler yapıyı 
+metin formatında temsil eden bir notasyondur. SpectroMind, SMILES string'ini 
+parse ederek moleküler graf (molecular graph) oluşturur.
+
+ÖRNEK SMILES: "CC(=O)Oc1ccccc1C(=O)O" (Aspirin)
+
+PARSİNG ADIMLARI:
+
+1. TOKENİZASYON
+   - String'i atom sembolleri, bağlar, parantezler, halka numaralarına ayırma
+   - Örnek: "CC(=O)Oc1ccccc1C(=O)O"
+     → Tokens: ["C", "C", "(", "=", "O", ")", "O", "c", "1", "c", "c", "c", "c", "c", "c", "1", "C", "(", "=", "O", ")", "O"]
+
+2. ATOM VE BAĞ OLUŞTURMA
+   - Her atom için bir node oluşturma
+   - Bağları tespit etme (tek bağ, çift bağ, üçlü bağ)
+   - Halka yapılarını tespit etme (örn: "c1ccccc1" → benzen halkası)
+
+3. MOLEKÜLER GRAF YAPISI
+   ```typescript
+   interface MolecularGraph {
+     atoms: Array<{
+       symbol: string;      // "C", "O", "N", vb.
+       index: number;       // Atom indeksi
+       bonds: number[];     // Bağlı olduğu atomların indeksleri
+       hybridization?: 'sp' | 'sp2' | 'sp3';
+       aromatic?: boolean;
+     }>;
+     bonds: Array<{
+       type: 'single' | 'double' | 'triple' | 'aromatic';
+       atom1: number;
+       atom2: number;
+     }>;
+     formula: string;        // "C9H8O4"
+     smiles: string;         // Orijinal SMILES
+   }
+   ```
+
+2.2. Atom ve Bağ Tespiti
+
+ATOM TESPİTİ:
+- Büyük harf: Aromatik olmayan atom (C, O, N, vb.)
+- Küçük harf: Aromatik atom (c, o, n, vb.)
+- Köşeli parantez: İzotop veya özel atom ([13C], [NH4+])
+
+BAĞ TESPİTİ:
+- Varsayılan: Tek bağ
+- "=" : Çift bağ
+- "#" : Üçlü bağ
+- ":" : Aromatik bağ (genellikle varsayılan)
+
+HALKA TESPİTİ:
+- Halka numaraları: "1", "2", "3", vb.
+- Örnek: "c1ccccc1" → 6 üyeli aromatik halka (benzen)
+
+2.3. Fonksiyonel Grup Tespiti
+
+SpectroMind, SMILES string'inde regex pattern'leri kullanarak fonksiyonel 
+grupları tespit eder:
+
+KARBONİL GRUPLARI:
+- Keton: "C(=O)C" veya "C=O"
+- Aldehit: "C(=O)[H]" veya "C=O" (zincir sonunda)
+- Ester: "C(=O)O" veya "COC(=O)"
+- Karboksilik asit: "C(=O)O" (zincir sonunda, OH ile)
+
+HİDROKSİL GRUPLARI:
+- Alkol: "O[H]" veya "OH"
+- Fenol: "Oc1ccccc1" (aromatik halkaya bağlı OH)
+
+AMİN GRUPLARI:
+- Primer amin: "N[H]" veya "NH2"
+- Sekonder amin: "N[H]C" veya "NH"
+- Tersiyer amin: "NC" (üç bağ)
+
+AROMATİK HALKALAR:
+- Benzen: "c1ccccc1" veya "C1=CC=CC=C1"
+- Naftalin: "c1ccc2ccccc2c1"
+
+2.4. Simetri ve Eşdeğerlik Analizi
+
+EŞDEĞER ATOMLAR:
+- Aynı bağlanma şemasına sahip atomlar eşdeğerdir
+- Simetri operasyonları ile birbirine dönüşebilen atomlar eşdeğerdir
+- Eşdeğer atomlar aynı kimyasal kaymaya sahiptir
+
+ÖRNEK: Aseton (CH3COCH3)
+- İki CH3 grubu simetrik → Aynı kimyasal kayma (δ 2.17 ppm)
+- Tek peak görülür (6H, singlet)
+
+ÖRNEK: Etil asetat (CH3COOCH2CH3)
+- CH3CO (asetil): 3H, singlet, δ 2.05 ppm
+- OCH2: 2H, quartet, δ 4.12 ppm
+- CH3 (etil): 3H, triplet, δ 1.26 ppm
+- Toplam 3 farklı peak (simetri yok)
+
+2.5. Hybridization (Melezleşme) Ataması
+
+Hybridization, atomun bağ sayısına ve bağ tipine göre belirlenir:
+
+SP³ (Tetrahedral):
+- 4 tek bağ → sp³
+- Örnek: CH4, CH3-CH3
+- C-H gerilme: ~2900 cm⁻¹ (FTIR)
+
+SP² (Trigonal Planar):
+- 3 bağ (1 çift bağ + 2 tek bağ) → sp²
+- Örnek: C=O, C=C, aromatik halkalar
+- C-H gerilme: ~3050 cm⁻¹ (FTIR, aromatik)
+
+SP (Linear):
+- 2 bağ (1 üçlü bağ + 1 tek bağ) → sp
+- Örnek: C≡C, C≡N
+- C-H gerilme: ~3300 cm⁻¹ (FTIR, alkin)
+
+═══════════════════════════════════════════════════════════════════════════════
+  3. NMR SPEKTRUM TAHMİNİ (¹H NMR)
+═══════════════════════════════════════════════════════════════════════════════
+
+3.1. AI Destekli Tahmin Sistemi
+
+SpectroMind, GPT-4O modelini kullanarak moleküler yapıdan NMR spektrum tahmini 
+yapar. AI'ya verilen prompt şu bileşenleri içerir:
+
+1. MOLEKÜLER BİLGİLER
+   - Molekül adı
+   - SMILES string
+   - Moleküler formül
+   - InChI (opsiyonel)
+
+2. FONKSİYONEL GRUP KÜTÜPHANESİ
+   - 80+ fonksiyonel grup için standart kimyasal kayma aralıkları
+   - Diagnostic peak'ler
+   - Multiplisite kuralları
+
+3. SİLVERSTEİN METODOLOJİSİ
+   - Sistematik problem çözme yaklaşımı
+   - Shoolery kuralları
+   - Karplus eşitliği
+
+4. LİTERATÜR VERİLERİ
+   - Crossref'den çekilen abstract'lar
+   - PubChem verileri
+   - HOSE predictions (RDKit)
+
+3.2. Silverstein Metodolojisi
+
+Silverstein'ın "Spectrometric Identification of Organic Compounds" kitabına 
+dayanan sistematik yaklaşım:
+
+ADIM 1: FONKSİYONEL GRUP TANIMLAMA
+   - Diagnostic peak'leri tespit etme
+   - Kimyasal kayma aralıklarına göre grupları belirleme
+   - Örnek: δ 9-10 ppm → Aldehit (CHO)
+
+ADIM 2: KİMYASAL KAYMA HESAPLAMA
+   - Taban değerler:
+     * CH₃: 0.9 ppm
+     * CH₂: 1.3 ppm
+     * CH: 1.7 ppm
+     * Aromatik: 7.27 ppm
+   - Additivity kuralı: δ = 0.23 + Σ(Δδ_sübstitüent)
+   - Sübstitüent etkileri:
+     * α-OH: +2.5 ppm
+     * α-Cl: +2.0 ppm
+     * α-C=O: +1.2 ppm
+     * α-Ph: +1.3 ppm
+
+ADIM 3: MULTİPLİSİTE BELİRLEME
+   - n+1 kuralı: n komşu proton → n+1 yarılma
+   - Basit multiplisiteler:
+     * s (singlet): n=0, J=0
+     * d (doublet): n=1, bir J değeri
+     * t (triplet): n=2, bir J değeri
+     * q (quartet): n=3, bir J değeri
+   - Kompleks multiplisiteler:
+     * dd (doublet of doublets): 2 farklı J değeri
+     * dt (doublet of triplets): 1 komşu + 2 eşdeğer komşu
+     * m (multiplet): Çoklu yarılma
+
+ADIM 4: İNTEGRASYON HESAPLAMA
+   - Eşdeğer proton sayısını sayma
+   - Tüm peak'lerin integrasyon toplamı = Formüldeki H sayısı
+
+ADIM 5: DOĞRULAMA
+   - Tüm peak'ler açıklanabildi mi?
+   - İntegrasyon oranları mantıklı mı?
+   - Multiplisiteler yapı ile uyumlu mu?
+
+3.3. Fonksiyonel Grup Kütüphanesi Entegrasyonu
+
+SpectroMind, 80+ fonksiyonel grup için kapsamlı bir kütüphane içerir. Her grup 
+için şu bilgiler saklanır:
+
+- Grup adı (Türkçe ve İngilizce)
+- Yapısal formül
+- ¹H NMR kimyasal kayma aralığı
+- Multiplisite
+- Diagnostic özellikler
+- Uyarılar
+
+ÖRNEK: Karboksilik Asit (-COOH)
+- ¹H NMR: δ 11.0-12.0 ppm
+- Multiplisite: Broad singlet (br s)
+- Diagnostic: Çok geniş peak, bazen baseline'a kaybolur
+- Uyarı: D₂O'da D/H exchange nedeniyle kaybolur
+
+ÖRNEK: Aldehit (-CHO)
+- ¹H NMR: δ 9.0-10.5 ppm
+- Multiplisite: Singlet veya doublet (aldehit protonu)
+- Diagnostic: Çok karakteristik, downfield bölge
+- Uyarı: Aldehit protonu genellikle singlet görünür
+
+3.4. Kimyasal Kayma Hesaplama (Shoolery Kuralları)
+
+Shoolery kuralları, sübstitüent etkilerinin toplamsal olduğunu varsayar:
+
+FORMÜL: δ = δ_taban + Σ(Δδ_sübstitüent)
+
+TABAN DEĞERLER:
+- CH₃: 0.9 ppm
+- CH₂: 1.3 ppm
+- CH: 1.7 ppm
+- Aromatik H: 7.27 ppm
+
+SÜBSTİTÜENT ETKİLERİ (α-Pozisyon):
+- OH: +2.5 ppm
+- OCH₃: +2.3 ppm
+- Cl: +2.0 ppm
+- Br: +2.0 ppm
+- C=O: +1.2 ppm
+- Ph: +1.3 ppm
+- NH₂: +1.5 ppm
+
+ÖRNEK HESAPLAMA: Etanol (CH3CH2OH)
+- CH₃ grubu:
+  * Taban: 0.9 ppm
+  * α-OH etkisi: +2.5 ppm
+  * Toplam: 0.9 + 2.5 = 3.4 ppm (Deneysel: ~3.6 ppm)
+- CH₂ grubu:
+  * Taban: 1.3 ppm
+  * α-OH etkisi: +2.5 ppm
+  * Toplam: 1.3 + 2.5 = 3.8 ppm (Deneysel: ~3.7 ppm)
+
+3.5. Multiplisite Belirleme (n+1 Kuralı + Karplus Eşitliği)
+
+N+1 KURALI:
+- n komşu proton → n+1 yarılma
+- Örnek: CH₃-CH₂- (etil grubu)
+  * CH₃: 2 komşu H → triplet (n+1 = 3)
+  * CH₂: 3 komşu H → quartet (n+1 = 4)
+
+KARPLUS EŞİTLİĞİ:
+Vicinal coupling (³J) için dihedral açıya bağlı:
+
+J = A·cos²(φ) + B·cos(φ) + C
+
+Tipik değerler:
+- φ = 0° veya 180°: J ≈ 8-12 Hz (maksimum)
+- φ = 60°: J ≈ 4-6 Hz (orta)
+- φ = 90°: J ≈ 0-2 Hz (minimum, singlet görünüm!)
+
+ÖRNEK: Rijit Halka Yapıları
+- 90° dihedral açı → J ≈ 0 Hz
+- Komşu proton olmasına rağmen singlet görünüm
+- Örnek: Bazı steroidler, bisiklik yapılar
+
+3.6. Coupling Constant (J Değerleri) Hesaplama
+
+J DEĞERİ TİPLERİ:
+
+³J (Vicinal Coupling - En Yaygın):
+- Alifatik: 6-8 Hz (tipik)
+- Aromatik ortho: 7-10 Hz
+- Vinil trans: 11-18 Hz (BÜYÜK!)
+- Vinil cis: 6-12 Hz
+
+²J (Geminal Coupling):
+- CH₂ geminal: 10-15 Hz
+- Aromatik CH₂: 12-18 Hz
+- Vinil CH₂: 0-3 Hz (genellikle çözülemez)
+
+⁴J (Long-range Coupling):
+- Aromatik meta: 2-3 Hz (küçük ama ölçülebilir)
+- Allylic: 1-3 Hz
+- W-coupling: 1-2 Hz
+
+⁵J (Çok Uzun Menzilli):
+- Aromatik para: 0-1 Hz (esasen sıfır, singlet görünüm)
+
+ÖRNEK: Aromatik Halka
+- Ortho coupling (³J): 7-10 Hz → Doublet
+- Meta coupling (⁴J): 2-3 Hz → Doublet of doublets (dd)
+- Para coupling (⁵J): 0-1 Hz → Genellikle görünmez
+
+3.7. İntegrasyon Hesaplama
+
+İntegrasyon, her peak'in altındaki alanı ölçer ve proton sayısıyla orantılıdır.
+
+NORMALİZASYON YÖNTEMİ (Silverstein):
+1. En küçük integrasyon değerini bul
+2. Tüm değerleri en küçüğe böl → Oranları bul
+3. 2, 3, 4... ile çarp → Tam sayılar elde et
+4. Toplam H sayısını formül ile karşılaştır
+
+ÖRNEK:
+Ham integrasyonlar: 1.76 : 2.64 : 1.77 : 2.59
+1. En küçük: 1.76
+2. Bölme: 1.0 : 1.5 : 1.01 : 1.47
+3. ×2: 2 : 3 : 2 : 3
+4. Toplam: 2+3+2+3 = 10H ✓
+
+3.8. Literatür Verileri Entegrasyonu
+
+SpectroMind, Crossref API'yi kullanarak literatür abstract'larını çeker ve 
+NMR verilerini extract eder:
+
+ADIM 1: DOI'den Abstract Çekme
+   - Crossref API: https://api.crossref.org/works/{doi}
+   - Abstract'i XML/HTML tag'lerinden temizleme
+
+ADIM 2: NMR Verilerini Extract Etme
+   - AI, abstract'teki NMR verilerini bulur
+   - Kimyasal kaymaları, multiplisiteleri, J değerlerini çıkarır
+
+ADIM 3: Context'e Ekleme
+   - Abstract'ler AI prompt'una eklenir
+   - AI, literatür verilerini kullanarak tahmin yapar
+
+═══════════════════════════════════════════════════════════════════════════════
+  4. FTIR SPEKTRUM TAHMİNİ
+═══════════════════════════════════════════════════════════════════════════════
+
+4.1. Hooke's Law Temelli Yaklaşım
+
+FTIR spektrum tahmini, Hooke's Law'a dayanır:
+
+ν = (1/2πc) × √(k/μ)
+
+Nerede:
+- ν = Vibrasyonel frekans (cm⁻¹)
+- k = Force constant (kuvvet sabiti, N/m)
+- μ = Reduced mass (indirgenmiş kütle, amu)
+- c = Işık hızı (2.998 × 10¹⁰ cm/s)
+
+4.2. Normal Mode Analizi
+
+Normal mode analizi, moleküldeki tüm atomların birlikte titreşimini 
+hesaplar. Wilson'ın GF-matrix metodunu kullanır.
+
+ADIMLAR:
+1. Moleküler graf oluşturma
+2. Force constant matrisi (F) oluşturma
+3. Kütle matrisi (G) oluşturma
+4. GF matris çarpımı
+5. Eigenvalue problem çözme
+6. Normal mode frekanslarını bulma
+
+4.3. Force Constant (Kuvvet Sabiti) Hesaplama
+
+Temel force constant değerleri (literatür):
+
+TEK BAĞLAR:
+- C-H sp³: 500 N/m → ~2900 cm⁻¹
+- C-H sp²: 550 N/m → ~3050 cm⁻¹ (aromatik)
+- C-H sp: 600 N/m → ~3300 cm⁻¹ (alkin)
+- O-H: 750 N/m → ~3300-3600 cm⁻¹
+- N-H: 650 N/m → ~3300-3500 cm⁻¹
+- C-C: 400 N/m → ~1000-1250 cm⁻¹
+- C-O: 450 N/m → ~1050-1300 cm⁻¹
+
+ÇİFT BAĞLAR:
+- C=C: 950 N/m → ~1620-1680 cm⁻¹
+- C=O: 1200 N/m → ~1700-1750 cm⁻¹
+- C=N: 1100 N/m → ~1640-1690 cm⁻¹
+
+ÜÇLÜ BAĞLAR:
+- C≡C: 1600 N/m → ~2100-2260 cm⁻¹
+- C≡N: 1650 N/m → ~2210-2260 cm⁻¹
+
+DÜZELTMELER:
+
+1. KONJUGASYON ETKİSİ (-20 to -60 N/m):
+   - Basit konjugasyon (Ph-CO-): -30 cm⁻¹
+   - Genişletilmiş konjugasyon: -45 cm⁻¹
+   - Polien sistemler: -60 cm⁻¹
+   - Örnek: Aseton C=O: 1715 cm⁻¹ → Asetofenon C=O: 1685 cm⁻¹
+
+2. HALK GERİLİMİ ETKİSİ (+20 to +50 N/m):
+   - Siklopropan (3 üyeli): +50 cm⁻¹ (ÇOK gerilmiş)
+   - Siklopentan (5 üyeli): +10 cm⁻¹ (hafif gerilmiş)
+   - Sikloheksan (6+ üyeli): 0 cm⁻¹ (gerilimsiz)
+
+3. HİDROJEN BAĞI ETKİSİ (-50 to -100 N/m):
+   - O-H serbest: 3600 cm⁻¹ (keskin)
+   - O-H H-bağlı (intermoleküler): 3200-3500 cm⁻¹ (geniş)
+   - O-H H-bağlı (intramoleküler): 2500-3200 cm⁻¹ (çok geniş)
+   - COOH özellikle geniş: 2500-3300 cm⁻¹ (dimer oluşumu)
+
+4. ELEKTRON ÇEKİCİ GRUP ETKİSİ (+20 N/m):
+   - Halojenler (F, Cl, Br) C=O'ya komşu: +20 cm⁻¹
+   - Örnek: CF₃CO-R → 1780 cm⁻¹ (mavi kayma)
+
+5. ANHARMONİSİTE (Morse Potansiyeli):
+   - Gerçek bağlar mükemmel yay değildir!
+   - Düzeltme: ν_gerçek = ν_harmonik × (1 - χₑ × ν/10000)
+   - O-H: χₑ = 0.025
+   - C-H: χₑ = 0.020
+   - C=O: χₑ = 0.015
+
+4.4. Vibrasyonel Frekans Hesaplama
+
+ÖRNEK HESAPLAMA: Aseton (CH3COCH3)
+
+C=O Gerilme:
+- Temel force constant: k = 1200 N/m
+- Reduced mass: μ = (12 × 16) / (12 + 16) = 6.86 amu
+- Hooke's Law: ν = (1/2πc) × √(k/μ)
+- ν ≈ 1715 cm⁻¹ ✓
+
+C-H Gerilme (CH3):
+- Temel force constant: k = 500 N/m (sp³)
+- Reduced mass: μ = (12 × 1) / (12 + 1) = 0.923 amu
+- ν ≈ 2960 cm⁻¹ (asymmetric) ve 2870 cm⁻¹ (symmetric) ✓
+
+4.5. İntensite (Şiddet) Hesaplama
+
+İntensite, dipol moment türevine bağlıdır:
+
+I ∝ (dμ/dq)²
+
+GÜÇLÜ PİKLER (85-100):
+- C=O gerilme (yüksek polarite)
+- C-O gerilme (ester, eter)
+- O-H, N-H gerilme (polar X-H)
+
+ORTA PİKLER (50-80):
+- C=C gerilme
+- Aromatik C=C
+- CH₂ bükülme modları
+
+ZAYIF PİKLER (20-45):
+- C-C gerilme (apolar)
+- C≡C gerilme (simetrik, düşük dipol değişimi)
+- C-H gerilme (düşük polarite)
+
+4.6. Fingerprint Region Analizi
+
+Fingerprint region (400-1500 cm⁻¹), molekülün "parmak izi" bölgesidir. 
+Bu bölgedeki pikler moleküle özgüdür.
+
+NORMAL MODLAR (Eşleşmiş Titreşimler):
+- CH₂ scissoring: 1465 cm⁻¹ (orta)
+- CH₃ symmetric bend: 1375 cm⁻¹ (orta, şemsiye modu)
+- CH₃ asymmetric bend: 1450 cm⁻¹ (orta)
+- C-O ester asymmetric stretch: 1300 cm⁻¹ (güçlü)
+- C-O ester symmetric stretch: 1220 cm⁻¹ (güçlü)
+- C-O eter/alkol: 1050 cm⁻¹ (güçlü)
+
+AROMATİK FİNGERPRİNT:
+- C=C aromatik gerilme: 1600, 1580, 1500, 1450 cm⁻¹
+- Halka nefes alma: 1020 cm⁻¹
+- C-C iskelet: 1175 cm⁻¹
+
+DÜZLEM DIŞI C-H BÜKÜLME (Aromatik Sübstitüsyon Deseni):
+- Mono-sübstitüe: 756, 690 cm⁻¹ (2 güçlü pik)
+- Ortho-disübstitüe: 750 cm⁻¹ (1 pik)
+- Meta-disübstitüe: 810, 750 cm⁻¹ (2 pik)
+- Para-disübstitüe: 825 cm⁻¹ (1 güçlü pik)
+
+═══════════════════════════════════════════════════════════════════════════════
+  5. 10 MODÜLLÜ TEORİK SPEKTRUM GELİŞTİRME SİSTEMİ
+═══════════════════════════════════════════════════════════════════════════════
+
+SpectroMind, AI tahminlerini 10 fizik/kimya modülü ile geliştirir:
+
+5.1. Modül 1: Boltzmann Ağırlıklandırma
+
+Konformerlerin termodinamik katkısını hesaplar:
+
+w_i = exp(-E_i / RT) / Σ exp(-E_j / RT)
+
+Nerede:
+- w_i = i. konformerin ağırlığı
+- E_i = i. konformerin enerjisi (kcal/mol)
+- R = Gaz sabiti (8.314 J/(mol·K))
+- T = Sıcaklık (K)
+
+UYGULAMA:
+- Düşük enerjili konformerler daha fazla ağırlık alır
+- Ağırlıklı ortalama kimyasal kayma hesaplanır
+- Örnek: Etanol'de gauche ve trans konformerleri
+
+5.2. Modül 2: NMR Zaman Ölçeği Analizi
+
+Exchange hızını ve peak davranışını belirler:
+
+Kritik parametre: k / Δν oranı
+- k >> Δν → Fast exchange (tek peak, ağırlıklı ortalama)
+- k << Δν → Slow exchange (iki ayrı peak)
+- k ≈ Δν → Intermediate (peak genişlemesi)
+
+UYGULAMA:
+- OH/NH exchange rate tahmini
+- Peak genişliği düzeltmesi
+- Exchange regime belirleme (slow/intermediate/fast)
+
+5.3. Modül 3: Second-Order Spin Hamiltonian
+
+İkinci dereceden spin-spin etkileşimlerini hesaplar:
+
+H = Σ J_ij I_i · I_j + Σ K_ijkl I_i · I_j · I_k · I_l
+
+UYGULAMA:
+- Kompleks multiplisite desenleri
+- AB sistemleri (roof effect)
+- Second-order splitting
+
+5.4. Modül 4: Elektronik Etki Non-Linearleştirme
+
+Elektronik etkilerin non-lineer davranışını modeller:
+
+δ = δ₀ + α·E + β·E² + γ·E³
+
+UYGULAMA:
+- Elektronegatif atom etkileri
+- Manyetik anizotropi düzeltmeleri
+- Konjugasyon etkileri
+
+5.5. Modül 5: IR Normal Mode Coupling
+
+Normal modların birbirine eşleşmesini hesaplar:
+
+GF-matrix metodunu kullanarak:
+- Eşleşmiş titreşimler
+- Combination bands
+- Overtones
+
+5.6. Modül 6: Dinamik Simetri Kırılması
+
+Simetrik moleküllerin dinamik simetri kırılmasını modeller:
+
+- Konformasyonel değişimler
+- Simetri operasyonlarının zaman ortalaması
+- Peak sayısı tahmini
+
+5.7. Modül 7: Through-Space Manyetik Etki
+
+Uzayda yakın olan ama bağlı olmayan atomlar arası manyetik etkileşim:
+
+- Aromatik halkaların manyetik anizotropisi
+- Karbonil grubunun manyetik anizotropisi
+- Shielding/deshielding bölgeleri
+
+5.8. Modül 8: Gelişmiş Solvent Etkileşim
+
+Solvent'in kimyasal kaymaya etkisini modeller:
+
+CDCl₃ (Apolar):
+- OH/NH keskin singlet (δ 1-4 ppm)
+- En net OH/NH sinyalleri
+
+DMSO-d₆ (Polar Aprotik):
+- OH/NH broad ve downfield (δ 4-6 ppm)
+- Hidrojen bağı etkisi
+
+D₂O (Protic):
+- OH/NH D/H exchange → Kaybolur
+- Exchangeable protonlar görünmez
+
+5.9. Modül 9: ¹³C Dinamik NOE Modeli
+
+Nuclear Overhauser Effect (NOE) modelleri:
+
+- ¹³C-¹H coupling
+- NOE enhancement faktörleri
+- Relaxation time analizi
+
+5.10. Modül 10: Spektrumlar Arası Çapraz Doğrulama
+
+NMR ve FTIR spektrumlarını birbirine göre doğrular:
+
+- Fonksiyonel grup tutarlılığı
+- Atom sayısı kontrolü
+- Yapısal uyumluluk
+
+═══════════════════════════════════════════════════════════════════════════════
+  6. VALİDASYON VE DOĞRULAMA MEKANİZMALARI
+═══════════════════════════════════════════════════════════════════════════════
+
+6.1. Formül Doğrulama
+
+AI tahmininin formül ile uyumunu kontrol eder:
+
+KONTROL:
+- Toplam integrasyon = Formüldeki H sayısı
+- Tolerans: ±5 atom
+- Hata varsa retry mekanizması devreye girer
+
+ÖRNEK:
+- Formül: C9H8O4 (8H)
+- Tahmin toplamı: 7.5H → HATA! Retry yapılır
+- Düzeltilmiş: 8.0H → ✓
+
+6.2. İntegrasyon Kontrolü
+
+Her peak'in integrasyon değerini kontrol eder:
+
+- Toplam integrasyon hesaplama
+- Formül H sayısı ile karşılaştırma
+- Oran hesaplama (tahmin/formül)
+- Uyarılar: %10'dan fazla fark varsa
+
+6.3. Peak Sayısı Validasyonu
+
+Kompleks moleküller için yeterli peak sayısını kontrol eder:
+
+KURALLAR:
+- 50+ H için: En az 20-30 peak
+- 30+ H için: En az 15-25 peak
+- 20+ H için: En az 10-15 peak
+- Küçük moleküller: 5-10 peak
+
+ÖRNEK: Paclitaxel (51H)
+- Minimum: 20 peak
+- Tahmin: 26 peak → ✓
+
+6.4. Multiplisite Kontrolü
+
+Kompleks moleküller için singlet-only tahminlerini reddeder:
+
+KURAL:
+- 30+ H için singlet oranı > %70 → HATA!
+- Retry mekanizması devreye girer
+- Kompleks multiplisiteler (dd, dt, m) kullanılmalı
+
+6.5. Veto Kuralları
+
+Bu kurallar ihlal edilirse tahmin reddedilir:
+
+1. VİNİLİK SİNYAL KONTROLÜ:
+   - 4.5-6.5 ppm arasında d, t, dt sinyaller varsa
+   - Molekülde MUTLAKA C=C bağı olmalı!
+   - Yoksa sonuç YANLIŞTIR!
+
+2. PROTON SAYISI KONTROLÜ:
+   - Girdi toplamı ile formül H sayısı arasında
+   - %5'ten fazla fark varsa sonuç REDDEDİLMELİ!
+
+3. SİMETRİ KURALLARI:
+   - Yüksek simetriye sahip moleküller (Td, Oh)
+   - Eşsiz ortam sayısı 1 ise SADECE 1 ADET PİK olmalı!
+
+4. RİJİTLİK ANALİZİ:
+   - Alifatik bölgede (1-4 ppm) keskin singletler
+   - Rijit/halkalı yapı işaretidir
+   - Esnek zincirli moleküller önerilmemeli!
+
+5. KARPLUS EŞİTLİĞİ:
+   - Komşu proton olmasına rağmen singlet görünüyorsa
+   - Dihedral açı ~90° olmalı (rijit yapı!)
+
+═══════════════════════════════════════════════════════════════════════════════
+  7. ÖRNEKLER VE UYGULAMALAR
+═══════════════════════════════════════════════════════════════════════════════
+
+7.1. Basit Molekül Örneği: Aspirin (C9H8O4)
+
+SMILES: "CC(=O)Oc1ccccc1C(=O)O"
+
+YAPISAL ANALİZ:
+- Aromatik halka: 1 (benzen)
+- Karbonil grupları: 2 (ester + karboksilik asit)
+- Fonksiyonel gruplar: Ester, karboksilik asit, aromatik
+
+NMR TAHMİNİ:
+
+Peak 1: δ 7.1-8.1 ppm, multiplet, 4H
+   - Aromatik protonlar (benzen halkası)
+   - Ortho, meta, para coupling → Kompleks multiplet
+
+Peak 2: δ 2.31 ppm, singlet, 3H
+   - CH₃ (asetil grubu)
+   - Komşu yok → Singlet
+
+Peak 3: δ 12.8 ppm, broad singlet, 1H
+   - COOH protonu
+   - Çok geniş (H-bağlanma)
+   - DMSO'da görünür
+
+FTIR TAHMİNİ:
+
+Peak 1: 1754 cm⁻¹, güçlü, C=O ester gerilme
+Peak 2: 1685 cm⁻¹, güçlü, C=O asit gerilme (konjuge, düşük)
+Peak 3: 1600 cm⁻¹, orta, C=C aromatik gerilme
+Peak 4: 1220 cm⁻¹, güçlü, C-O ester gerilme
+Peak 5: 750 cm⁻¹, güçlü, Aromatik C-H düzlem dışı (ortho-disübstitüe)
+
+7.2. Kompleks Molekül Örneği: Paclitaxel (C47H51NO14, 51H)
+
+SMILES: (Çok uzun, stereokimya içeren)
+
+YAPISAL ANALİZ:
+- Çoklu aromatik halkalar
+- Çoklu karbonil grupları
+- Kiral merkezler
+- Ester, eter, alkol grupları
+
+NMR TAHMİNİ:
+- Toplam: 26 peak (51H için)
+- Kompleks multiplisiteler: d, t, m, dd, dt, td, ddd
+- Aromatik bölge: 7-8 ppm (çoklu peak'ler)
+- Alifatik bölge: 1-5 ppm (çoklu peak'ler)
+- J değerleri: 7.2, 7.4, 8.9, 9.0, 2.4, 7.0, 9.5, 2.0, 8.4, 4.0 Hz
+
+FTIR TAHMİNİ:
+- Çoklu C=O pikleri (ester, keton)
+- O-H gerilme (alkol grupları)
+- Aromatik C-H gerilme
+- Fingerprint region (çoklu pik)
+
+7.3. Aromatik Molekül Örneği: Resveratrol (C14H12O3)
+
+SMILES (Trans): "OC1=CC(=CC(O)=C1)/C=C/C2=CC=C(O)C=C2"
+
+YAPISAL ANALİZ:
+- İki aromatik halka (benzen)
+- Trans çift bağ (/C=C/)
+- Üç OH grubu
+
+NMR TAHMİNİ:
+
+Peak 1: δ 6.2-6.8 ppm, doublet, 2H
+   - Vinilik protonlar (trans çift bağ)
+   - Trans coupling: J = 16 Hz
+
+Peak 2: δ 6.8-7.5 ppm, multiplet, 6H
+   - Aromatik protonlar (iki benzen halkası)
+   - Kompleks coupling pattern
+
+Peak 3: δ 9.0-9.5 ppm, broad singlet, 3H
+   - OH protonları (fenolik)
+   - DMSO'da broad
+
+FTIR TAHMİNİ:
+
+Peak 1: 3300-3500 cm⁻¹, geniş, O-H gerilme (H-bağlı)
+Peak 2: 1600, 1580, 1500 cm⁻¹, orta, C=C aromatik gerilme
+Peak 3: 1220 cm⁻¹, güçlü, C-O gerilme (fenolik)
+Peak 4: 970 cm⁻¹, güçlü, Trans C=C-H düzlem dışı bükülme
+
+═══════════════════════════════════════════════════════════════════════════════
+  8. MOLEKULEPIPELINESERVICE v2.0 (SINGLE SOURCE OF TRUTH)
+═══════════════════════════════════════════════════════════════════════════════
+
+8.1. Genel Bakış
+
+SpectroMind v2.0, molekül işleme pipeline'ını tek merkez orchestrator 
+(MoleculePipelineService) ile yönetir. Bu servis, tüm aşamaları deterministik 
+sırayla yönetir ve "Single Source of Truth" prensibini uygular.
+
+Dosya: lib/pipeline/MoleculePipelineService.ts
+Sınıf: MoleculePipelineService (Singleton)
+
+8.2. Pipeline Aşamaları
+
+Sıralı İşleyiş:
+1. Identity Resolution (resolveIdentity)
+   - CID, molekül adı veya IUPAC'dan kimlik belirleme
+   - PubChem API entegrasyonu
+   - Formula doğrulama
+
+2. Structure Resolution (resolveStructure)
+   - SMILES çözümleme (PubChem, OPSIN)
+   - Canonical vs Isomeric SMILES ayrımı
+   - InChI ve InChIKey hesaplama
+   - Stereo status belirleme ("full" | "partial" | "none")
+
+3. Normalization & Validation (normalizeAndValidate)
+   - Formula karşılaştırması
+   - SMILES doğrulama
+   - InChIKey format kontrolü
+   - Warning sistemi (FORMULA_MISMATCH, STEREO_MISSING, vb.)
+
+4. Graph Building (buildGraph)
+   - Primary: RDKit API (/api/rdkit/parse-smiles)
+     * 2D koordinatlar: rdDepictor.Compute2DCoords()
+     * 3D koordinatlar: ETKDG + optimize
+     * Atom sayıları hesaplama
+     * Formül hesaplama (Hill sistemi)
+     * DBE hesaplama
+   - Fallback: JavaScript Parser (lib/utils/molecularStructure.ts)
+     * Sınırlı destek (charge, stereo unsupported)
+     * Düşük confidence (0.4)
+
+5. NMR Prediction (predictNMR) - opsiyonel
+   - Deterministic Model: Shoolery + Karplus
+   - LLM Interpretation: GPT-4O (formül türetme YASAK)
+   - Final Consensus: Model + LLM birleştirme
+
+6. FID Comparison (optionalFIDCompare) - opsiyonel
+   - Deneysel spektrum işleme
+   - Teorik vs deneysel karşılaştırma
+
+8.3. Identity Lock Mekanizması
+
+Problem: AI (LLM) spektrum analizinden yanlış formül türetiyor (örn: C10H10O).
+Kullanıcı molekül seçtiyse (örn: Paclitaxel, C47H51NO14), AI'ın formül türetmesi
+engellenmeli ve yalnızca seçilen molekülün formülü kullanılmalı.
+
+Çözüm:
+1. Pre-Processing (Prompt Level):
+   - Kullanıcı molekül seçtiyse, prompt'a "CRITICAL IDENTITY LOCK" uyarısı eklenir
+   - AI'a zorunlu formül verilir, formül türetme YASAK
+
+2. Post-Processing (Response Override):
+   - AI yanlış formül döndürürse, kullanıcı formülü ile override edilir
+   - Confidence düşürülür (max 70%)
+   - Warning eklenir (FORMULA_MISMATCH)
+
+3. DBE Block Post-Processing:
+   - AI'ın yazdığı DBE bloğu replace edilir
+   - Kod tabanlı DBE hesaplama kullanılır (renderDBEBlock)
+
+8.4. Formula Calculation & Validation
+
+Dosya: lib/chem/formula.ts
+
+Fonksiyonlar:
+- computeAtomCountsFromRDKitAtoms(): Atom sayılarını çıkarır
+- formatHillFormula(): Hill sistemi formatlama (C, H, sonra alfabetik)
+- computeDBE(): DBE hesaplama (C - H/2 - X/2 + N/2 + 1)
+- validateFormula(): Formül karşılaştırması
+- renderDBEBlock(): DBE analiz bloğu oluşturma
+
+DBE Formülü:
+DBE = C - H/2 - X/2 + N/2 + 1
+- C: Karbon sayısı
+- H: Hidrojen sayısı
+- X: Halojen toplamı (F + Cl + Br + I)
+- N: Azot sayısı
+
+Örnek:
+- C47H51NO14: DBE = 47 - 51/2 - 0/2 + 1/2 + 1 = 23
+- C10H10O: DBE = 10 - 10/2 - 0/2 + 0/2 + 1 = 6
+
+═══════════════════════════════════════════════════════════════════════════════
+  9. PEAK PARSING GUARDRAILS
+═══════════════════════════════════════════════════════════════════════════════
+
+9.1. Problem Tanımı
+
+Sorun: FTIR cm⁻¹ değerleri (örn: 3300, 3500) ¹H NMR ppm olarak parse ediliyor.
+Bu, yanlış formül türetmeye yol açıyor (örn: C27H24, C10H10O).
+
+9.2. Strict Parsing Functions
+
+Dosya: lib/utils/peakParser.ts
+
+9.2.1. parseH1Peaks(text: string)
+
+Format: δ 8.13 (d, 2H)
+
+Guardrail Kuralları:
+- PPM aralığı: -2 ile 15 arası (dışındakiler reject edilir)
+- "ppm" kelimesi varsa skip (C13 formatı)
+- Regex: /^δ\s*([+-]?\d+(?:\.\d+)?)\s*\(\s*([A-Za-z]{1,4})\s*,\s*([0-9]+(?:\.[0-9]+)?)\s*H\s*(?:,.*)?\)\s*$/i
+
+Örnek Reject:
+- "δ 3300.00 (o, 1H)" → UNIT_MISMATCH warning, peak rejected
+- "δ 20.00 (s, 1H)" → OUT_OF_RANGE warning, peak rejected
+
+9.2.2. parseC13Peaks(text: string)
+
+Format: δ 203.60 ppm (Cq)
+
+Guardrail Kuralları:
+- PPM aralığı: 0 ile 250 arası (dışındakiler reject edilir)
+- "ppm" kelimesi veya carbon type (Cq, CH, CH2, CH3) olmalı
+- Regex: /^δ\s*([+-]?\d+(?:\.\d+)?)\s*(?:ppm)?\s*\(\s*(Cq|CH3|CH2|CH)\s*\)\s*$/i
+
+Örnek Reject:
+- "δ 300.00 ppm (Cq)" → OUT_OF_RANGE warning, peak rejected
+
+9.2.3. parseFTIRBands(text: string)
+
+Format: 3300 cm⁻¹ (50)
+
+Guardrail Kuralları:
+- Wavenumber aralığı: 400 ile 4000 cm⁻¹ arası
+- "δ" ile başlayan satırlar skip edilir (NMR formatı)
+- Regex: /^(\d+(?:\.\d+)?)\s*cm\^-1(?:\s*\(\s*(\d+(?:\.\d+)?)\s*\))?\s*$/i
+
+Örnek Reject:
+- "100 cm⁻¹" → OUT_OF_RANGE warning, band rejected
+- "5000 cm⁻¹" → OUT_OF_RANGE warning, band rejected
+
+9.3. Warning Codes
+
+ParseWarningCode:
+- "LINE_UNPARSEABLE": Format tanınmadı
+- "MISSING_FIELDS": Numeric alanlar eksik
+- "OUT_OF_RANGE": Değer aralık dışında
+- "UNIT_MISMATCH": Birim uyumsuzluğu (örn: FTIR → NMR)
+
+9.4. CHn Type Counting
+
+Fonksiyon: countCHnTypes(peaks: C13Peak[])
+
+Amaç: ¹³C multiplicity bilgisini formül doğrulama için kullanmak
+
+Örnek:
+- peaks = [{carbonType: "CH3"}, {carbonType: "CH2"}, {carbonType: "Cq"}]
+- Sonuç: {Cq: 1, CH: 0, CH2: 1, CH3: 1}
+
+═══════════════════════════════════════════════════════════════════════════════
+  SONUÇ
+═══════════════════════════════════════════════════════════════════════════════
+
+SpectroMind, 2D moleküler yapı bilgisinden (SMILES, InChI) teorik NMR ve 
+FTIR spektrumlarını tahmin eden gelişmiş bir sistemdir. Sistem, AI destekli 
+tahmin motoru, fiziksel modeller ve kapsamlı validasyon mekanizmaları 
+kullanarak yüksek doğrulukta spektrum tahminleri üretir.
+
+ANA ÖZELLİKLER:
+- SMILES/InChI'den otomatik yapı analizi
+- AI destekli spektrum tahmini (GPT-4O)
+- Silverstein metodolojisi entegrasyonu
+- 80+ fonksiyonel grup kütüphanesi
+- Hooke's Law temelli FTIR tahmini
+- 10 modüllü teorik spektrum geliştirme
+- Kapsamlı validasyon ve doğrulama
+
+v2.0 YENİ ÖZELLİKLER:
+- MoleculePipelineService: Single Source of Truth orchestrator
+- Identity Lock: Formül drift'i engelleme mekanizması
+- Peak Parsing Guardrails: Strict range validation (¹H: -2..15, ¹³C: 0..250, FTIR: 400..4000)
+- DBE Calculation: Kod tabanlı hesaplama (AI'dan bağımsız)
+- Formula Validation: Atom sayılarından formül doğrulama
+- Provenance Tracking: Her aşamada kayıt tutma
+- Confidence Breakdown: Yapı, stereo, tahmin, FID kalitesi skorları
+
+KULLANIM ALANLARI:
+- Organik sentez planlama
+- Spektrum yorumlama
+- Molekül tanımlama
+- Eğitim ve öğretim
+- Araştırma ve geliştirme
+
+═══════════════════════════════════════════════════════════════════════════════
+  KAYNAKLAR
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Silverstein, R. M., Webster, F. X., & Kiemle, D. J. (2014). 
+   "Spectrometric Identification of Organic Compounds" (8th ed.). 
+   John Wiley & Sons.
+
+2. Pavia, D. L., Lampman, G. M., Kriz, G. S., & Vyvyan, J. R. (2014). 
+   "Introduction to Spectroscopy" (5th ed.). 
+   Cengage Learning.
+
+3. Hooke, R. (1678). "De Potentia Restitutiva". 
+   Philosophical Transactions of the Royal Society.
+
+4. Karplus, M. (1959). "Contact Electron-Spin Coupling of Nuclear Magnetic 
+   Moments". Journal of Chemical Physics, 30(1), 11-15.
+
+5. Shoolery, J. N. (1959). "Some Chemical-Shift Correlations". 
+   Journal of Chemical Physics, 31(6), 1427-1432.
+
+═══════════════════════════════════════════════════════════════════════════════
+  DOKÜMANTASYON SONU
+═══════════════════════════════════════════════════════════════════════════════
+

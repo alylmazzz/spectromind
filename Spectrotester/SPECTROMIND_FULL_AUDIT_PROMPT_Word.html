@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word">
+<head>
+<meta charset="UTF-8">
+<meta name="ProgId" content="Word.Document">
+<meta name="Generator" content="SpectroMind Full Audit Prompt – Word Export">
+<meta name="Originator" content="Cursor/Agent">
+<title>Cursor'a Verilecek Nihai FULL AUDIT + UPGRADE Prompts</title>
+<style>
+  @page { margin: 2cm; }
+  body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; font-size: 11pt; line-height: 1.35; margin: 1.5cm 2cm; color: #1a1a1a; }
+  .doc-title { font-size: 18pt; font-weight: bold; text-align: center; margin-bottom: 0.5em; color: #0d47a1; border-bottom: 2px solid #0d47a1; padding-bottom: 0.4em; }
+  .doc-subtitle { font-size: 10pt; color: #555; text-align: center; margin-bottom: 1.2em; }
+  .meta-block { background: #f5f5f5; border-left: 4px solid #0d47a1; padding: 0.8em 1em; margin: 1em 0; font-size: 10pt; }
+  .meta-block strong { color: #0d47a1; }
+  h1 { font-size: 14pt; font-weight: bold; color: #0d47a1; margin-top: 1.2em; margin-bottom: 0.4em; page-break-before: auto; }
+  h2 { font-size: 12pt; font-weight: bold; color: #1565c0; margin-top: 1em; margin-bottom: 0.35em; }
+  h3 { font-size: 11pt; font-weight: bold; color: #1976d2; margin-top: 0.8em; margin-bottom: 0.25em; }
+  p { margin: 0.4em 0 0.6em 0; text-align: justify; }
+  ul, ol { margin: 0.4em 0 0.6em 1.2em; }
+  li { margin: 0.2em 0; }
+  .section { margin-bottom: 1em; }
+  .bullet-list { list-style-type: disc; }
+  .number-list { list-style-type: decimal; }
+  .tight-list { margin-left: 1.5em; }
+  .highlight { background: #fffde7; padding: 0.1em 0.2em; }
+  hr { border: none; border-top: 1px solid #bdbdbd; margin: 1.2em 0; }
+  .toc { background: #e3f2fd; padding: 1em 1.2em; margin: 1em 0; border-radius: 4px; }
+  .toc-title { font-weight: bold; font-size: 12pt; margin-bottom: 0.5em; color: #0d47a1; }
+  .toc a { color: #1565c0; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .footer-note { font-size: 9pt; color: #666; margin-top: 1.5em; padding-top: 0.8em; border-top: 1px solid #ddd; }
+</style>
+</head>
+<body>
+
+<div class="doc-title">Cursor'a Verilecek Nihai "FULL AUDIT + UPGRADE" Prompts</div>
+<div class="doc-subtitle">Kopyala-yapıştır · Rol: bilimsel analitik kimyager + senior full-stack + sistem/endüstri mühendisi + QA/validation lead</div>
+
+<div class="meta-block">
+  <strong>[PROJECT]</strong> SpectroMind / SpectroMaster – Deterministic Spectral Verification Engine<br>
+  <strong>[TARGET FILE]</strong> Spectromasterv0.2tester.html (tek dosya monolit; workspace kökünde)<br>
+  <strong>[OUTPUT FILE]</strong> SPECTROMIND_CURSOR_FULL_AUDIT_OUTPUT.txt (repo köküne yaz)
+</div>
+
+<div class="toc">
+  <div class="toc-title">İçindekiler</div>
+  <a href="#sec0">0) Mutlak hedef</a><br>
+  <a href="#sec1">1) Zorunlu roller</a><br>
+  <a href="#sec2">2) İnceleme kapsamı</a><br>
+  <a href="#sec3">3) Talep edilen çıktılar</a><br>
+  <a href="#sec4">4) Çıktı dosyası formatı</a><br>
+  <a href="#sec5">5) Uygulama sırası</a><br>
+  <a href="#sec6">Son not</a>
+</div>
+
+<hr>
+
+<h1 id="sec0">0) Mutlak hedef</h1>
+<p>Senin görevin: Kodun tamamını (UI + kernel + generate* + runVerification + rule/veto/score) uçtan uca denetlemek, bilimsel doğruluk ve explainability (neden/kanıt/öneri) odağında eksiksiz bir yükseltme planı üretmek ve ardından uygulanabilir patch planı + kural/parametre seti + test/kalibrasyon dataset şeması çıkarmaktır.</p>
+<p><span class="highlight">"%100 skor" hedefi hileli PASS demek değildir.</span> Hedef:</p>
+<ul class="bullet-list">
+  <li>Doğru molekülde <strong>PASS</strong>,</li>
+  <li>Belirsiz/ölçüm kaynaklı durumda <strong>INCONCLUSIVE/WARN</strong> (ama açıklamalı),</li>
+  <li>Gerçek tutarsızlıkta <strong>FAIL</strong> (neden + kanıt + çözüm)</li>
+</ul>
+<p>üretmek; ve bunu deterministik, izlenebilir, testlenebilir hale getirmektir.</p>
+
+<h1 id="sec1">1) Zorunlu roller (aynı anda hepsisin)</h1>
+<ul class="bullet-list">
+  <li><strong>Principal Analytical Chemist</strong> (NMR/MS/FT-IR/2D-NMR): literatür aralıkları, deney artefaktları, exchange/rotamer/overlap, solvent effects, 2J/3J HMBC mantığı.</li>
+  <li><strong>Principal Software Architect</strong> (JS/TS/React, monolith refactor): modülerleştirme, rule engine, veri modelleri, determinism, performans.</li>
+  <li><strong>Senior QA / Verification Lead</strong>: golden set, adversarial set, property-based tests, regresyon kapıları, traceability matrix.</li>
+  <li><strong>Industrial / Systems Engineer</strong> (FMEA + risk + acceptance gates): failure modes, risk puanlama, önceliklendirme, DoD.</li>
+  <li><strong>UX/Explainability Designer</strong>: kullanıcıya "neden veto yedi" ve "hangi kanıtla" anlaşılır gösteren rapor tasarımı.</li>
+</ul>
+
+<h1 id="sec2">2) İnceleme kapsamı (hiçbir yeri atlama)</h1>
+<p>Aşağıdaki modülleri Spectromasterv0.2tester.html içinde bularak tek tek analiz et, birbirine bağlı blokları da kapsa:</p>
+
+<h2>2.1 SMILES preprocessing / tokenize / atom count / formulaFromSmiles kullanımı</h2>
+<ul class="bullet-list tight-list">
+  <li>preprocessSMILES, tokenizeSMILES, parseAtomCounts, detectContext</li>
+  <li>formulaFromSmiles çağrısı ve formulaRef kullanımı (kernel satır ~1971–2023)</li>
+  <li>Salt/strip, canonical vs raw SMILES tutarlılığı</li>
+</ul>
+
+<h2>2.2 DBE hesaplama + DBE breakdown + H/C yorum + DBE→zorunluluk haritalama</h2>
+<ul class="bullet-list tight-list">
+  <li>calculateDBE(), calculateDBEBreakdown() (kernel)</li>
+  <li>DBE parity (çift/tek), DBE=0 → aromatik/aldehit yasak veto</li>
+  <li>DBE vs carbonyl/alkene/aromaticC heuristic (QC_DBE_*, QC_AROMATIC_DBE_*)</li>
+</ul>
+
+<h2>2.3 generate1H, generate13C, generateMS, generateIR, generate2D üretim mantığı</h2>
+<ul class="bullet-list tight-list">
+  <li><strong>generate1H:</strong> integral toplamı, multiplicity (s,d,t,q,m), ppm aralıkları, çözücü bantları, değişebilir H (OH/NH) exclude</li>
+  <li><strong>generate13C:</strong> benzersiz karbon sayısı, simetri, karbonil/nitril bölgeleri</li>
+  <li><strong>generate2D:</strong> HSQC (H–C), COSY (H–H), HMBC (2J/3J), NOESY</li>
+  <li><strong>generateMS:</strong> adduct listesi, izotop paterni (Cl/Br)</li>
+  <li><strong>generateIR:</strong> bant ataması (C=O, O–H, N–H, C≡N, S=O vb.), cm⁻¹ aralıkları</li>
+</ul>
+
+<h2>2.4 runVerification ana teyit motoru</h2>
+<ul class="bullet-list tight-list">
+  <li>Modül skorları (modules.c13, .h1, .hsqc, .cosy, .hmbc, .noesy, .ms, .ftir)</li>
+  <li>veto_flags: error_code, modality, rule_name, why, evidence, missing_expected, severity</li>
+  <li>root_cause_analysis: error_code, modality, what_failed, why, evidence, missing_expected, detail (HSQC/COSY severity_grading, notes)</li>
+  <li>confidence_score, data_completeness, worst_severity</li>
+  <li>evaluateAll(ruleset, context): checkPrerequisites, executeRule, results, vetoFlags, warnings</li>
+  <li>VERIFICATION_RULESET (FORMULA_DBE_NEGATIVE_FATAL, DBE_PARITY, H1_INTEGRAL_TOTAL, COSY_EXPECTATION_ALL_SINGLET vb.)</li>
+</ul>
+
+<h2>2.5 verify13C, verify1H, verifyMS, verifyIR</h2>
+<ul class="bullet-list tight-list">
+  <li><strong>verify13C:</strong> expected vs found karbon sayısı, simetri, karbonil/nitril zorunluluk</li>
+  <li><strong>verify1H:</strong> integral toplamı (normalizeIntegrals), B1–B4 checks (integral, PPM pencere, fingerprint, J-coupling), FP_RULES eşleşmesi</li>
+  <li><strong>verifyMS:</strong> ms_required_adduct_any_of, theoreticalMass, matchedAdducts, izotop kuralları</li>
+  <li><strong>verifyIR:</strong> ir_requirement_matrix / expectedBands vs foundBands, bant güç kapısı</li>
+</ul>
+
+<h2>2.6 Yapısal veto blokları (pushVeto)</h2>
+<ul class="bullet-list tight-list">
+  <li>VETO_DBE0_AROMATIC_ALDEHYDE, VETO_DBE0_C13_CARBONYL</li>
+  <li>VETO_H1_AROMATIC_INTEGRAL, VETO_H1_ALDEHYDE_MISSING, VETO_H1_HC_SATURATED_ABOVE_45</li>
+  <li>C13_OBLIGATORY_FEATURE_MISSING, VETO_IR_OH_NH, VETO_IR_CARBONYL, nitril/asit bölgesi</li>
+  <li>Multiplicity veto (ethyl quartet/septet, isopropyl doublet)</li>
+</ul>
+
+<h2>2.7 HSQC / COSY / HMBC kuralları</h2>
+<ul class="bullet-list tight-list">
+  <li>NMR_ANALYSIS_RULES.HSQC (severity_grading, HSQC_LOSS_CAUSE, missing_correlations)</li>
+  <li>NMR_ANALYSIS_RULES.COSY (COSY_EXPECTATION: all_protons_singlet / has_couplings)</li>
+  <li>NMR_ANALYSIS_RULES.HMBC (functional_group_rules, two_bond_vs_three_bond, invisibility_causes)</li>
+</ul>
+
+<h2>2.8 Konfigürasyon ve sabitler</h2>
+<ul class="bullet-list tight-list">
+  <li><strong>VERIFICATION_CONFIG:</strong> integral_tolerance_ratio, ppm_tol_1h, ms_ppm_match, hc_ratio_saturated_threshold, exchangeable_integral_tolerance_ratio, ir_band_strength_gate, ms_required_adduct_any_of, aromatic_hetero_shift_ranges</li>
+  <li>DBE_PARITY_ALLOWED, ETHYL_MULTIPLICITY, ISOPROPYL_MULTIPLICITY, FORMULA_CONSISTENCY_KEYS, MS_ADDUCT_DB</li>
+  <li>ERROR_SEVERITY_MAP_REF, ERROR_SCORE_MAP_REF</li>
+</ul>
+
+<h2>2.9 Kütüphane ve referans verisi</h2>
+<ul class="bullet-list tight-list">
+  <li>FP_RULES (fingerprint), solvent_impurity_catalog, IR_band_priors, MS_adduct_rules</li>
+  <li>missing_library_items, library_coverage_report (fingerprint_match, simulation_confidence, coverage_label, known_atoms_in_molecule)</li>
+  <li>lib/spectra/library/: verification_library_seed.json, ruleset.json, teyit_raporu_schema.json</li>
+</ul>
+
+<h2>2.10 UI ve raporlama</h2>
+<ul class="bullet-list tight-list">
+  <li>verificationReport: status, overall, confidence_score, veto_flags, root_cause_analysis, confidence_breakdown, modules (c13, h1, hsqc, cosy, hmbc, noesy, ms, ftir)</li>
+  <li>Veto/Root cause detaylı kartlar (kanıt okunaklı, eksik beklenen, şiddet rozeti)</li>
+  <li>Eksik kütüphane verisi kartları (tablo/key, eklenmeli maddeleri, kaynak)</li>
+  <li>Skor renk kapıları (PASS 90–100, VALIDATED WARN 70–89, FAIL &lt;70 veya veto, INCONCLUSIVE gri)</li>
+</ul>
+
+<hr>
+
+<h1 id="sec3">3) Talep edilen çıktılar (deliverables)</h1>
+
+<h2>3.1 Eksik / Gap analizi</h2>
+<ul class="bullet-list tight-list">
+  <li>Her modül için: tespit edilen eksikler (bilimsel, kod, veri modeli)</li>
+  <li>Risk seviyesi (yüksek/orta/düşük) ve etki (yanlış PASS, yanlış FAIL, explainability zayıf)</li>
+</ul>
+
+<h2>3.2 Kural seti önerisi</h2>
+<ul class="bullet-list tight-list">
+  <li>VERIFICATION_RULESET ve NMR_ANALYSIS_RULES için eklenmesi/değiştirilmesi gereken kurallar</li>
+  <li>Her kural için: rule_id, modality, prerequisites, evidence_capture, why_narrative, suggested_action, status_on_fail</li>
+</ul>
+
+<h2>3.3 Parametre kalibrasyonu</h2>
+<ul class="bullet-list tight-list">
+  <li>VERIFICATION_CONFIG ve global sabitler için önerilen değer aralıkları ve gerekçe</li>
+  <li>Toleranslar (integral, ppm, ms_ppm_match, IR bant) için literatür/deney referansı</li>
+</ul>
+
+<h2>3.4 Test harness şeması</h2>
+<ul class="bullet-list tight-list">
+  <li>Golden set (GOLDEN_EXPECTATIONS_30.json) kullanımı; beklenen PASS/FAIL/WARN senaryoları</li>
+  <li>Adversarial set: sınır durumları (DBE=0 + aromatik, eksik integral, tek HSQC eksik, COSY boş)</li>
+  <li>Property-based: "her SMILES için kernel.formula ile generate* çıktısı tutarlı olmalı"</li>
+  <li>Regresyon kapıları: veto_flags ve root_cause_analysis alan sayısı/şeması</li>
+</ul>
+
+<h2>3.5 Explainability çıktıları</h2>
+<ul class="bullet-list tight-list">
+  <li>Her veto/warning için: neden (why_narrative), kanıt (evidence okunaklı), eksik beklenen, önerilen aksiyon</li>
+  <li>Rapor UI'da gösterilecek alanların listesi ve öncelik</li>
+</ul>
+
+<hr>
+
+<h1 id="sec4">4) Çıktı dosyası formatı (SPECTROMIND_CURSOR_FULL_AUDIT_OUTPUT.txt)</h1>
+<p>Aşağıdaki bölümleri içeren tek metin dosyası oluştur; repo köküne <strong>SPECTROMIND_CURSOR_FULL_AUDIT_OUTPUT.txt</strong> adıyla yaz.</p>
+<ul class="bullet-list">
+  <li><strong>A)</strong> Özet ve yürütülen adımlar (hangi modüller tarandı, satır aralıkları)</li>
+  <li><strong>B)</strong> Eksik / Gap analizi (modül bazlı, risk ve etki ile)</li>
+  <li><strong>C)</strong> Kural seti önerisi (eklenecek/değişecek kurallar, JSON-benzeri yapı)</li>
+  <li><strong>D)</strong> Parametre kalibrasyonu (config ve sabit önerileri, gerekçe)</li>
+  <li><strong>E)</strong> Test harness şeması (golden, adversarial, property-based, regresyon)</li>
+  <li><strong>F)</strong> Explainability çıktıları (alan listesi, UI önerileri)</li>
+  <li><strong>G)</strong> Uygulama önceliği (sıralı patch listesi: 1. kritik, 2. yüksek, 3. orta)</li>
+</ul>
+
+<hr>
+
+<h1 id="sec5">5) Uygulama sırası (öncelik)</h1>
+<ol class="number-list">
+  <li>Önce tüm kodu oku ve modül haritasını çıkar (satır numaraları ile).</li>
+  <li>Eksik/gap analizini yap; SPECTROMIND_CURSOR_FULL_AUDIT_OUTPUT.txt B bölümünü doldur.</li>
+  <li>Kural ve parametre önerilerini yaz (C, D).</li>
+  <li>Test ve explainability şemasını yaz (E, F).</li>
+  <li>Öncelik listesini çıkar (G).</li>
+  <li>Dosyayı repo köküne SPECTROMIND_CURSOR_FULL_AUDIT_OUTPUT.txt olarak kaydet.</li>
+</ol>
+
+<hr>
+
+<h1 id="sec6">Son not</h1>
+<p>Bu promptu Cursor'a yapıştırdıktan sonra Agent'ın tek oturumda (veya gerekirse birden fazla yanıtta) tüm incelemeyi yapıp <strong>SPECTROMIND_CURSOR_FULL_AUDIT_OUTPUT.txt</strong> dosyasını üretmesi beklenir. İstersen <em>"Şimdi bu prompta göre denetimi başlat ve çıktı dosyasını oluştur"</em> diyerek doğrudan çalıştırabilirsin.</p>
+
+<div class="footer-note">
+  Belge: SPECTROMIND_FULL_AUDIT_PROMPT_Word.html · Word'de açıp Farklı Kaydet → Word Belgesi (.docx) olarak kaydedebilirsiniz.
+</div>
+
+</body>
+</html>

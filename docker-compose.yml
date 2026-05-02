@@ -1,0 +1,95 @@
+services:
+  # PostgreSQL with pgvector
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: spectromind_postgres
+    environment:
+      POSTGRES_DB: spectromind
+      POSTGRES_USER: spectromind
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-spectromind_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./services/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spectromind"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: spectromind_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NMR Engine (FastAPI)
+  nmr-engine:
+    build:
+      context: ./services/nmr-engine
+      dockerfile: Dockerfile
+    container_name: spectromind_nmr_engine
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=spectromind
+      - POSTGRES_USER=spectromind
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-spectromind_password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./services/nmr-engine:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+
+  # Celery Worker
+  celery-worker:
+    build:
+      context: ./services/celery-worker
+      dockerfile: Dockerfile
+    container_name: spectromind_celery_worker
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=spectromind
+      - POSTGRES_USER=spectromind
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-spectromind_password}
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - ./services/celery-worker:/app
+    command: celery -A celery_app worker --loglevel=info --concurrency=2
+
+  # OPSIN Service
+  opsin-service:
+    build:
+      context: ./services/opsin-service
+      dockerfile: Dockerfile
+    container_name: spectromind_opsin
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./lib/opsin-2.8.0-jar-with-dependencies.jar:/app/lib/opsin.jar:ro
+    command: python main.py
+
+volumes:
+  postgres_data:
+  redis_data:
+

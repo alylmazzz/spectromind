@@ -1,0 +1,24 @@
+{
+  "ts": "2026-04-24T16:08:30.084Z",
+  "authorityIssues": 1,
+  "parityIssues": 1,
+  "decisions": [
+    {
+      "task_class": "authority_parity_verdict_governance",
+      "selected_pairing": [
+        "spectromind-subagent-orchestrator",
+        "spectromind-regression-guardian",
+        "spectrotester-rule-engine-architect"
+      ],
+      "reason": "authority drift detected"
+    },
+    {
+      "task_class": "chart_parity_focus",
+      "selected_pairing": [
+        "spectromind-chart-parity-architect",
+        "spectromind-subagent-orchestrator"
+      ],
+      "reason": "parity drift detected"
+    }
+  ]
+}

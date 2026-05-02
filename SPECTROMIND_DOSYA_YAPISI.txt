@@ -1,0 +1,321 @@
+═══════════════════════════════════════════════════════════════════════════════
+SPECTROMIND v2.0 - DOSYA YAPISI VE FID ANALYZER BİLEŞENLERİ
+═══════════════════════════════════════════════════════════════════════════════
+
+📁 APP/ DİZİN YAPISI (3 Seviye)
+═══════════════════════════════════════════════════════════════════════════════
+
+app/
+├── api/
+│   ├── ai-generate-nmr/
+│   │   └── route.ts
+│   ├── ai-nmr-predict/
+│   │   └── route.ts
+│   ├── ai-suggest-synonyms/
+│   │   └── route.ts
+│   ├── crossref/
+│   │   └── route.ts
+│   ├── elucidation-v15/
+│   │   └── route.ts
+│   ├── enhanced-library/
+│   │   └── route.ts
+│   ├── fid/
+│   │   ├── process/
+│   │   │   └── route.ts          ⭐ FID İşleme API
+│   │   └── upload/
+│   │       └── route.ts          ⭐ FID Klasör Yükleme API
+│   ├── ftir-data-aggregator/
+│   │   └── route.ts
+│   ├── ftir-multi-source/
+│   │   └── route.ts
+│   ├── ftir-predict/
+│   │   └── route.ts
+│   ├── ftir-theoretical/
+│   │   └── route.ts
+│   ├── hose-predict/
+│   │   └── route.ts
+│   ├── molecule-library/
+│   │   ├── route.ts
+│   │   └── search/
+│   │       └── route.ts
+│   ├── nmrshiftdb/
+│   │   └── route.ts
+│   ├── opsin/
+│   │   └── route.ts
+│   ├── pubchem/
+│   │   ├── iupac/
+│   │   │   └── route.ts
+│   │   ├── route.ts
+│   │   ├── sdf/
+│   │   │   └── route.ts
+│   │   ├── search-by-peaks/
+│   │   │   └── route.ts
+│   │   ├── services/
+│   │   │   ├── iupac.service.ts
+│   │   │   └── pubchem.service.ts
+│   │   ├── smiles/
+│   │   │   └── route.ts
+│   │   ├── smiles-to-cid/
+│   │   │   └── route.ts
+│   │   └── structure/
+│   │       └── route.ts
+│   ├── pubchem-search/
+│   │   └── route.ts
+│   ├── rdkit/
+│   │   ├── analyze-structure/
+│   │   │   └── route.ts
+│   │   ├── calculate-energy/
+│   │   │   └── route.ts
+│   │   ├── draw-2d/
+│   │   │   └── route.ts
+│   │   ├── elucidation/
+│   │   │   └── route.ts
+│   │   ├── generate-sdf/
+│   │   │   └── route.ts
+│   │   ├── parse-smiles/
+│   │   │   └── route.ts
+│   │   ├── README.md
+│   │   └── sdf-to-3d/
+│   │       └── route.ts
+│   ├── save-analysis/
+│   │   └── route.ts
+│   └── v2/
+│       ├── conformer-analysis/
+│       │   └── route.ts
+│       ├── dft-verify/
+│       │   └── route.ts
+│       ├── gnn-nmr-predict/
+│       │   └── route.ts
+│       ├── health/
+│       │   └── route.ts
+│       ├── ms-predict/
+│       │   └── route.ts
+│       ├── nmr-engine/
+│       │   └── route.ts
+│       ├── predict/
+│       │   └── route.ts
+│       ├── self-correction/
+│       │   └── route.ts
+│       ├── ultrathink-predict/
+│       │   └── route.ts
+│       └── vector-search/
+│           └── route.ts
+├── error.tsx
+├── favicon.png
+├── globals.css
+├── icons/
+│   ├── book.png
+│   ├── logo.png
+│   ├── robot.png
+│   ├── science.png
+│   └── setting.png
+├── layout.tsx
+├── loading.tsx
+├── page.tsx
+└── sitemap.ts
+
+
+📁 LIB/ DİZİN YAPISI (3 Seviye)
+═══════════════════════════════════════════════════════════════════════════════
+
+lib/
+├── api/
+│   ├── gemini.ts
+│   └── openai.ts
+├── chem/
+│   └── formula.ts              ⭐ Formül/DBE hesaplama
+├── config/
+│   └── defaults.ts
+├── data/
+│   ├── carbon13Library.ts
+│   ├── chatgpt_enhanced_library.json
+│   ├── customNMRLibrary.json
+│   ├── functionalGroupLibrary.ts
+│   ├── moleculeLibrary.ts
+│   ├── moleculeLibraryData.ts
+│   └── spectralAnalysisBoxes.ts
+├── engines/
+│   ├── assembler/
+│   ├── correlations/
+│   │   └── [3 Python dosyası]
+│   ├── mixture/
+│   │   └── [2 Python dosyası]
+│   ├── physics/
+│   │   └── [2 Python dosyası]
+│   ├── predictor/
+│   │   └── [3 Python dosyası]
+│   ├── skeleton/
+│   │   └── [2 Python dosyası]
+│   └── validator/
+│       └── [2 Python dosyası]
+├── enhancement-modules/
+│   ├── index.ts
+│   ├── module1-boltzmann.ts
+│   ├── module2-exchange.ts
+│   ├── module6-symmetry.ts
+│   ├── module9-noe.ts
+│   └── README.md
+├── fid/
+│   ├── bruker/
+│   │   └── acqus.ts            ⭐ Bruker metadata parser
+│   ├── fsUtils.ts               ⭐ Dosya bulma utils
+│   └── processingSpec.ts        ⭐ FID işleme spec tanımları
+├── hooks/
+│   ├── useFIDUpload.ts
+│   ├── usePubChemSearch.ts
+│   ├── useSpectralAnalysis.refactored.ts
+│   └── useSpectralAnalysis.ts
+├── nmr/
+│   ├── consensusBuilder.ts     ⭐ Model + LLM consensus
+│   ├── deterministicPredictor.ts ⭐ Deterministik NMR tahmin
+│   └── llmPredictor.ts         ⭐ LLM yorum modülü
+├── pipeline/
+│   ├── MoleculePipelineService.ts ⭐ Ana pipeline orchestrator
+│   └── types.ts                ⭐ Pipeline tip tanımları
+├── prompts/
+│   └── nmrPrompts.ts
+├── pubchem-scraper.js
+├── services/
+│   ├── CarbonNMRService.ts
+│   ├── DatabaseService.ts
+│   ├── KnownMoleculeService.ts
+│   ├── KnownMoleculeValidator.ts
+│   ├── LibrarySearchService.ts
+│   ├── MoleculeLoaderService.ts
+│   ├── MoleculeValidator.ts
+│   ├── PubChemService.ts
+│   ├── RDKitService.ts
+│   ├── RDKitUnified.ts
+│   ├── SMILESResolver.ts
+│   ├── STRUCTURE_CACHE.md
+│   ├── StructureCache.ts
+│   ├── TheoreticalSpectrumService.ts
+│   ├── ValidationService.ts
+│   └── v2/
+│       └── [9 TypeScript dosyası]
+├── spectromind/
+│   └── [7 TypeScript dosyası]
+├── types/
+│   └── [4 TypeScript dosyası]
+└── utils/
+    └── [17 TypeScript dosyası]
+
+
+🧪 FID ANALYZER BİLEŞENLERİ
+═══════════════════════════════════════════════════════════════════════════════
+
+ANA BİLEŞENLER:
+───────────────────────────────────────────────────────────────────────────────
+
+1. 📄 components/fid/FIDUploader.tsx
+   - Başlık: "🧪 FID Spectrum Analyzer"
+   - Açıklama: "Upload raw FID files (Bruker/Varian/JEOL) to visualize processed 
+     spectrum and compare with theoretical predictions."
+   - Özellikler:
+     * Klasör yükleme (webkitdirectory)
+     * Drag & drop desteği
+     * Spektrum görselleştirme (SpectrumPlot)
+     * Metadata gösterimi
+     * Peak karşılaştırma
+
+2. 📄 components/fid/FIDUploaderCompact.tsx
+   - Başlık: "🧪 FID Analyzer"
+   - Kompakt versiyon (sidebar için)
+   - Kullanım: components/sidebar/Sidebar.tsx içinde
+
+3. 📄 components/fid/FIDProcessorV2.tsx
+   - Client-side FID işleme (Pyodide)
+   - Real-time phase correction
+   - Web Worker kullanımı
+
+4. 📄 components/fid/SpectrumPlot.tsx
+   - Chart.js ile spektrum grafiği
+   - PPM vs Intensity görselleştirme
+   - Zoom/pan desteği
+
+BACKEND API ROUTES:
+───────────────────────────────────────────────────────────────────────────────
+
+1. 📄 app/api/fid/upload/route.ts
+   - POST /api/fid/upload
+   - Klasör yükleme endpoint'i
+   - FormData: datasetId, files[], paths[]
+   - Response: { ok, datasetId, baseDir, fidPath, procparPath, acqusPath, 
+                 datasetType, warnings }
+
+2. 📄 app/api/fid/process/route.ts
+   - POST /api/fid/process
+   - FID işleme endpoint'i
+   - FormData: datasetId, format, theoreticalPeaks, processingSpec
+   - Python worker çağrısı (fid_process.py)
+   - Response: { success, data: { metadata, ppm, intensity, peaks }, 
+                 comparison, warnings }
+
+BACKEND UTILITIES:
+───────────────────────────────────────────────────────────────────────────────
+
+1. 📄 lib/fid/fsUtils.ts
+   - safeJoin(): Path traversal koruması
+   - findFileRecursive(): Recursive dosya arama
+
+2. 📄 lib/fid/bruker/acqus.ts
+   - parseAcqus(): Bruker metadata parser
+   - SW_h, SFO1, O1 parametreleri
+
+3. 📄 lib/fid/processingSpec.ts
+   - FIDProcessingSpec tip tanımı
+   - defaultSpec: Varsayılan işleme parametreleri
+
+PYTHON SCRIPTS:
+───────────────────────────────────────────────────────────────────────────────
+
+1. 📄 scripts/fid_process.py
+   - nmrglue ile dataset okuma
+   - MestReNova-benzeri işleme zinciri:
+     * Exponential apodization
+     * Zero-fill
+     * FFT (complex)
+     * Phase correction
+     * PPM axis construction
+   - JSON output: { ok, ppm, y, meta, warnings }
+
+2. 📄 scripts/fid_processor.py
+   - Legacy single file processor
+   - FIDProcessor class
+
+KULLANIM YERLERİ:
+───────────────────────────────────────────────────────────────────────────────
+
+1. components/sidebar/Sidebar.tsx (Satır 557)
+   ```tsx
+   {/* FID Analyzer Section */}
+   <FIDUploaderCompact
+     theoreticalPeaks={theoreticalPeaks}
+     onProcessingComplete={...}
+   />
+   ```
+
+2. components/fid/FIDUploader.tsx (Satır 225)
+   ```tsx
+   <h2 className="text-2xl font-bold text-purple-400 mb-4">
+     🧪 FID Spectrum Analyzer
+   </h2>
+   ```
+
+AKIŞ:
+───────────────────────────────────────────────────────────────────────────────
+
+1. Kullanıcı → "Klasör Seç" → PROTON_02.fid/
+2. FIDUploader → FormData oluştur → POST /api/fid/upload
+3. Server → Dosyaları temp/<datasetId>/ altına kaydet
+4. Server → FID ve metadata (procpar/acqus) bul
+5. Kullanıcı → Otomatik POST /api/fid/process
+6. Server → Python script çağır (fid_process.py)
+7. Python → nmrglue ile dataset oku → işle → JSON döndür
+8. Frontend → SpectrumPlot ile grafik göster
+
+
+═══════════════════════════════════════════════════════════════════════════════
+Oluşturulma Tarihi: 2025-01-27
+SpectroMind v2.0 - FID Analyzer Modülü
+═══════════════════════════════════════════════════════════════════════════════

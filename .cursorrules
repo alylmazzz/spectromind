@@ -1,0 +1,57 @@
+# SpectroMind v2.0 Coding Standards
+
+## Language
+- Primary: TypeScript (strict mode)
+- Secondary: Python 3.11+
+
+## TypeScript
+- Use strict type checking
+- Prefer interfaces over types for objects
+- Use async/await, not promises
+- Error handling: try/catch with typed errors
+- Use 'use client' directive for client components
+
+## Python
+- Type hints required
+- Use dataclasses for data structures
+- Async/await for I/O operations
+- Logging: use structlog or standard logging
+- Follow PEP 8 style guide
+
+## API Design
+- RESTful principles
+- Versioned endpoints (/api/v2/)
+- JSON request/response
+- Error codes: 400 (bad request), 500 (server error)
+- Always return { success: boolean } in responses
+
+## File Structure
+- API routes: app/api/v2/{module}/route.ts
+- Services: lib/services/v2/{ServiceName}.ts
+- Components: components/{category}/{ComponentName}.tsx
+- Types: lib/types/v2/index.ts
+
+## Error Handling
+- Always use try/catch blocks
+- Log errors with context
+- Return user-friendly error messages
+- Never expose internal errors to client
+
+## Testing
+- Unit tests: Jest (TS), pytest (Python)
+- Integration tests: Playwright
+- Coverage: >80%
+
+## Documentation
+- JSDoc for TypeScript functions
+- Docstrings for Python functions
+- API documentation: OpenAPI/Swagger
+- README files for complex modules
+
+## v2.0 Specific Rules
+- Always check service health before calling
+- Use fallback methods when primary service unavailable
+- Cache expensive computations (conformers, DFT)
+- Log all v2.0 API calls with version tag
+- Include metadata.version in all responses
+

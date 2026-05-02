@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME}
+    volumes:
+      - ./lib/models:/app/lib/models
+      - ./data:/app/data
+    depends_on:
+      - redis
+
+  # MS Prediction Service (Python)
+  ms-service:
+    build:
+      context: ./services/ms-service
+      dockerfile: Dockerfile
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./services/ms-service:/app
+    command: python main.py
+
+  # GNN Service (Python)
+  gnn-service:
+    build:
+      context: ./services/gnn-service
+      dockerfile: Dockerfile
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MODEL_PATH=/app/models
+    volumes:
+      - ./lib/models/chemprop:/app/models
+      - ./services/gnn-service:/app
+    command: python main.py
+
+  # Conformer Service (Python)
+  conformer-service:
+    build:
+      context: ./services/conformer-service
+      dockerfile: Dockerfile
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./services/conformer-service:/app
+    command: python main.py
+
+  # DFT Service (Python)
+  dft-service:
+    build:
+      context: ./services/dft-service
+      dockerfile: Dockerfile
+    environment:
+      - PYTHONUNBUFFERED=1
+      - XTB_PATH=/usr/local/bin/xtb
+      - ORCA_PATH=/usr/local/bin/orca
+    volumes:
+      - ./services/dft-service:/app
+      - ./data/dft-cache:/app/cache
+    command: python main.py
+
+  # Redis (Cache and Message Queue)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  redis-data:
+

@@ -1,0 +1,2654 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DrawMind by MindCorp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        mind: {
+                            primary: '#1E3A5F', secondary: '#2D6A9F', accent: '#00B4D8',
+                            success: '#2D9B5A', warning: '#F4A261', error: '#E63946',
+                            bg: '#F8F9FA', surface: '#FFFFFF', border: '#DEE2E6',
+                            textMain: '#212529', textMuted: '#6C757D'
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body { font-family: Inter, sans-serif; }
+        .canvas-grid {
+            background-size: 20px 20px;
+            background-image:
+                linear-gradient(to right, #f0f0f0 1px, transparent 1px),
+                linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
+        }
+        .menu-item:hover .dropdown-menu { display: block; }
+        .tool-btn.active { background-color: #E6F7FB; color: #00B4D8; border-color: #00B4D8 !important; }
+        .tab-btn.active { color: #1E3A5F; border-bottom: 2px solid #1E3A5F; font-weight: 600; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .atom-node:hover { filter: drop-shadow(0 0 5px #00B4D8); }
+        .valence-error { animation: shake 0.4s ease; }
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20% { transform: translateX(-4px); }
+            40% { transform: translateX(4px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+        #selection-rect {
+            position: absolute; border: 1.5px dashed #00B4D8; background: rgba(0,180,216,0.06);
+            pointer-events: none; z-index: 100; display: none;
+        }
+        #context-menu {
+            position: fixed; z-index: 9999; background: #fff; border: 1px solid #DEE2E6;
+            border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 190px; overflow: hidden; display: none;
+        }
+        .ctx-item { padding: 7px 14px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .ctx-item:hover { background: #f0f7ff; }
+        .ctx-sep { height: 1px; background: #DEE2E6; margin: 2px 0; }
+        body.dark-mode { background: #1A1A2E !important; color: #E0E0E0 !important; }
+        body.dark-mode .bg-white { background-color: #16213E !important; }
+        body.dark-mode .text-mind-textMain { color: #E0E0E0 !important; }
+        body.dark-mode .border-mind-border, body.dark-mode .border-gray-200 { border-color: #2D2D4D !important; }
+        body.dark-mode #main-canvas { background: #1E1E2E !important; }
+        body.high-contrast { filter: contrast(1.18) saturate(1.15); }
+        .smiles-floating-panel {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 460px;
+            max-width: calc(100% - 24px);
+            z-index: 200;
+            transition: transform 200ms ease-out, opacity 200ms ease-out;
+        }
+        .smiles-floating-panel.hidden-panel {
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+        }
+        .smiles-floating-panel.shown-panel {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .smiles-input-wrap { position: relative; }
+        .smiles-error-overlay {
+            position: absolute;
+            inset: 0;
+            padding: 0.5rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.75rem;
+            line-height: 1rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            pointer-events: none;
+            color: transparent;
+            overflow: hidden;
+            border-radius: 0.375rem;
+        }
+        .smiles-error-char {
+            background: rgba(230, 57, 70, 0.25);
+            border-bottom: 2px solid #E63946;
+            border-radius: 2px;
+        }
+        .smiles-step { color: #9CA3AF; }
+        .smiles-step.active { color: #2563EB; font-weight: 600; }
+        .smiles-step.done { color: #2D9B5A; }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col bg-mind-bg text-mind-textMain select-none">
+    <header class="h-8 bg-mind-primary text-white flex items-center px-3 text-sm flex-shrink-0">
+        <div class="flex items-center gap-2 font-semibold mr-6">
+            <i data-lucide="hexagon" class="w-4 h-4 text-mind-accent"></i>
+            <span>DrawMind <span class="text-xs text-blue-300 font-normal ml-1">by MindCorp</span></span>
+        </div>
+        <nav class="flex h-full">
+            <div class="menu-item relative h-full flex items-center px-3 hover:bg-mind-secondary cursor-pointer">
+                <span>Dosya</span>
+                <div class="dropdown-menu hidden absolute top-8 left-0 w-56 bg-white text-mind-textMain shadow-lg border border-mind-border py-1 rounded-b z-50">
+                    <div class="px-4 py-1.5 hover:bg-blue-50 flex justify-between cursor-pointer" onclick="CanvasEngine.clearAll()"><span>Yeni</span><span class="text-xs text-mind-textMuted">Ctrl+N</span></div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.importSmilesPrompt()">SMILES İçe Aktar</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.importMolPrompt()">MOL İçe Aktar</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.importSdfPrompt()">SDF İçe Aktar</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.openConvertModal()">Yapıya Dönüştür (Modal)</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.openConvertModalWithType('iupac')">IUPAC → Yapı (Modal)</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.openConvertModalWithType('cas')">CAS → Yapı (Modal)</div>
+                    <div class="border-t border-mind-border my-1"></div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.exportSmiles()">SMILES Dışa Aktar</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.exportMol()">MOL Dışa Aktar</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.exportJSON()">JSON Dışa Aktar</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.importJSON()">JSON İçe Aktar</div>
+                </div>
+            </div>
+            <div class="menu-item relative h-full flex items-center px-3 hover:bg-mind-secondary cursor-pointer">
+                <span>Düzen</span>
+                <div class="dropdown-menu hidden absolute top-8 left-0 w-56 bg-white text-mind-textMain shadow-lg border border-mind-border py-1 rounded-b z-50">
+                    <div class="px-4 py-1.5 hover:bg-blue-50 flex justify-between cursor-pointer" onclick="CanvasEngine.undo()"><span>Geri Al</span><span class="text-xs text-mind-textMuted">Ctrl+Z</span></div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 flex justify-between cursor-pointer" onclick="CanvasEngine.redo()"><span>Yinele</span><span class="text-xs text-mind-textMuted">Ctrl+Y</span></div>
+                    <div class="border-t border-mind-border my-1"></div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer text-mind-error" onclick="CanvasEngine.clearAll()">Tümünü Temizle</div>
+                </div>
+            </div>
+            <div class="menu-item relative h-full flex items-center px-3 hover:bg-mind-secondary cursor-pointer">
+                <span>Görünüm</span>
+                <div class="dropdown-menu hidden absolute top-8 left-0 w-56 bg-white text-mind-textMain shadow-lg border border-mind-border py-1 rounded-b z-50">
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.toggleDarkMode()">Gece Modu</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.toggleHighContrast()">Yüksek Kontrast</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.toggleAtomNumbers()">Atom Numaraları</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.toggleGrid()">Izgara Göster/Gizle</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.zoom(0.2)">Yakınlaştır</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.zoom(-0.2)">Uzaklaştır</div>
+                </div>
+            </div>
+            <div class="menu-item relative h-full flex items-center px-3 hover:bg-mind-secondary cursor-pointer">
+                <span>Yapı</span>
+                <div class="dropdown-menu hidden absolute top-8 left-0 w-56 bg-white text-mind-textMain shadow-lg border border-mind-border py-1 rounded-b z-50">
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.validateStructure()">Yapı Doğrulama</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.setActiveTool('arrow-reaction')">Reaksiyon Oku Aracı</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.toggleReactionMode()">Reaksiyon Modu Aç/Kapat</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.mirrorSelected('x')">Yatay Ayna</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.rotateSelected(90)">90° Döndür</div>
+                </div>
+            </div>
+            <div class="menu-item relative h-full flex items-center px-3 hover:bg-mind-secondary cursor-pointer">
+                <span>Hesapla</span>
+                <div class="dropdown-menu hidden absolute top-8 left-0 w-56 bg-white text-mind-textMain shadow-lg border border-mind-border py-1 rounded-b z-50">
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.updateStats(); UI.showToast('Moleküler özellikler güncellendi','info')">Moleküler Özellikler</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.setSpectrumMode('1H')">1H NMR Tahmini</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.setSpectrumMode('13C')">13C NMR Tahmini</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.setSpectrumMode('HSQC')">HSQC Tahmini</div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.setSpectrumMode('COSY')">COSY Tahmini</div>
+                    <div class="border-t border-mind-border my-1"></div>
+                    <div class="px-4 py-1.5 hover:bg-blue-50 cursor-pointer" onclick="CanvasEngine.runAutoResearch()">PubChem + arXiv Otomatik Araştır</div>
+                </div>
+            </div>
+        </nav>
+        <div class="ml-auto text-xs text-blue-200">Kurumsal Lisans</div>
+    </header>
+
+    <div class="h-12 bg-white border-b border-mind-border flex items-center px-2 gap-4 flex-shrink-0">
+        <div class="flex items-center gap-1 border-r border-mind-border pr-4">
+            <button class="p-1.5 rounded hover:bg-gray-100" title="Geri Al" onclick="CanvasEngine.undo()"><i data-lucide="undo" class="w-5 h-5"></i></button>
+            <button class="p-1.5 rounded hover:bg-gray-100" title="Yinele" onclick="CanvasEngine.redo()"><i data-lucide="redo" class="w-5 h-5"></i></button>
+            <button class="p-1.5 rounded hover:bg-gray-100 text-mind-error" title="Sil (Delete)" onclick="CanvasEngine.deleteSelected()"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+        </div>
+        <div class="flex items-center gap-2 px-2 border-r border-mind-border pr-4">
+            <span class="text-xs text-mind-textMuted">Valans:</span>
+            <div id="valence-indicator" class="text-xs font-mono font-bold text-mind-success px-2 py-0.5 bg-green-50 border border-green-200 rounded">OK</div>
+        </div>
+        <div class="flex items-center gap-2 px-2 border-r border-mind-border pr-4">
+            <button id="smiles-panel-toggle" class="px-2 py-1 rounded border border-mind-border text-xs font-medium hover:bg-gray-50 flex items-center gap-1" title="SMILES paneli (Ctrl+Shift+S)">
+                <i data-lucide="braces" class="w-4 h-4"></i>
+                <span>SMILES ▾</span>
+            </button>
+        </div>
+        <div class="flex items-center gap-1 ml-auto">
+            <button class="p-1.5 rounded hover:bg-gray-100" onclick="CanvasEngine.exportJSON()" title="JSON Dışa Aktar"><i data-lucide="download" class="w-5 h-5"></i></button>
+            <button class="p-1.5 rounded hover:bg-gray-100" onclick="CanvasEngine.importJSON()" title="JSON İçe Aktar"><i data-lucide="upload" class="w-5 h-5"></i></button>
+            <button class="p-1.5 rounded hover:bg-gray-100" onclick="CanvasEngine.zoom(-0.1)"><i data-lucide="zoom-out" class="w-5 h-5"></i></button>
+            <span id="zoom-label" class="text-sm border border-mind-border rounded px-2 py-1 min-w-[52px] text-center">100%</span>
+            <button class="p-1.5 rounded hover:bg-gray-100" onclick="CanvasEngine.zoom(0.1)"><i data-lucide="zoom-in" class="w-5 h-5"></i></button>
+        </div>
+    </div>
+
+    <div class="flex flex-1 overflow-hidden relative">
+        <aside class="w-[120px] bg-white border-r border-mind-border flex flex-col items-center py-2 overflow-y-auto flex-shrink-0">
+            <div class="w-full flex flex-col items-center gap-1 mb-3">
+                <div class="text-[10px] text-mind-textMuted font-semibold w-full text-center mb-1 uppercase">Seçim</div>
+                <div class="flex gap-1">
+                    <button class="tool-btn active w-9 h-9 flex justify-center items-center rounded border border-transparent hover:border-mind-border" data-tool="select" title="Seçim (S)">
+                        <i data-lucide="mouse-pointer-2" class="w-5 h-5"></i>
+                    </button>
+                    <button class="tool-btn w-9 h-9 flex justify-center items-center rounded border border-transparent hover:border-mind-border" data-tool="lasso" title="Alan Seçimi">
+                        <i data-lucide="lasso" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="w-[80%] h-px bg-mind-border mb-3"></div>
+            <div class="w-full flex flex-col items-center gap-1 mb-3">
+                <div class="text-[10px] text-mind-textMuted font-semibold w-full text-center mb-1 uppercase">Bağlar</div>
+                <div class="flex gap-1 mb-1">
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="bond-single" title="Tek Bağ"><svg width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="4" y1="12" x2="20" y2="12"></line></svg></button>
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="bond-double" title="Çift Bağ"><svg width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line></svg></button>
+                </div>
+                <div class="flex gap-1">
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="bond-triple" title="Üçlü Bağ"><svg width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg></button>
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="bond-aromatic" title="Aromatik Bağ"><svg width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12" stroke-dasharray="3 3"></line></svg></button>
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="bond-wedge" title="Kama Bağ (Yukarı)"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="4,12 20,8 20,16"></polygon></svg></button>
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="bond-hash" title="Kama Bağ (Aşağı)"><svg width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><line x1="5" y1="12" x2="18" y2="9"></line><line x1="7" y1="13" x2="18" y2="11"></line><line x1="9" y1="14" x2="18" y2="13"></line><line x1="11" y1="15" x2="18" y2="15"></line></svg></button>
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="bond-wavy" title="Wavy Bağ"><i data-lucide="tilde" class="w-5 h-5 mx-auto"></i></button>
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="bond-coordinate" title="Koordinasyon Bağı"><i data-lucide="move-right" class="w-5 h-5 mx-auto"></i></button>
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border text-mind-error" data-tool="eraser" title="Silgi (E)"><i data-lucide="eraser" class="w-5 h-5 mx-auto"></i></button>
+                </div>
+            </div>
+            <div class="w-[80%] h-px bg-mind-border mb-3"></div>
+            <div class="w-full flex flex-col items-center gap-1 mb-3">
+                <div class="text-[10px] text-mind-textMuted font-semibold w-full text-center mb-1 uppercase">Halkalar</div>
+                <div class="flex gap-1">
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="ring-benzene" title="Benzen"><i data-lucide="hexagon" class="w-6 h-6 mx-auto"></i></button>
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="ring-cyclohexane" title="Siklohekzan"><i data-lucide="circle" class="w-6 h-6 mx-auto"></i></button>
+                </div>
+            </div>
+            <div class="w-[80%] h-px bg-mind-border mb-3"></div>
+            <div class="w-full flex flex-col items-center gap-1 mb-3">
+                <div class="text-[10px] text-mind-textMuted font-semibold w-full text-center mb-1 uppercase">Oklar</div>
+                <div class="flex gap-1">
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="arrow-reaction" title="Reaksiyon Oku"><i data-lucide="move-right" class="w-5 h-5 mx-auto"></i></button>
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="arrow-resonance" title="Rezonans Oku"><i data-lucide="move-horizontal" class="w-5 h-5 mx-auto"></i></button>
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="arrow-equilibrium" title="Denge Oku"><i data-lucide="arrow-left-right" class="w-5 h-5 mx-auto"></i></button>
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="arrow-retro" title="Retrosentetik Ok"><i data-lucide="corner-up-left" class="w-5 h-5 mx-auto"></i></button>
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="arrow-mechanism" title="Mekanizma Oku"><i data-lucide="route" class="w-5 h-5 mx-auto"></i></button>
+                    <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border" data-tool="annotation-text" title="Metin/Koşul Kutusu"><i data-lucide="type" class="w-5 h-5 mx-auto"></i></button>
+                </div>
+            </div>
+            <div class="w-[80%] h-px bg-mind-border mb-3"></div>
+            <div class="grid grid-cols-2 gap-1">
+                <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border font-serif font-bold text-[#FF0000]" data-tool="atom-O" title="O">O</button>
+                <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border font-serif font-bold text-[#0000FF]" data-tool="atom-N" title="N">N</button>
+                <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border font-serif font-bold text-[#FF8000]" data-tool="atom-P" title="P">P</button>
+                <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border font-serif font-bold text-[#FFC832]" data-tool="atom-S" title="S">S</button>
+                <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border font-serif font-bold text-[#00CC00]" data-tool="atom-F" title="F">F</button>
+                <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border font-serif font-bold text-[#008000]" data-tool="atom-Cl" title="Cl">Cl</button>
+                <button class="tool-btn w-9 h-9 rounded border border-transparent hover:border-mind-border font-serif font-bold" data-tool="atom-C" title="C">C</button>
+            </div>
+        </aside>
+
+        <main class="flex-1 bg-mind-bg overflow-hidden relative">
+            <div id="smiles-floating-panel" class="smiles-floating-panel hidden-panel bg-white border border-mind-border rounded-lg shadow-xl">
+                <div class="px-3 py-2 border-b border-mind-border flex items-center justify-between cursor-move select-none" id="smiles-panel-header">
+                    <div class="text-sm font-semibold text-mind-primary flex items-center gap-2">
+                        <i data-lucide="hexagon" class="w-4 h-4"></i>
+                        <span>SMILES / InChI / IUPAC / CAS → 2D</span>
+                    </div>
+                    <button class="p-1 rounded hover:bg-gray-100" onclick="CanvasEngine.toggleSmilesPanel(false)">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div class="p-3 space-y-2">
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="smiles-input-format" class="text-xs border border-gray-300 rounded px-2 py-1">
+                            <option value="smiles">SMILES</option>
+                            <option value="inchi">InChI / InChIKey</option>
+                            <option value="iupac">IUPAC Name</option>
+                            <option value="cas">CAS No</option>
+                        </select>
+                        <input id="smiles-input-name" class="text-xs border border-gray-300 rounded px-2 py-1" placeholder="Etiket (opsiyonel)">
+                    </div>
+                    <div class="smiles-input-wrap">
+                        <div id="smiles-error-overlay" class="smiles-error-overlay"></div>
+                        <textarea id="smiles-panel-input" class="w-full h-20 border border-gray-300 rounded p-2 font-mono text-xs bg-transparent relative z-[1]" placeholder="SMILES girin (örn: CC(=O)Oc1ccccc1C(=O)O)"></textarea>
+                    </div>
+                    <div id="smiles-validation-msg" class="text-[11px] text-mind-textMuted">Giriş bekleniyor...</div>
+                    <div class="flex gap-2">
+                        <button class="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50" onclick="CanvasEngine.toggleSmilesExamples()">Örnekler</button>
+                        <button class="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50" onclick="CanvasEngine.toggleSmilesHistory()">Geçmiş</button>
+                        <button class="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50" onclick="document.getElementById('smiles-panel-input').value=''; CanvasEngine.validateSmilesInput()">Temizle</button>
+                    </div>
+                    <div id="smiles-example-list" class="hidden border border-gray-200 rounded p-2 bg-gray-50 text-xs space-y-1"></div>
+                    <div id="smiles-history-list" class="hidden border border-gray-200 rounded p-2 bg-gray-50 text-xs space-y-1"></div>
+                    <div class="flex items-center gap-4 text-xs">
+                        <label class="flex items-center gap-1"><input id="smiles-clear-before" type="checkbox" checked> Çizmeden önce temizle</label>
+                        <label class="flex items-center gap-1"><input id="smiles-fit-view" type="checkbox" checked> Yapıyı ortala/sığdır</label>
+                    </div>
+                    <div class="border border-gray-200 rounded p-2 bg-gray-50 space-y-1 text-[11px]">
+                        <div class="h-1.5 bg-gray-200 rounded overflow-hidden">
+                            <div id="smiles-progress-bar" class="h-full w-0 bg-mind-accent transition-all duration-300"></div>
+                        </div>
+                        <div id="smiles-step-1" class="smiles-step">1) Girdi doğrulama</div>
+                        <div id="smiles-step-2" class="smiles-step">2) Format çözümleme</div>
+                        <div id="smiles-step-3" class="smiles-step">3) SMILES parse</div>
+                        <div id="smiles-step-4" class="smiles-step">4) 2D koordinat üretimi</div>
+                        <div id="smiles-step-5" class="smiles-step">5) Çizim tamamla</div>
+                    </div>
+                    <button id="smiles-draw-btn" class="w-full px-3 py-2 bg-mind-primary text-white rounded hover:opacity-95 text-sm font-semibold" onclick="CanvasEngine.drawSmilesFromPanel()">Yapıyı Çiz</button>
+                    <div id="smiles-last-result" class="text-[11px] text-mind-textMuted"></div>
+                </div>
+            </div>
+            <div class="absolute inset-0 overflow-auto" id="scroll-area">
+                <div id="main-canvas" class="w-[1400px] h-[900px] bg-white shadow-sm m-4 relative canvas-grid" style="cursor: crosshair;">
+                    <svg id="drawing-layer" class="w-full h-full absolute inset-0" style="pointer-events:none; overflow:visible;"><g id="svg-root"></g></svg>
+                    <div id="nodes-layer" class="w-full h-full absolute inset-0" style="pointer-events:none;"></div>
+                    <div id="selection-rect"></div>
+                </div>
+            </div>
+            <div id="canvas-toast" class="absolute bottom-4 right-4 bg-white border-l-4 border-mind-success shadow-lg rounded px-4 py-3 flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+                <i data-lucide="check-circle" class="w-5 h-5 text-mind-success" id="toast-icon"></i>
+                <span class="text-sm font-medium" id="toast-msg">İşlem başarılı.</span>
+            </div>
+        </main>
+
+        <aside class="w-[320px] bg-white border-l border-mind-border flex flex-col flex-shrink-0">
+            <div class="flex border-b border-mind-border bg-gray-50">
+                <button class="tab-btn active flex-1 py-2 text-sm text-mind-textMuted" onclick="UI.switchTab(this, 'tab-properties')">Özellikler</button>
+                <button class="tab-btn flex-1 py-2 text-sm text-mind-textMuted" onclick="UI.switchTab(this, 'tab-structure')">Yapı Verisi</button>
+                <button class="tab-btn flex-1 py-2 text-sm text-mind-textMuted" onclick="UI.switchTab(this, 'tab-valence')">Valans</button>
+                <button class="tab-btn flex-1 py-2 text-sm text-mind-textMuted" onclick="UI.switchTab(this, 'tab-research')">Araştırma</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4">
+                <div id="tab-properties" class="tab-content active space-y-3">
+                    <div class="text-xs text-mind-textMuted">Moleküler Formül</div>
+                    <div id="prop-formula" class="bg-gray-50 border border-gray-200 rounded p-2 font-mono">-</div>
+                    <div class="text-xs text-mind-textMuted">Moleküler Ağırlık</div>
+                    <div id="prop-mw" class="bg-gray-50 border border-gray-200 rounded p-2 font-mono">0.00</div>
+                    <div class="text-xs text-mind-textMuted">İleri Özellikler (Mock)</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-gray-50 border border-gray-200 rounded p-2"><div class="text-[10px] text-gray-500 uppercase">LogP</div><div id="prop-logp" class="font-mono text-sm">0.00</div></div>
+                        <div class="bg-gray-50 border border-gray-200 rounded p-2"><div class="text-[10px] text-gray-500 uppercase">PSA</div><div id="prop-psa" class="font-mono text-sm">0.0</div></div>
+                        <div class="bg-gray-50 border border-gray-200 rounded p-2"><div class="text-[10px] text-gray-500 uppercase">HBD/HBA</div><div id="prop-hbdhba" class="font-mono text-sm">0 / 0</div></div>
+                        <div class="bg-gray-50 border border-gray-200 rounded p-2"><div class="text-[10px] text-gray-500 uppercase">Rotatable</div><div id="prop-rotb" class="font-mono text-sm">0</div></div>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 rounded p-2">
+                        <div class="text-[10px] text-gray-500 uppercase mb-1">ADMET (Mock)</div>
+                        <div id="prop-admet" class="text-xs text-gray-700 leading-5">Biyoyararlanım: - | BBB: - | hERG: -</div>
+                    </div>
+                </div>
+                <div id="tab-structure" class="tab-content space-y-3">
+                    <div class="text-xs text-mind-textMuted">SMILES</div>
+                    <textarea id="prop-smiles" readonly class="w-full h-24 bg-gray-50 border border-gray-200 rounded p-2 text-xs font-mono"></textarea>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-gray-50 p-2 rounded border border-gray-200 text-center"><div class="text-[10px] text-gray-500 uppercase">Atomlar</div><div class="text-lg font-semibold text-mind-primary" id="stat-atoms">0</div></div>
+                        <div class="bg-gray-50 p-2 rounded border border-gray-200 text-center"><div class="text-[10px] text-gray-500 uppercase">Bağlar</div><div class="text-lg font-semibold text-mind-primary" id="stat-bonds">0</div></div>
+                    </div>
+                </div>
+                <div id="tab-valence" class="tab-content space-y-2">
+                    <h3 class="text-xs font-bold text-mind-primary uppercase tracking-wider border-b border-mind-border pb-1">Valans Durumu</h3>
+                    <div id="valence-list" class="space-y-1 text-sm"><p class="text-xs text-mind-textMuted">Yapı çizmeye başlayınca valans bilgileri burada görünecek.</p></div>
+                    <h3 class="text-xs font-bold text-mind-primary uppercase tracking-wider border-b border-mind-border pb-1 mt-3">Yapı Doğrulama</h3>
+                    <div id="validation-list" class="space-y-1 text-sm"><p class="text-xs text-mind-textMuted">Doğrulama çalıştırıldığında stereo/izole/çakışma uyarıları burada listelenir.</p></div>
+                </div>
+                <div id="tab-research" class="tab-content space-y-2">
+                    <div class="text-xs text-mind-textMuted">Sorgu (SMILES / isim / formül)</div>
+                    <input id="research-query" class="w-full border border-gray-300 rounded px-2 py-1 text-xs" placeholder="örn: aspirin, C9H8O4, CC(=O)Oc1ccccc1C(=O)O">
+                    <div class="flex gap-2">
+                        <button class="px-2 py-1 rounded bg-mind-primary text-white text-xs" onclick="CanvasEngine.runAutoResearch()">Otomatik Araştır</button>
+                        <button class="px-2 py-1 rounded border border-gray-300 text-xs" onclick="CanvasEngine.searchPubChem()">PubChem</button>
+                        <button class="px-2 py-1 rounded border border-gray-300 text-xs" onclick="CanvasEngine.searchArxiv()">arXiv</button>
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-semibold text-gray-600 mb-1">PubChem Sonuçları</div>
+                        <div id="research-pubchem" class="max-h-36 overflow-y-auto space-y-1 text-xs border border-gray-200 rounded p-2 bg-gray-50"></div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-semibold text-gray-600 mb-1">İlgili Makaleler (arXiv)</div>
+                        <div id="research-arxiv" class="max-h-40 overflow-y-auto space-y-1 text-xs border border-gray-200 rounded p-2 bg-gray-50"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <div id="sdf-batch-modal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-[1000]">
+        <div class="w-[760px] max-w-[94vw] bg-white border border-mind-border rounded-lg shadow-xl">
+            <div class="px-4 py-3 border-b border-mind-border flex items-center justify-between">
+                <h3 class="font-semibold text-mind-primary">SDF Çoklu İçe Aktarım</h3>
+                <button class="p-1 rounded hover:bg-gray-100" onclick="CanvasEngine.closeSdfBatchModal()"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="p-4 grid grid-cols-2 gap-3">
+                <div class="space-y-2">
+                    <div class="text-xs text-mind-textMuted">SDF içeriğini yapıştırın</div>
+                    <textarea id="sdf-batch-input" class="w-full h-56 border border-gray-300 rounded p-2 font-mono text-xs" placeholder="Birden çok kaydı olan SDF içeriği..."></textarea>
+                    <button class="px-3 py-1.5 bg-mind-primary text-white rounded text-xs" onclick="CanvasEngine.parseSdfBatchModal()">Kayıtları Tara</button>
+                </div>
+                <div class="space-y-2">
+                    <div class="text-xs text-mind-textMuted">Bulunan kayıtlar (yüklemek için tıklayın)</div>
+                    <div id="sdf-batch-list" class="h-56 overflow-y-auto border border-gray-200 rounded p-2 bg-gray-50 text-xs"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="h-56 bg-white border-t border-mind-border px-3 py-2">
+        <div class="flex items-center justify-between mb-2">
+            <div class="text-xs font-semibold text-mind-primary">Spektrum Paneli (Mock)</div>
+            <div class="flex items-center gap-1 text-[11px]">
+                <button class="px-2 py-0.5 rounded border border-gray-200 bg-white" onclick="CanvasEngine.setSpectrumMode('1H')">1H</button>
+                <button class="px-2 py-0.5 rounded border border-gray-200 bg-white" onclick="CanvasEngine.setSpectrumMode('13C')">13C</button>
+                <button class="px-2 py-0.5 rounded border border-gray-200 bg-white" onclick="CanvasEngine.setSpectrumMode('HSQC')">HSQC</button>
+                <button class="px-2 py-0.5 rounded border border-gray-200 bg-white" onclick="CanvasEngine.setSpectrumMode('COSY')">COSY</button>
+                <span id="spectrum-mode-label" class="text-mind-textMuted ml-2">1H NMR</span>
+            </div>
+        </div>
+        <div id="spectrum-bars" class="h-20 flex items-end gap-1 bg-gray-50 border border-gray-200 rounded px-2 py-1"></div>
+        <div class="mt-2 border border-gray-200 rounded overflow-hidden">
+            <div class="px-2 py-1 bg-gray-50 text-[11px] font-semibold text-gray-600">Peak Tablosu (bar veya satıra tıkla → atom vurgula)</div>
+            <div id="spectrum-peak-table" class="max-h-20 overflow-y-auto text-[11px]"></div>
+        </div>
+    </section>
+
+    <footer class="h-6 bg-white border-t border-mind-border flex items-center px-4 justify-between text-[11px] text-mind-textMuted flex-shrink-0">
+        <div class="flex items-center gap-4">
+            <span id="status-validity" class="flex items-center gap-1 text-mind-success font-medium"><i data-lucide="check" class="w-3 h-3"></i> Geçerli</span>
+            <span class="border-l border-gray-300 pl-4">Araç: <span id="status-tool" class="font-medium text-gray-700">Seçim</span></span>
+            <span class="border-l border-gray-300 pl-4">Konum: <span id="status-coords" class="font-mono">0, 0</span></span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span>Formül: <span id="status-formula" class="font-mono text-gray-700">-</span></span>
+            <span>MW: <span id="status-mw" class="font-mono text-gray-700">0.00</span></span>
+            <span class="border-l border-gray-300 pl-4">Seçili: <span id="status-sel" class="font-mono">Yok</span></span>
+        </div>
+    </footer>
+
+    <div id="context-menu">
+        <div class="ctx-item" id="ctx-edit-annotation"><i data-lucide="type" class="w-4 h-4"></i> Metni Düzenle</div>
+        <div class="ctx-item" id="ctx-delete-annotation"><i data-lucide="trash-2" class="w-4 h-4 text-red-400"></i> Metni Sil</div>
+        <div class="ctx-sep"></div>
+        <div class="ctx-item" id="ctx-edit-arrow"><i data-lucide="pen-line" class="w-4 h-4"></i> Ok Etiketi/Adım</div>
+        <div class="ctx-item" id="ctx-delete-arrow"><i data-lucide="trash-2" class="w-4 h-4 text-red-400"></i> Oku Sil</div>
+        <div class="ctx-sep"></div>
+        <div class="ctx-item" id="ctx-delete-bond"><i data-lucide="scissors" class="w-4 h-4 text-red-400"></i> Bağı Sil</div>
+        <div class="ctx-item" id="ctx-change-bond-single"><i data-lucide="minus" class="w-4 h-4"></i> Tek Bağ</div>
+        <div class="ctx-item" id="ctx-change-bond-double"><i data-lucide="equal" class="w-4 h-4"></i> Çift Bağ</div>
+        <div class="ctx-item" id="ctx-change-bond-triple">≡ Üçlü Bağ</div>
+        <div class="ctx-item" id="ctx-change-bond-aromatic">~ Aromatik Bağ</div>
+        <div class="ctx-item" id="ctx-change-bond-wavy">≈ Wavy Bağ</div>
+        <div class="ctx-item" id="ctx-change-bond-coordinate">→ Koordinasyon Bağı</div>
+        <div class="ctx-sep"></div>
+        <div class="ctx-item" id="ctx-atom-props"><i data-lucide="sliders-horizontal" class="w-4 h-4"></i> Atom Özellikleri</div>
+        <div class="ctx-item" id="ctx-charge-plus"><i data-lucide="plus" class="w-4 h-4"></i> Yük +1</div>
+        <div class="ctx-item" id="ctx-charge-minus"><i data-lucide="minus" class="w-4 h-4"></i> Yük -1</div>
+        <div class="ctx-sep"></div>
+        <div class="ctx-item" id="ctx-delete-atom"><i data-lucide="atom" class="w-4 h-4 text-red-400"></i> Atomu Sil</div>
+    </div>
+
+    <div id="convert-modal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-[1000]">
+        <div class="w-[640px] max-w-[92vw] bg-white border border-mind-border rounded-lg shadow-xl">
+            <div class="px-4 py-3 border-b border-mind-border flex items-center justify-between">
+                <h3 class="font-semibold text-mind-primary">Yapıya Dönüştür</h3>
+                <button class="p-1 rounded hover:bg-gray-100" onclick="CanvasEngine.closeConvertModal()"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="p-4 space-y-3">
+                <div class="flex gap-3 text-sm">
+                    <label class="flex items-center gap-1"><input type="radio" name="convert-type" value="smiles" checked> SMILES</label>
+                    <label class="flex items-center gap-1"><input type="radio" name="convert-type" value="iupac"> IUPAC</label>
+                    <label class="flex items-center gap-1"><input type="radio" name="convert-type" value="cas"> CAS</label>
+                    <label class="flex items-center gap-1"><input type="radio" name="convert-type" value="mol"> MOL</label>
+                    <label class="flex items-center gap-1"><input type="radio" name="convert-type" value="sdf"> SDF</label>
+                </div>
+                <textarea id="convert-input" class="w-full h-44 border border-gray-300 rounded p-2 font-mono text-xs" placeholder="SMILES/MOL/SDF metnini buraya yapıştırın..."></textarea>
+                <div class="flex justify-end gap-2">
+                    <button class="px-3 py-1.5 border border-gray-300 rounded hover:bg-gray-50" onclick="CanvasEngine.closeConvertModal()">İptal</button>
+                    <button class="px-3 py-1.5 bg-mind-primary text-white rounded hover:opacity-95" onclick="CanvasEngine.applyConvertModal()">Yapıya Dönüştür</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    lucide.createIcons();
+
+    const ChemData = {
+        maxValence: { C:4, N:3, O:2, S:2, P:3, F:1, Cl:1, Br:1, I:1, H:1 },
+        atomicWeight: { C:12.011, H:1.008, O:15.999, N:14.007, S:32.06, P:30.974, F:18.998, Cl:35.45, Br:79.904, I:126.904 },
+        atomColor: { C:'#333333', H:'#888888', O:'#DD0000', N:'#0000FF', S:'#DDAA00', P:'#FF8000', F:'#00CC00', Cl:'#006600', Br:'#8B0000', I:'#6600CC' },
+        bondOrder: (t) => t === 'bond-double' ? 2 : (t === 'bond-triple' ? 3 : (t === 'bond-aromatic' ? 1 : 1)),
+        calcImplicitH(label, usedValence) { return Math.max(0, (this.maxValence[label] || 0) - usedValence); }
+    };
+
+    const History = {
+        stack: [], future: [], maxSize: 100,
+        push(state) {
+            this.stack.push(JSON.parse(JSON.stringify(state)));
+            if (this.stack.length > this.maxSize) this.stack.shift();
+            this.future = [];
+        },
+        undo(current) {
+            if (!this.stack.length) return null;
+            this.future.push(JSON.parse(JSON.stringify(current)));
+            return JSON.parse(JSON.stringify(this.stack.pop()));
+        },
+        redo(current) {
+            if (!this.future.length) return null;
+            this.stack.push(JSON.parse(JSON.stringify(current)));
+            return JSON.parse(JSON.stringify(this.future.pop()));
+        }
+    };
+
+    const UI = {
+        _toastTimer: null,
+        switchTab(btn, id) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        },
+        showToast(message, type = 'info') {
+            const toast = document.getElementById('canvas-toast');
+            const msg = document.getElementById('toast-msg');
+            const icon = document.getElementById('toast-icon');
+            msg.textContent = message;
+            const map = {
+                success: { border: 'border-mind-success', icon: 'check-circle', cls: 'w-5 h-5 text-mind-success' },
+                error:   { border: 'border-mind-error',   icon: 'alert-circle', cls: 'w-5 h-5 text-mind-error' },
+                warning: { border: 'border-mind-warning', icon: 'alert-triangle', cls: 'w-5 h-5 text-mind-warning' },
+                info:    { border: 'border-mind-secondary', icon: 'info', cls: 'w-5 h-5 text-mind-secondary' }
+            };
+            const cfg = map[type] || map.info;
+            toast.className = `absolute bottom-4 right-4 bg-white border-l-4 ${cfg.border} shadow-lg rounded px-4 py-3 flex items-center gap-3 transition-all duration-300 z-50 transform`;
+            icon.setAttribute('data-lucide', cfg.icon);
+            icon.className = cfg.cls;
+            lucide.createIcons();
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            clearTimeout(this._toastTimer);
+            this._toastTimer = setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+    };
+
+    const CanvasEngine = {
+        activeTool: 'select',
+        nodes: [],
+        edges: [],
+        selectedNodes: new Set(),
+        selectedEdges: new Set(),
+        arrows: [],
+        annotations: [],
+        spectrumMode: '1H',
+        spectrumPeaks: [],
+        spectrumHighlightedNodes: new Set(),
+        reactionMode: true,
+        sdfBatchRecords: [],
+        validationIssues: [],
+        smilesValidationTimer: null,
+        smilesHistory: [],
+        rdkitReady: false,
+        rdkitInitTried: false,
+        rdkitModule: null,
+        _idCounter: 1,
+        zoomLevel: 1,
+        showGrid: true,
+        showAtomNumbers: false,
+        darkMode: false,
+        highContrast: false,
+        isDrawing: false,
+        drawStartNode: null,
+        tempLineEl: null,
+        isArrowDrawing: false,
+        arrowStart: null,
+        tempArrowEl: null,
+        isSelecting: false,
+        selectionStart: null,
+        isDragging: false,
+        dragNode: null,
+        dragAnchor: null,
+        _ctxTargetEdge: null,
+        _ctxTargetNode: null,
+        _ctxTargetArrow: null,
+        _ctxTargetAnnotation: null,
+        canvas: null,
+        svgRoot: null,
+        nodesLayer: null,
+        selectionRectEl: null,
+
+        init() {
+            this.canvas = document.getElementById('main-canvas');
+            this.svgRoot = document.getElementById('svg-root');
+            this.nodesLayer = document.getElementById('nodes-layer');
+            this.selectionRectEl = document.getElementById('selection-rect');
+
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    this.activeTool = btn.dataset.tool;
+                    document.getElementById('status-tool').textContent = btn.title || this.activeTool;
+                    this.clearSelection(false);
+                    this.setCursor();
+                });
+            });
+
+            this.canvas.addEventListener('mousedown', (e) => this.onMouseDown(e));
+            this.canvas.addEventListener('mousemove', (e) => this.onMouseMove(e));
+            this.canvas.addEventListener('mouseup', (e) => this.onMouseUp(e));
+            this.canvas.addEventListener('contextmenu', (e) => this.onContextMenu(e));
+            this.canvas.addEventListener('dblclick', (e) => this.onDblClick(e));
+
+            window.addEventListener('mouseup', () => this.onGlobalMouseUp());
+            window.addEventListener('keydown', (e) => this.onKeyDown(e));
+            document.addEventListener('click', (e) => this.hideContextMenu(e));
+
+            document.getElementById('ctx-delete-bond').addEventListener('click', () => this.contextDeleteBond());
+            document.getElementById('ctx-change-bond-single').addEventListener('click', () => this.contextChangeBond('bond-single'));
+            document.getElementById('ctx-change-bond-double').addEventListener('click', () => this.contextChangeBond('bond-double'));
+            document.getElementById('ctx-change-bond-triple').addEventListener('click', () => this.contextChangeBond('bond-triple'));
+            document.getElementById('ctx-change-bond-aromatic').addEventListener('click', () => this.contextChangeBond('bond-aromatic'));
+            document.getElementById('ctx-change-bond-wavy').addEventListener('click', () => this.contextChangeBond('bond-wavy'));
+            document.getElementById('ctx-change-bond-coordinate').addEventListener('click', () => this.contextChangeBond('bond-coordinate'));
+            document.getElementById('ctx-edit-annotation').addEventListener('click', () => this.contextEditAnnotation());
+            document.getElementById('ctx-delete-annotation').addEventListener('click', () => this.contextDeleteAnnotation());
+            document.getElementById('ctx-edit-arrow').addEventListener('click', () => this.contextEditArrow());
+            document.getElementById('ctx-delete-arrow').addEventListener('click', () => this.contextDeleteArrow());
+            document.getElementById('ctx-atom-props').addEventListener('click', () => this.contextAtomProps());
+            document.getElementById('ctx-charge-plus').addEventListener('click', () => this.contextChangeCharge(1));
+            document.getElementById('ctx-charge-minus').addEventListener('click', () => this.contextChangeCharge(-1));
+            document.getElementById('ctx-delete-atom').addEventListener('click', () => this.contextDeleteAtom());
+            const smilesToggle = document.getElementById('smiles-panel-toggle');
+            if (smilesToggle) smilesToggle.addEventListener('click', () => this.toggleSmilesPanel());
+            const smilesInput = document.getElementById('smiles-panel-input');
+            if (smilesInput) {
+                smilesInput.addEventListener('input', () => {
+                    clearTimeout(this.smilesValidationTimer);
+                    this.smilesValidationTimer = setTimeout(() => this.validateSmilesInput(), 300);
+                });
+                smilesInput.addEventListener('keydown', (e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                        e.preventDefault();
+                        this.drawSmilesFromPanel();
+                    }
+                });
+            }
+            this.initSmilesPanelUI();
+            this.initSmilesExamples();
+            this.loadSmilesHistory();
+            this.initRdkit();
+
+            this.render();
+            this.updateStats();
+        },
+        toggleSmilesPanel(force) {
+            const panel = document.getElementById('smiles-floating-panel');
+            const btn = document.getElementById('smiles-panel-toggle');
+            if (!panel || !btn) return;
+            const isShown = panel.classList.contains('shown-panel');
+            const next = typeof force === 'boolean' ? force : !isShown;
+            panel.classList.toggle('shown-panel', next);
+            panel.classList.toggle('hidden-panel', !next);
+            btn.classList.toggle('bg-mind-accent', next);
+            btn.classList.toggle('text-white', next);
+            btn.classList.toggle('border-mind-accent', next);
+            btn.querySelector('span').textContent = next ? 'SMILES ▴' : 'SMILES ▾';
+            if (next) {
+                const input = document.getElementById('smiles-panel-input');
+                if (input) input.focus();
+            }
+        },
+        initSmilesPanelUI() {
+            const panel = document.getElementById('smiles-floating-panel');
+            const header = document.getElementById('smiles-panel-header');
+            const input = document.getElementById('smiles-panel-input');
+            const overlay = document.getElementById('smiles-error-overlay');
+            const format = document.getElementById('smiles-input-format');
+            if (!panel || !header) return;
+            let dragging = false;
+            let dx = 0;
+            let dy = 0;
+            header.addEventListener('mousedown', (e) => {
+                if (e.target.closest('button')) return;
+                dragging = true;
+                const rect = panel.getBoundingClientRect();
+                dx = e.clientX - rect.left;
+                dy = e.clientY - rect.top;
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (!dragging) return;
+                const main = document.querySelector('main');
+                const mainRect = main?.getBoundingClientRect();
+                const minLeft = mainRect ? 0 : 0;
+                const minTop = mainRect ? 0 : 0;
+                const maxLeft = (mainRect ? mainRect.width : window.innerWidth) - panel.offsetWidth;
+                const maxTop = (mainRect ? mainRect.height : window.innerHeight) - 40;
+                const nextLeft = Math.max(minLeft, Math.min(maxLeft, e.clientX - (mainRect ? mainRect.left : 0) - dx));
+                const nextTop = Math.max(minTop, Math.min(maxTop, e.clientY - (mainRect ? mainRect.top : 0) - dy));
+                panel.style.left = `${nextLeft}px`;
+                panel.style.top = `${nextTop}px`;
+            });
+            window.addEventListener('mouseup', () => { dragging = false; });
+            if (input && overlay) {
+                input.addEventListener('scroll', () => {
+                    overlay.scrollTop = input.scrollTop;
+                    overlay.scrollLeft = input.scrollLeft;
+                });
+            }
+            if (format) {
+                format.addEventListener('change', () => {
+                    const fmt = format.value;
+                    if (!input) return;
+                    if (fmt === 'smiles') input.placeholder = 'SMILES girin (örn: CC(=O)Oc1ccccc1C(=O)O)';
+                    if (fmt === 'inchi') input.placeholder = 'InChI veya InChIKey girin';
+                    if (fmt === 'iupac') input.placeholder = 'IUPAC adı girin (örn: 2-acetoxybenzoic acid)';
+                    if (fmt === 'cas') input.placeholder = 'CAS numarası girin (örn: 50-78-2)';
+                    this.validateSmilesInput();
+                });
+            }
+        },
+        async initRdkit() {
+            if (this.rdkitInitTried) return;
+            this.rdkitInitTried = true;
+            try {
+                if (typeof window.initRDKitModule !== 'function') {
+                    UI.showToast('RDKit script bulunamadı, fallback parser kullanılacak', 'warning');
+                    return;
+                }
+                this.rdkitModule = await window.initRDKitModule();
+                this.rdkitReady = !!this.rdkitModule;
+                if (this.rdkitReady) UI.showToast('RDKit kimya motoru hazır', 'success');
+            } catch (err) {
+                this.rdkitReady = false;
+                this.rdkitModule = null;
+                console.warn('RDKit init başarısız, fallback kullanılacak:', err);
+                UI.showToast('RDKit başlatılamadı, fallback parser aktif', 'warning');
+            }
+        },
+        smilesToModelWithRdkit(smiles) {
+            if (!this.rdkitReady || !this.rdkitModule) return null;
+            let mol = null;
+            try {
+                mol = this.rdkitModule.get_mol(smiles);
+                if (!mol) throw new Error('RDKit molecule oluşturamadı');
+                mol.set_new_coords();
+                const molBlock = mol.get_molblock();
+                if (!molBlock || typeof molBlock !== 'string') throw new Error('RDKit molblock üretemedi');
+                return this.parseMolSimple(molBlock);
+            } finally {
+                try { if (mol) mol.delete(); } catch {}
+            }
+        },
+        initSmilesExamples() {
+            const host = document.getElementById('smiles-example-list');
+            if (!host) return;
+            const examples = [
+                { name: 'Benzen', smiles: 'c1ccccc1' },
+                { name: 'Etanol', smiles: 'CCO' },
+                { name: 'Asetik Asit', smiles: 'CC(=O)O' },
+                { name: 'Aspirin', smiles: 'CC(=O)Oc1ccccc1C(=O)O' },
+                { name: 'Paracetamol', smiles: 'CC(=O)Nc1ccc(O)cc1' },
+                { name: 'Kafein', smiles: 'CN1C=NC2=C1C(=O)N(C)C(=O)N2C' }
+            ];
+            host.innerHTML = examples.map((e, i) => `<button class="w-full text-left px-2 py-1 rounded border border-gray-200 bg-white hover:bg-blue-50" onclick="CanvasEngine.useSmilesExample(${i})">${e.name} <span class="text-[10px] text-gray-500">${e.smiles}</span></button>`).join('');
+            this._smilesExamples = examples;
+        },
+        useSmilesExample(index) {
+            const ex = (this._smilesExamples || [])[index];
+            if (!ex) return;
+            const input = document.getElementById('smiles-panel-input');
+            if (input) input.value = ex.smiles;
+            this.validateSmilesInput();
+        },
+        toggleSmilesExamples() {
+            const ex = document.getElementById('smiles-example-list');
+            const hs = document.getElementById('smiles-history-list');
+            if (!ex || !hs) return;
+            ex.classList.toggle('hidden');
+            hs.classList.add('hidden');
+        },
+        toggleSmilesHistory() {
+            const ex = document.getElementById('smiles-example-list');
+            const hs = document.getElementById('smiles-history-list');
+            if (!ex || !hs) return;
+            this.renderSmilesHistory();
+            hs.classList.toggle('hidden');
+            ex.classList.add('hidden');
+        },
+        loadSmilesHistory() {
+            try {
+                const raw = localStorage.getItem('drawmind_smiles_history');
+                this.smilesHistory = raw ? JSON.parse(raw) : [];
+                if (!Array.isArray(this.smilesHistory)) this.smilesHistory = [];
+            } catch {
+                this.smilesHistory = [];
+            }
+        },
+        saveSmilesHistory() {
+            localStorage.setItem('drawmind_smiles_history', JSON.stringify(this.smilesHistory.slice(0, 20)));
+        },
+        addSmilesHistory(smiles, summary) {
+            const item = { id: Date.now(), smiles, summary, ts: Date.now() };
+            this.smilesHistory = [item, ...this.smilesHistory.filter(x => x.smiles !== smiles)].slice(0, 20);
+            this.saveSmilesHistory();
+            this.renderSmilesHistory();
+        },
+        renderSmilesHistory() {
+            const hs = document.getElementById('smiles-history-list');
+            if (!hs) return;
+            if (!this.smilesHistory.length) {
+                hs.innerHTML = '<div class="text-gray-500">Geçmiş boş.</div>';
+                return;
+            }
+            hs.innerHTML = this.smilesHistory.map((h, i) => `<button class="w-full text-left px-2 py-1 rounded border border-gray-200 bg-white hover:bg-blue-50 mb-1" onclick="CanvasEngine.useSmilesHistory(${i})"><div class="font-medium">${h.summary || 'Molekül'}</div><div class="text-[10px] text-gray-500 truncate">${h.smiles}</div></button>`).join('');
+        },
+        useSmilesHistory(index) {
+            const h = this.smilesHistory[index];
+            if (!h) return;
+            const input = document.getElementById('smiles-panel-input');
+            if (input) input.value = h.smiles;
+            this.validateSmilesInput();
+        },
+        validateSmilesInput() {
+            const input = document.getElementById('smiles-panel-input');
+            const msg = document.getElementById('smiles-validation-msg');
+            const overlay = document.getElementById('smiles-error-overlay');
+            const format = document.getElementById('smiles-input-format');
+            if (!input || !msg) return false;
+            const s = (input.value || '').trim();
+            const fmt = format?.value || 'smiles';
+            input.classList.remove('border-green-400', 'border-red-400');
+            if (overlay) overlay.innerHTML = '';
+            if (!s) {
+                msg.textContent = 'Giriş bekleniyor...';
+                msg.className = 'text-[11px] text-mind-textMuted';
+                return false;
+            }
+            if (fmt !== 'smiles') {
+                if (fmt === 'inchi') {
+                    if (s.startsWith('InChI=') || /^[A-Z]{14}-[A-Z]{10}-[A-Z]$/.test(s)) {
+                        msg.textContent = '✓ InChI/InChIKey çözümlenmeye hazır';
+                        msg.className = 'text-[11px] text-green-700';
+                        input.classList.add('border-green-400');
+                        return true;
+                    }
+                    msg.textContent = 'Hata: InChI veya InChIKey formatı bekleniyor';
+                    msg.className = 'text-[11px] text-red-600';
+                    input.classList.add('border-red-400');
+                    return false;
+                }
+                if (fmt === 'cas') {
+                    if (/^\d{1,7}-\d{2}-\d$/.test(s)) {
+                        msg.textContent = '✓ CAS formatı geçerli';
+                        msg.className = 'text-[11px] text-green-700';
+                        input.classList.add('border-green-400');
+                        return true;
+                    }
+                    msg.textContent = 'Hata: CAS formatı 12345-67-8 olmalı';
+                    msg.className = 'text-[11px] text-red-600';
+                    input.classList.add('border-red-400');
+                    return false;
+                }
+                if (fmt === 'iupac') {
+                    if (s.length >= 3) {
+                        msg.textContent = '✓ IUPAC adı çözümlenmeye hazır';
+                        msg.className = 'text-[11px] text-green-700';
+                        input.classList.add('border-green-400');
+                        return true;
+                    }
+                    msg.textContent = 'Hata: IUPAC adı çok kısa';
+                    msg.className = 'text-[11px] text-red-600';
+                    input.classList.add('border-red-400');
+                    return false;
+                }
+            }
+            let balP = 0, balB = 0;
+            const rings = new Map();
+            for (let i = 0; i < s.length; i++) {
+                const ch = s[i];
+                if (ch === '(') balP++;
+                if (ch === ')') balP--;
+                if (ch === '[') balB++;
+                if (ch === ']') balB--;
+                if (balP < 0 || balB < 0) {
+                    msg.textContent = `Hata: Kapanış işareti dengesiz (karakter ${i + 1})`;
+                    msg.className = 'text-[11px] text-red-600';
+                    input.classList.add('border-red-400');
+                    if (overlay) {
+                        const before = s.slice(0, i).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+                        const err = (s[i] || ' ').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+                        const after = s.slice(i + 1).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+                        overlay.innerHTML = `${before}<span class="smiles-error-char">${err}</span>${after}`;
+                    }
+                    return false;
+                }
+                if (/\d/.test(ch)) rings.set(ch, (rings.get(ch) || 0) + 1);
+            }
+            if (balP !== 0 || balB !== 0) {
+                msg.textContent = 'Hata: Parantez/köşeli parantez dengesi bozuk';
+                msg.className = 'text-[11px] text-red-600';
+                input.classList.add('border-red-400');
+                return false;
+            }
+            const openRing = [...rings.entries()].find(([, c]) => c % 2 !== 0);
+            if (openRing) {
+                msg.textContent = `Hata: Halka ${openRing[0]} kapanmamış`;
+                msg.className = 'text-[11px] text-red-600';
+                input.classList.add('border-red-400');
+                return false;
+            }
+            if (!/^[A-Za-z0-9@+\-\[\]()=#$%\/\\\.\:]+$/.test(s)) {
+                msg.textContent = 'Hata: Geçersiz karakter içeriyor';
+                msg.className = 'text-[11px] text-red-600';
+                input.classList.add('border-red-400');
+                if (overlay) {
+                    const idx = s.search(/[^A-Za-z0-9@+\-\[\]()=#$%\/\\\.\:]/);
+                    if (idx >= 0) {
+                        const before = s.slice(0, idx).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+                        const err = (s[idx] || ' ').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+                        const after = s.slice(idx + 1).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+                        overlay.innerHTML = `${before}<span class="smiles-error-char">${err}</span>${after}`;
+                    }
+                }
+                return false;
+            }
+            msg.textContent = `✓ Geçerli SMILES (uzunluk: ${s.length})`;
+            msg.className = 'text-[11px] text-green-700';
+            input.classList.add('border-green-400');
+            return true;
+        },
+        normalizeImportedModel(model, offsetX = 0, offsetY = 0) {
+            const map = new Map();
+            const nodes = model.nodes.map(n => {
+                const id = this.nextId();
+                map.set(n.id, id);
+                return { ...n, id, x: n.x + offsetX, y: n.y + offsetY };
+            });
+            const edges = model.edges.map(e => ({ ...e, id: this.nextId(), startId: map.get(e.startId), endId: map.get(e.endId) }));
+            return { nodes, edges };
+        },
+        async drawSmilesFromPanel() {
+            const input = document.getElementById('smiles-panel-input');
+            const resultEl = document.getElementById('smiles-last-result');
+            const formatEl = document.getElementById('smiles-input-format');
+            const customName = document.getElementById('smiles-input-name')?.value?.trim();
+            const drawBtn = document.getElementById('smiles-draw-btn');
+            const clearBefore = document.getElementById('smiles-clear-before')?.checked ?? true;
+            if (!input) return;
+            const raw = (input.value || '').trim();
+            const fmt = formatEl?.value || 'smiles';
+            if (!raw) {
+                UI.showToast('SMILES boş', 'warning');
+                return;
+            }
+            if (!this.validateSmilesInput()) {
+                UI.showToast('Geçersiz giriş', 'error');
+                return;
+            }
+            this.setSmilesProgress(1, 10, 'active');
+            if (drawBtn) {
+                drawBtn.disabled = true;
+                drawBtn.textContent = 'İşleniyor...';
+            }
+            try {
+                let smilesToDraw = raw;
+                if (fmt !== 'smiles') {
+                    this.setSmilesProgress(2, 30, 'active');
+                    smilesToDraw = await this.resolveInputToSmiles(fmt, raw);
+                    input.value = smilesToDraw;
+                    this.validateSmilesInput();
+                } else {
+                    this.setSmilesProgress(2, 30, 'done');
+                }
+                this.setSmilesProgress(3, 55, 'active');
+                let model = null;
+                if (!this.rdkitReady && !this.rdkitInitTried) {
+                    await this.initRdkit();
+                }
+                if (this.rdkitReady) {
+                    model = this.smilesToModelWithRdkit(smilesToDraw);
+                }
+                if (!model || !model.nodes?.length) {
+                    model = this.parseSmilesSimple(smilesToDraw);
+                }
+                History.push(this.snapshot());
+                if (clearBefore || !this.nodes.length) {
+                    this.nodes = model.nodes;
+                    this.edges = model.edges;
+                    this.arrows = [];
+                    this.annotations = [];
+                    this._idCounter = Math.max(1, ...this.nodes.map(n => n.id || 0), ...this.edges.map(e => e.id || 0)) + 1;
+                } else {
+                    const maxX = Math.max(...this.nodes.map(n => n.x), 100);
+                    const imported = this.normalizeImportedModel(model, maxX + 80, 0);
+                    this.nodes.push(...imported.nodes);
+                    this.edges.push(...imported.edges);
+                }
+                this.setSmilesProgress(4, 80, this.rdkitReady ? 'done' : 'active');
+                this.clearSelection(false);
+                this.render();
+                this.updateStats();
+                this.setSmilesProgress(5, 100, 'done');
+                const summary = `${model.nodes.length} atom, ${model.edges.length} bağ`;
+                if (resultEl) resultEl.textContent = `✓ ${summary} çizildi`;
+                this.addSmilesHistory(smilesToDraw, summary);
+                if (customName) {
+                    const formulaEl = document.getElementById('prop-formula');
+                    const formula = formulaEl ? formulaEl.textContent : '';
+                    if (resultEl) resultEl.textContent = `✓ ${customName}${formula ? ` (${formula})` : ''} · ${summary}`;
+                }
+                UI.showToast('SMILES 2D yapıya dönüştürüldü', 'success');
+            } catch (err) {
+                this.setSmilesProgress(0, 0, 'error');
+                if (resultEl) resultEl.textContent = `✗ ${err.message}`;
+                UI.showToast(`SMILES çizim hatası: ${err.message}`, 'error');
+            } finally {
+                if (drawBtn) {
+                    drawBtn.disabled = false;
+                    drawBtn.textContent = 'Yapıyı Çiz';
+                }
+            }
+        },
+        setSmilesProgress(step, percent, status) {
+            const bar = document.getElementById('smiles-progress-bar');
+            if (bar) bar.style.width = `${percent}%`;
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById(`smiles-step-${i}`);
+                if (!el) continue;
+                el.classList.remove('active', 'done');
+                if (status === 'error' && i === step) {
+                    el.classList.add('active');
+                    el.style.color = '#E63946';
+                    continue;
+                }
+                el.style.color = '';
+                if (i < step) el.classList.add('done');
+                if (i === step && status === 'active') el.classList.add('active');
+                if (i <= step && status === 'done') el.classList.add('done');
+            }
+        },
+        async resolveInputToSmiles(format, value) {
+            const v = encodeURIComponent(value);
+            if (format === 'iupac' || format === 'cas') {
+                const url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${v}/property/CanonicalSMILES,IsomericSMILES/JSON`;
+                const data = await this.fetchJsonWithTimeout(url, 12000);
+                const prop = data?.PropertyTable?.Properties?.[0];
+                if (!prop) throw new Error('PubChem eşleşmesi bulunamadı');
+                return prop.IsomericSMILES || prop.CanonicalSMILES;
+            }
+            if (format === 'inchi') {
+                const endpoint = value.startsWith('InChI=') ? 'inchi' : 'inchikey';
+                const url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/${endpoint}/${v}/property/CanonicalSMILES,IsomericSMILES/JSON`;
+                const data = await this.fetchJsonWithTimeout(url, 12000);
+                const prop = data?.PropertyTable?.Properties?.[0];
+                if (!prop) throw new Error('InChI/InChIKey çözümlenemedi');
+                return prop.IsomericSMILES || prop.CanonicalSMILES;
+            }
+            return value;
+        },
+        async fetchJsonWithTimeout(url, timeoutMs = 10000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                const res = await fetch(url, { signal: controller.signal });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return await res.json();
+            } finally {
+                clearTimeout(timer);
+            }
+        },
+
+        snapshot() {
+            return {
+                nodes: JSON.parse(JSON.stringify(this.nodes)),
+                edges: JSON.parse(JSON.stringify(this.edges)),
+                arrows: JSON.parse(JSON.stringify(this.arrows)),
+                annotations: JSON.parse(JSON.stringify(this.annotations)),
+                _idCounter: this._idCounter
+            };
+        },
+        restoreSnapshot(snap) {
+            this.nodes = snap.nodes;
+            this.edges = snap.edges;
+            this.arrows = snap.arrows || [];
+            this.annotations = snap.annotations || [];
+            this.spectrumHighlightedNodes = new Set();
+            this._idCounter = snap._idCounter;
+            this.clearSelection(false);
+            this.render();
+            this.updateStats();
+        },
+        nextId() { return this._idCounter++; },
+        makeNode(x, y, label = 'C') {
+            return { id: this.nextId(), x, y, label, charge: 0, isotope: '', radical: 0 };
+        },
+        setActiveTool(tool) {
+            const btn = document.querySelector(`[data-tool="${tool}"]`);
+            if (btn) btn.click();
+            else {
+                this.activeTool = tool;
+                document.getElementById('status-tool').textContent = tool;
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                this.setCursor();
+            }
+        },
+        setCursor() {
+            if (this.activeTool === 'select' || this.activeTool === 'lasso') this.canvas.style.cursor = 'default';
+            else if (this.activeTool === 'eraser') this.canvas.style.cursor = 'cell';
+            else this.canvas.style.cursor = 'crosshair';
+        },
+        toggleDarkMode() {
+            this.darkMode = !this.darkMode;
+            this.applyThemeMode();
+            UI.showToast(this.darkMode ? 'Gece modu açık' : 'Gece modu kapalı', 'info');
+        },
+        toggleHighContrast() {
+            this.highContrast = !this.highContrast;
+            this.applyThemeMode();
+            UI.showToast(this.highContrast ? 'Yüksek kontrast açık' : 'Yüksek kontrast kapalı', 'info');
+        },
+        toggleGrid() {
+            this.showGrid = !this.showGrid;
+            this.canvas.classList.toggle('canvas-grid', this.showGrid);
+            UI.showToast(this.showGrid ? 'Izgara açıldı' : 'Izgara kapandı', 'info');
+        },
+        toggleAtomNumbers() {
+            this.showAtomNumbers = !this.showAtomNumbers;
+            this.render();
+            UI.showToast(this.showAtomNumbers ? 'Atom numaralandırma açıldı' : 'Atom numaralandırma kapandı', 'info');
+        },
+        exportJSON() {
+            const payload = {
+                version: 1,
+                nodes: this.nodes,
+                edges: this.edges,
+                arrows: this.arrows,
+                annotations: this.annotations,
+                createdAt: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `drawmind-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            UI.showToast('JSON dışa aktarıldı', 'success');
+        },
+        importJSON() {
+            const txt = prompt('JSON içeriğini yapıştırın');
+            if (!txt) return;
+            try {
+                const data = JSON.parse(txt);
+                if (!Array.isArray(data.nodes) || !Array.isArray(data.edges)) throw new Error('Geçersiz format');
+                History.push(this.snapshot());
+                this.nodes = data.nodes;
+                this.edges = data.edges;
+                this.arrows = Array.isArray(data.arrows) ? data.arrows : [];
+                this.annotations = Array.isArray(data.annotations) ? data.annotations : [];
+                this._idCounter = Math.max(1, ...this.nodes.map(n => n.id || 0), ...this.edges.map(e => e.id || 0), ...this.arrows.map(a => a.id || 0), ...this.annotations.map(t => t.id || 0)) + 1;
+                this.render();
+                this.updateStats();
+                UI.showToast('JSON içe aktarıldı', 'success');
+            } catch (err) {
+                UI.showToast(`İçe aktarma hatası: ${err.message}`, 'error');
+            }
+        },
+        importSmilesPrompt() {
+            const smiles = prompt('SMILES girin');
+            if (!smiles) return;
+            try {
+                const model = this.parseSmilesSimple(smiles);
+                History.push(this.snapshot());
+                this.nodes = model.nodes;
+                this.edges = model.edges;
+                this.arrows = [];
+                this.annotations = [];
+                this.clearSelection(false);
+                this.render();
+                this.updateStats();
+                UI.showToast('SMILES içe aktarıldı (temel parser)', 'success');
+            } catch (err) {
+                UI.showToast(`SMILES hatası: ${err.message}`, 'error');
+            }
+        },
+        importMolPrompt() {
+            const txt = prompt('MOL içeriğini yapıştırın (V2000)');
+            if (!txt) return;
+            try {
+                const model = this.parseMolSimple(txt);
+                History.push(this.snapshot());
+                this.nodes = model.nodes;
+                this.edges = model.edges;
+                this.arrows = [];
+                this.annotations = [];
+                this.clearSelection(false);
+                this.render();
+                this.updateStats();
+                UI.showToast('MOL içe aktarıldı (temel parser)', 'success');
+            } catch (err) {
+                UI.showToast(`MOL hatası: ${err.message}`, 'error');
+            }
+        },
+        importSdfPrompt() {
+            this.openSdfBatchModal();
+        },
+        openSdfBatchModal() {
+            const modal = document.getElementById('sdf-batch-modal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            const list = document.getElementById('sdf-batch-list');
+            if (list) list.innerHTML = '<div class="text-gray-500">SDF içeriğini girip "Kayıtları Tara" deyin.</div>';
+        },
+        closeSdfBatchModal() {
+            const modal = document.getElementById('sdf-batch-modal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        },
+        parseSdfBatchModal() {
+            const input = document.getElementById('sdf-batch-input');
+            const list = document.getElementById('sdf-batch-list');
+            const raw = input ? input.value : '';
+            if (!raw || !raw.trim()) {
+                UI.showToast('SDF girdisi boş', 'warning');
+                return;
+            }
+            try {
+                this.sdfBatchRecords = this.parseSdfBatch(raw);
+                if (!list) return;
+                if (!this.sdfBatchRecords.length) {
+                    list.innerHTML = '<div class="text-gray-500">Geçerli kayıt bulunamadı.</div>';
+                    return;
+                }
+                let html = '';
+                this.sdfBatchRecords.forEach((m, i) => {
+                    html += `<button class="w-full text-left px-2 py-1 rounded border border-gray-200 bg-white hover:bg-blue-50 mb-1" onclick="CanvasEngine.loadSdfBatchRecord(${i})">Kayıt ${i + 1} · Atom ${m.nodes.length} · Bağ ${m.edges.length}</button>`;
+                });
+                list.innerHTML = html;
+                UI.showToast(`${this.sdfBatchRecords.length} SDF kaydı bulundu`, 'success');
+            } catch (err) {
+                if (list) list.innerHTML = `<div class="text-red-600">${err.message}</div>`;
+                UI.showToast(`SDF tarama hatası: ${err.message}`, 'error');
+            }
+        },
+        loadSdfBatchRecord(index) {
+            const model = this.sdfBatchRecords[index];
+            if (!model) return;
+            History.push(this.snapshot());
+            this.nodes = model.nodes;
+            this.edges = model.edges;
+            this.arrows = [];
+            this.annotations = [];
+            this.clearSelection(false);
+            this.render();
+            this.updateStats();
+            this.closeSdfBatchModal();
+            UI.showToast(`SDF kayıt ${index + 1} yüklendi`, 'success');
+        },
+        openConvertModal() {
+            const modal = document.getElementById('convert-modal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            const input = document.getElementById('convert-input');
+            if (input) input.focus();
+        },
+        openConvertModalWithType(type = 'smiles') {
+            this.openConvertModal();
+            const radio = document.querySelector(`input[name="convert-type"][value="${type}"]`);
+            if (radio) radio.checked = true;
+        },
+        closeConvertModal() {
+            const modal = document.getElementById('convert-modal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        },
+        applyConvertModal() {
+            const inputEl = document.getElementById('convert-input');
+            const typeEl = document.querySelector('input[name="convert-type"]:checked');
+            const raw = inputEl ? inputEl.value : '';
+            const type = typeEl ? typeEl.value : 'smiles';
+            if (!raw || !raw.trim()) {
+                UI.showToast('Girdi boş', 'warning');
+                return;
+            }
+            try {
+                let model = null;
+                if (type === 'smiles') model = this.parseSmilesSimple(raw.trim());
+                else if (type === 'mol') model = this.parseMolSimple(raw);
+                else if (type === 'sdf') model = this.parseSdfSimple(raw);
+                else {
+                    UI.showToast(`${type.toUpperCase()} -> yapı köprüsü henüz parser sağlayıcısına bağlı değil`, 'warning');
+                    return;
+                }
+                History.push(this.snapshot());
+                this.nodes = model.nodes;
+                this.edges = model.edges;
+                this.arrows = [];
+                this.annotations = [];
+                this.clearSelection(false);
+                this.render();
+                this.updateStats();
+                this.closeConvertModal();
+                UI.showToast('Yapıya dönüştürme tamamlandı', 'success');
+            } catch (err) {
+                UI.showToast(`Dönüştürme hatası: ${err.message}`, 'error');
+            }
+        },
+        exportSmiles() {
+            const smiles = this.nodes.map(n => `${n.label}${n.charge ? `[${n.charge}]` : ''}`).join('.');
+            if (!smiles) {
+                UI.showToast('Dışa aktarılacak yapı yok', 'warning');
+                return;
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(smiles).catch(() => {});
+            UI.showToast('SMILES panoya kopyalandı', 'success');
+        },
+        exportMol() {
+            if (!this.nodes.length) {
+                UI.showToast('Dışa aktarılacak yapı yok', 'warning');
+                return;
+            }
+            const idx = new Map(this.nodes.map((n, i) => [n.id, i + 1]));
+            const counts = `${String(this.nodes.length).padStart(3, '0')}${String(this.edges.length).padStart(3, '0')}  0  0  0  0            999 V2000`;
+            const atomLines = this.nodes.map(n => {
+                const x = (n.x / 20).toFixed(4).padStart(10, ' ');
+                const y = (n.y / 20).toFixed(4).padStart(10, ' ');
+                return `${x}${y}${'0.0000'.padStart(10, ' ')} ${String(n.label || 'C').padEnd(3, ' ')} 0  0  0  0  0  0  0  0  0  0  0  0`;
+            });
+            const orderMap = { 'bond-single': 1, 'bond-double': 2, 'bond-triple': 3, 'bond-aromatic': 4 };
+            const bondLines = this.edges.map(e => {
+                const a1 = String(idx.get(e.startId) || 1).padStart(3, ' ');
+                const a2 = String(idx.get(e.endId) || 1).padStart(3, ' ');
+                const bo = String(orderMap[e.type] || 1).padStart(3, ' ');
+                return `${a1}${a2}${bo}  0  0  0  0`;
+            });
+            const mol = ['DrawMind', 'Generated by DrawMind', '', counts, ...atomLines, ...bondLines, 'M  END'].join('\n');
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(mol).catch(() => {});
+            UI.showToast('MOL panoya kopyalandı', 'success');
+        },
+        toggleReactionMode() {
+            this.reactionMode = !this.reactionMode;
+            UI.showToast(`Reaksiyon modu: ${this.reactionMode ? 'Açık' : 'Kapalı'}`, this.reactionMode ? 'success' : 'info');
+        },
+        setSpectrumHighlight(nodeIds = []) {
+            this.spectrumHighlightedNodes = new Set(nodeIds);
+            this.render();
+        },
+        focusPeak(peakIndex) {
+            const p = this.spectrumPeaks[peakIndex];
+            if (!p) return;
+            this.setSpectrumHighlight(p.nodeIds || []);
+            UI.showToast(`Peak ${peakIndex + 1}: ${p.shift} ppm`, 'info');
+        },
+        parseSmilesSimple(smiles) {
+            const s = String(smiles).trim();
+            if (!s) throw new Error('Boş SMILES');
+            const nodes = [];
+            const edges = [];
+            const branchStack = [];
+            const ringMap = new Map();
+            let currentId = null;
+            let pendingBond = 'bond-single';
+            let atomIndex = 0;
+            const makeNode = (label, depth) => {
+                atomIndex += 1;
+                const id = atomIndex;
+                nodes.push({
+                    id,
+                    x: 80 + atomIndex * 38,
+                    y: 220 + depth * 48,
+                    label,
+                    charge: 0,
+                    isotope: '',
+                    radical: 0
+                });
+                return id;
+            };
+            const readAtom = (i) => {
+                const ch = s[i];
+                if (ch === '[') {
+                    const end = s.indexOf(']', i + 1);
+                    if (end < 0) throw new Error('Köşeli parantez kapanmamış');
+                    const token = s.slice(i + 1, end);
+                    const m = token.match(/([A-Z][a-z]?|[cnosp])/);
+                    if (!m) throw new Error('Parantezli atom çözümlenemedi');
+                    return { symbol: m[1], next: end + 1 };
+                }
+                const two = s.slice(i, i + 2);
+                if (two === 'Cl' || two === 'Br') return { symbol: two, next: i + 2 };
+                if (/[A-Zcnosp]/.test(ch)) return { symbol: ch, next: i + 1 };
+                return null;
+            };
+            for (let i = 0; i < s.length;) {
+                const ch = s[i];
+                if (ch === '(') { branchStack.push(currentId); i += 1; continue; }
+                if (ch === ')') { currentId = branchStack.pop() ?? currentId; i += 1; continue; }
+                if (ch === '-') { pendingBond = 'bond-single'; i += 1; continue; }
+                if (ch === '=') { pendingBond = 'bond-double'; i += 1; continue; }
+                if (ch === '#') { pendingBond = 'bond-triple'; i += 1; continue; }
+                if (ch === ':') { pendingBond = 'bond-aromatic'; i += 1; continue; }
+                if (/\d/.test(ch)) {
+                    if (!currentId) throw new Error('Ring kapanışı için atom yok');
+                    const key = ch;
+                    if (ringMap.has(key)) {
+                        const start = ringMap.get(key);
+                        const bondType = pendingBond !== 'bond-single' ? pendingBond : start.bond;
+                        edges.push({ id: `r-${edges.length + 1}`, startId: start.id, endId: currentId, type: bondType || 'bond-single' });
+                        ringMap.delete(key);
+                    } else {
+                        ringMap.set(key, { id: currentId, bond: pendingBond });
+                    }
+                    pendingBond = 'bond-single';
+                    i += 1;
+                    continue;
+                }
+                const atom = readAtom(i);
+                if (!atom) throw new Error(`Desteklenmeyen karakter: ${ch}`);
+                const aromatic = /^[cnosp]$/.test(atom.symbol);
+                const label = aromatic ? atom.symbol.toUpperCase() : atom.symbol;
+                const depth = Math.max(0, branchStack.length - 1);
+                const nodeId = makeNode(label, depth);
+                if (currentId !== null) {
+                    const prevNode = nodes.find(n => n.id === currentId);
+                    const prevAromatic = prevNode && ['C', 'N', 'O', 'S', 'P'].includes(prevNode.label) && /^[cnosp]/.test(s[i - 1] || '');
+                    const bondType = pendingBond !== 'bond-single' ? pendingBond : (aromatic && prevAromatic ? 'bond-aromatic' : 'bond-single');
+                    edges.push({ id: `e-${edges.length + 1}`, startId: currentId, endId: nodeId, type: bondType });
+                }
+                currentId = nodeId;
+                pendingBond = 'bond-single';
+                i = atom.next;
+            }
+            if (!nodes.length) throw new Error('Atom bulunamadı');
+            return { nodes, edges };
+        },
+        parseMolSimple(molText) {
+            const lines = String(molText).replace(/\r/g, '').split('\n');
+            if (lines.length < 5) throw new Error('MOL satır sayısı yetersiz');
+            const counts = lines[3] || '';
+            const atomCount = parseInt(counts.slice(0, 3).trim(), 10);
+            const bondCount = parseInt(counts.slice(3, 6).trim(), 10);
+            if (!Number.isFinite(atomCount) || !Number.isFinite(bondCount)) throw new Error('Counts line okunamadı');
+            const nodes = [];
+            const edges = [];
+            const atomStart = 4;
+            for (let i = 0; i < atomCount; i++) {
+                const ln = lines[atomStart + i] || '';
+                const x = parseFloat(ln.slice(0, 10).trim());
+                const y = parseFloat(ln.slice(10, 20).trim());
+                const symbol = (ln.slice(31, 34).trim() || 'C');
+                nodes.push({
+                    id: i + 1,
+                    x: Math.round((x * 38) + 340),
+                    y: Math.round((y * -38) + 280),
+                    label: symbol,
+                    charge: 0,
+                    isotope: '',
+                    radical: 0
+                });
+            }
+            const bondStart = atomStart + atomCount;
+            const typeMap = { 1: 'bond-single', 2: 'bond-double', 3: 'bond-triple', 4: 'bond-aromatic' };
+            for (let i = 0; i < bondCount; i++) {
+                const ln = lines[bondStart + i] || '';
+                const a1 = parseInt(ln.slice(0, 3).trim(), 10);
+                const a2 = parseInt(ln.slice(3, 6).trim(), 10);
+                const bt = parseInt(ln.slice(6, 9).trim(), 10);
+                if (!Number.isFinite(a1) || !Number.isFinite(a2)) continue;
+                edges.push({ id: `m-${i + 1}`, startId: a1, endId: a2, type: typeMap[bt] || 'bond-single' });
+            }
+            if (!nodes.length) throw new Error('MOL atomları çözümlenemedi');
+            return { nodes, edges };
+        },
+        parseSdfSimple(sdfText) {
+            const first = String(sdfText).replace(/\r/g, '').split('\n$$$$')[0];
+            if (!first || !first.trim()) throw new Error('SDF kayıt bulunamadı');
+            return this.parseMolSimple(first);
+        },
+        parseSdfBatch(sdfText) {
+            const blocks = String(sdfText).replace(/\r/g, '').split('\n$$$$').map(s => s.trim()).filter(Boolean);
+            if (!blocks.length) throw new Error('SDF kayıt bulunamadı');
+            const models = [];
+            for (const b of blocks) {
+                try {
+                    models.push(this.parseMolSimple(b));
+                } catch (_) {
+                    // Geçersiz kayıtları atla
+                }
+            }
+            if (!models.length) throw new Error('Geçerli SDF kaydı yok');
+            return models;
+        },
+        getResearchQuery() {
+            const el = document.getElementById('research-query');
+            const value = (el && el.value ? el.value : '').trim();
+            if (value) return value;
+            const smiles = (document.getElementById('prop-smiles')?.value || '').trim();
+            if (smiles) return smiles;
+            const formula = (document.getElementById('prop-formula')?.textContent || '').trim();
+            return formula || '';
+        },
+        async runAutoResearch() {
+            const q = this.getResearchQuery();
+            if (!q) {
+                UI.showToast('Araştırma sorgusu boş', 'warning');
+                return;
+            }
+            await Promise.allSettled([this.searchPubChem(q), this.searchArxiv(q)]);
+        },
+        async searchPubChem(qArg) {
+            const q = (qArg || this.getResearchQuery()).trim();
+            const host = document.getElementById('research-pubchem');
+            if (host) host.innerHTML = '<div class="text-gray-500">PubChem aranıyor...</div>';
+            if (!q) return;
+            try {
+                const enc = encodeURIComponent(q);
+                const candidateUrls = [
+                    `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${enc}/cids/JSON`,
+                    `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${enc}/cids/JSON`,
+                    `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/fastformula/${enc}/cids/JSON`
+                ];
+                let cids = [];
+                for (const u of candidateUrls) {
+                    const r = await fetch(u);
+                    if (!r.ok) continue;
+                    const j = await r.json();
+                    cids = j?.IdentifierList?.CID || [];
+                    if (cids.length) break;
+                }
+                if (!cids.length) {
+                    if (host) host.innerHTML = '<div class="text-gray-500">PubChem sonucu bulunamadı.</div>';
+                    return;
+                }
+                const top = cids.slice(0, 5);
+                const propsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${top.join(',')}/property/MolecularFormula,MolecularWeight,IUPACName,CanonicalSMILES/JSON`;
+                const pr = await fetch(propsUrl);
+                const pj = await pr.json();
+                const rows = pj?.PropertyTable?.Properties || [];
+                if (host) {
+                    host.innerHTML = rows.map(r => {
+                        const link = `https://pubchem.ncbi.nlm.nih.gov/compound/${r.CID}`;
+                        return `<a href="${link}" target="_blank" class="block p-2 mb-1 rounded border border-gray-200 bg-white hover:bg-blue-50"><div class="font-semibold">CID ${r.CID}</div><div>Formül: ${r.MolecularFormula || '-'}</div><div>MW: ${r.MolecularWeight || '-'}</div><div class="truncate">IUPAC: ${r.IUPACName || '-'}</div></a>`;
+                    }).join('');
+                }
+            } catch (err) {
+                if (host) host.innerHTML = `<div class="text-red-600">PubChem hatası: ${err.message}</div>`;
+            }
+        },
+        async searchArxiv(qArg) {
+            const q = (qArg || this.getResearchQuery()).trim();
+            const host = document.getElementById('research-arxiv');
+            if (host) host.innerHTML = '<div class="text-gray-500">arXiv aranıyor...</div>';
+            if (!q) return;
+            try {
+                const rawUrl = `https://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(q)}&start=0&max_results=8&sortBy=relevance&sortOrder=descending`;
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rawUrl)}`;
+                const res = await fetch(proxyUrl);
+                const xmlText = await res.text();
+                const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
+                const entries = [...doc.getElementsByTagName('entry')];
+                if (!entries.length) {
+                    if (host) host.innerHTML = '<div class="text-gray-500">arXiv sonucu bulunamadı.</div>';
+                    return;
+                }
+                const html = entries.map(e => {
+                    const title = (e.getElementsByTagName('title')[0]?.textContent || '').trim().replace(/\s+/g, ' ');
+                    const summary = (e.getElementsByTagName('summary')[0]?.textContent || '').trim().replace(/\s+/g, ' ');
+                    const id = (e.getElementsByTagName('id')[0]?.textContent || '').trim();
+                    const authorEls = [...e.getElementsByTagName('author')];
+                    const authors = authorEls.map(a => a.getElementsByTagName('name')[0]?.textContent || '').filter(Boolean).slice(0, 3).join(', ');
+                    return `<a href="${id}" target="_blank" class="block p-2 mb-1 rounded border border-gray-200 bg-white hover:bg-blue-50"><div class="font-semibold">${title || 'Başlıksız'}</div><div class="text-[11px] text-gray-600">${authors || '-'}</div><div class="text-[11px] text-gray-700 line-clamp-2">${summary || '-'}</div></a>`;
+                }).join('');
+                if (host) host.innerHTML = html;
+            } catch (err) {
+                if (host) host.innerHTML = `<div class="text-red-600">arXiv hatası: ${err.message}</div>`;
+            }
+        },
+        applyThemeMode() {
+            document.body.classList.toggle('dark-mode', this.darkMode);
+            document.body.classList.toggle('high-contrast', this.highContrast);
+        },
+        getCoords(e) {
+            const rect = this.canvas.getBoundingClientRect();
+            const rawX = (e.clientX - rect.left) / this.zoomLevel;
+            const rawY = (e.clientY - rect.top) / this.zoomLevel;
+            return { x: Math.round(rawX / 20) * 20, y: Math.round(rawY / 20) * 20, rawX, rawY };
+        },
+        getRawCoords(e) {
+            const r = this.canvas.getBoundingClientRect();
+            return { x: e.clientX - r.left, y: e.clientY - r.top };
+        },
+        getNodeById(id) { return this.nodes.find(n => n.id === id) || null; },
+        getUsedValence(nodeId) {
+            let sum = 0;
+            for (const e of this.edges) if (e.startId === nodeId || e.endId === nodeId) sum += ChemData.bondOrder(e.type);
+            return sum;
+        },
+        getClosestNode(c, threshold = 18) {
+            let best = null, min = threshold;
+            for (const n of this.nodes) {
+                const d = Math.hypot(n.x - c.x, n.y - c.y);
+                if (d < min) { min = d; best = n; }
+            }
+            return best;
+        },
+        pointToSegmentDist(px, py, x1, y1, x2, y2) {
+            const dx = x2 - x1, dy = y2 - y1;
+            const len2 = dx*dx + dy*dy;
+            if (len2 === 0) return Math.hypot(px-x1, py-y1);
+            let t = ((px-x1)*dx + (py-y1)*dy) / len2;
+            t = Math.max(0, Math.min(1, t));
+            return Math.hypot(px - (x1 + t*dx), py - (y1 + t*dy));
+        },
+        getClosestEdge(c, threshold = 10) {
+            let best = null, min = threshold;
+            for (const e of this.edges) {
+                const a = this.getNodeById(e.startId), b = this.getNodeById(e.endId);
+                if (!a || !b) continue;
+                const d = this.pointToSegmentDist(c.x, c.y, a.x, a.y, b.x, b.y);
+                if (d < min) { min = d; best = e; }
+            }
+            return best;
+        },
+        getClosestArrow(c, threshold = 10) {
+            let best = null, min = threshold;
+            for (const a of this.arrows) {
+                const d = this.pointToSegmentDist(c.x, c.y, a.x1, a.y1, a.x2, a.y2);
+                if (d < min) { min = d; best = a; }
+            }
+            return best;
+        },
+        getClosestAnnotation(c, threshold = 12) {
+            let best = null, min = threshold;
+            for (const t of this.annotations) {
+                const d = Math.hypot((t.x || 0) - c.x, (t.y || 0) - c.y);
+                if (d < min) { min = d; best = t; }
+            }
+            return best;
+        },
+        canSetBondOrder(aId, bId, oldType, newType) {
+            const a = this.getNodeById(aId), b = this.getNodeById(bId);
+            if (!a || !b) return false;
+            const oldO = oldType ? ChemData.bondOrder(oldType) : 0;
+            const newO = ChemData.bondOrder(newType);
+            const aUsed = this.getUsedValence(aId) - oldO + newO;
+            const bUsed = this.getUsedValence(bId) - oldO + newO;
+            const aMax = ChemData.maxValence[a.label] || 4;
+            const bMax = ChemData.maxValence[b.label] || 4;
+            return aUsed <= aMax && bUsed <= bMax;
+        },
+        findEdgeBetween(aId, bId) {
+            return this.edges.find(e => (e.startId === aId && e.endId === bId) || (e.startId === bId && e.endId === aId)) || null;
+        },
+        flashError(nodeId) {
+            const el = document.getElementById(`node-${nodeId}`);
+            if (el) {
+                el.classList.add('valence-error');
+                setTimeout(() => el.classList.remove('valence-error'), 450);
+            }
+        },
+
+        onMouseDown(e) {
+            if (e.button !== 0) return;
+            this.hideContextMenu();
+            const c = this.getCoords(e);
+            const raw = this.getRawCoords(e);
+
+            if (this.activeTool === 'select') {
+                const n = this.getClosestNode(c, 20);
+                if (n) {
+                    if (!e.shiftKey) this.clearSelection(false);
+                    this.selectedNodes.add(n.id);
+                    this.isDragging = true;
+                    this.dragNode = n;
+                    this.dragAnchor = { x: c.x, y: c.y };
+                    this.render();
+                    return;
+                }
+                const ed = this.getClosestEdge(c, 10);
+                if (ed) {
+                    if (!e.shiftKey) this.clearSelection(false);
+                    this.selectedEdges.add(ed.id);
+                    this.render();
+                    return;
+                }
+                this.clearSelection(false);
+                this.isSelecting = true;
+                this.selectionStart = raw;
+                this.selectionRectEl.style.display = 'block';
+                this.selectionRectEl.style.left = raw.x + 'px';
+                this.selectionRectEl.style.top = raw.y + 'px';
+                this.selectionRectEl.style.width = '0px';
+                this.selectionRectEl.style.height = '0px';
+                return;
+            }
+
+            if (this.activeTool === 'eraser') {
+                const ann = this.getClosestAnnotation(c, 12);
+                const arrow = this.getClosestArrow(c, 12);
+                const edge = this.getClosestEdge(c, 12);
+                const node = this.getClosestNode(c, 16);
+                if (ann && (!node || Math.hypot(c.x - ann.x, c.y - ann.y) < 10)) {
+                    History.push(this.snapshot());
+                    this.annotations = this.annotations.filter(t => t.id !== ann.id);
+                    this.render(); this.updateStats();
+                    return;
+                }
+                if (arrow && (!node || this.pointToSegmentDist(c.x, c.y, arrow.x1, arrow.y1, arrow.x2, arrow.y2) < 8)) {
+                    History.push(this.snapshot());
+                    this.arrows = this.arrows.filter(a => a.id !== arrow.id);
+                    this.render(); this.updateStats();
+                    return;
+                }
+                // Bağ silmeye öncelik ver: bağa yakın tıklamada atomu yanlışlıkla silmeyi engeller.
+                if (edge && (!node || this.pointToSegmentDist(c.x, c.y, this.getNodeById(edge.startId).x, this.getNodeById(edge.startId).y, this.getNodeById(edge.endId).x, this.getNodeById(edge.endId).y) < 8)) {
+                    History.push(this.snapshot());
+                    this.deleteEdge(edge.id);
+                    return;
+                }
+                if (node) {
+                    History.push(this.snapshot());
+                    this.deleteNode(node.id, true);
+                }
+                return;
+            }
+            if (this.activeTool === 'annotation-text') {
+                const text = prompt('Metin/koşul (örn: H2SO4, Δ, 80°C, 2 saat)');
+                if (!text || !text.trim()) return;
+                History.push(this.snapshot());
+                this.annotations.push({ id: this.nextId(), x: c.x, y: c.y, text: text.trim() });
+                this.render();
+                this.updateStats();
+                return;
+            }
+
+            if (this.activeTool.startsWith('atom-')) {
+                const label = this.activeTool.split('-').slice(1).join('');
+                History.push(this.snapshot());
+                const existing = this.getClosestNode(c, 18);
+                if (existing) existing.label = label;
+                else this.nodes.push(this.makeNode(c.x, c.y, label));
+                this.render(); this.updateStats();
+                return;
+            }
+
+            if (this.activeTool.startsWith('ring-')) {
+                History.push(this.snapshot());
+                this.addRing(this.activeTool === 'ring-benzene' ? 'benzene' : 'cyclohexane', c);
+                return;
+            }
+
+            if (this.activeTool.startsWith('arrow-')) {
+                this.isArrowDrawing = true;
+                this.arrowStart = { x: c.x, y: c.y };
+                const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                l.setAttribute('x1', c.x); l.setAttribute('y1', c.y); l.setAttribute('x2', c.x); l.setAttribute('y2', c.y);
+                l.setAttribute('stroke', '#7B2D8B'); l.setAttribute('stroke-width', '2');
+                l.setAttribute('stroke-dasharray', this.activeTool === 'arrow-resonance' ? '6 4' : '0');
+                this.svgRoot.appendChild(l);
+                this.tempArrowEl = l;
+                return;
+            }
+
+            if (this.activeTool.startsWith('bond-')) {
+                let start = this.getClosestNode(c, 18);
+                if (!start) start = { ...this.makeNode(c.x, c.y, 'C'), _new: true };
+                this.isDrawing = true;
+                this.drawStartNode = start;
+                const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                l.setAttribute('x1', start.x); l.setAttribute('y1', start.y); l.setAttribute('x2', start.x); l.setAttribute('y2', start.y);
+                l.setAttribute('stroke', '#00B4D8'); l.setAttribute('stroke-width', '2'); l.setAttribute('stroke-dasharray', '5 4');
+                this.svgRoot.appendChild(l);
+                this.tempLineEl = l;
+            }
+        },
+
+        onMouseMove(e) {
+            const c = this.getCoords(e);
+            document.getElementById('status-coords').textContent = `${Math.round(c.x)}, ${Math.round(c.y)}`;
+            if (this.isDrawing && this.tempLineEl) {
+                const snap = this.getClosestNode(c, 20);
+                this.tempLineEl.setAttribute('x2', snap ? snap.x : c.x);
+                this.tempLineEl.setAttribute('y2', snap ? snap.y : c.y);
+                return;
+            }
+            if (this.isArrowDrawing && this.tempArrowEl) {
+                this.tempArrowEl.setAttribute('x2', c.x);
+                this.tempArrowEl.setAttribute('y2', c.y);
+                return;
+            }
+            if (this.isSelecting && this.selectionStart) {
+                const raw = this.getRawCoords(e);
+                const x = Math.min(raw.x, this.selectionStart.x), y = Math.min(raw.y, this.selectionStart.y);
+                const w = Math.abs(raw.x - this.selectionStart.x), h = Math.abs(raw.y - this.selectionStart.y);
+                this.selectionRectEl.style.left = x + 'px'; this.selectionRectEl.style.top = y + 'px';
+                this.selectionRectEl.style.width = w + 'px'; this.selectionRectEl.style.height = h + 'px';
+                return;
+            }
+            if (this.isDragging && this.dragAnchor) {
+                const dx = c.x - this.dragAnchor.x, dy = c.y - this.dragAnchor.y;
+                this.dragAnchor = { x: c.x, y: c.y };
+                const ids = this.selectedNodes.size ? [...this.selectedNodes] : (this.dragNode ? [this.dragNode.id] : []);
+                for (const id of ids) {
+                    const n = this.getNodeById(id);
+                    if (n) { n.x += dx; n.y += dy; }
+                }
+                this.render();
+            }
+        },
+
+        onMouseUp(e) {
+            if (e.button !== 0) return;
+            const c = this.getCoords(e);
+            if (this.isDrawing) {
+                this.isDrawing = false;
+                if (this.tempLineEl && this.tempLineEl.parentNode) this.tempLineEl.parentNode.removeChild(this.tempLineEl);
+                this.tempLineEl = null;
+                const start = this.drawStartNode;
+                this.drawStartNode = null;
+                if (!start) return;
+                const dist = Math.hypot(c.x - start.x, c.y - start.y);
+                if (dist < 10) {
+                    if (start._new) {
+                        History.push(this.snapshot());
+                        delete start._new;
+                        this.nodes.push(start);
+                        this.render(); this.updateStats();
+                    }
+                    return;
+                }
+                let end = this.getClosestNode(c, 20);
+                if (!end) end = { ...this.makeNode(c.x, c.y, 'C'), _new: true };
+                if (start.id === end.id) return;
+
+                const existing = this.findEdgeBetween(start.id, end.id);
+                const oldType = existing ? existing.type : null;
+                if (!this.canSetBondOrder(start.id, end.id, oldType, this.activeTool)) {
+                    UI.showToast('Valans aşıldı: bu bağı bu atomlara uygulayamazsınız.', 'error');
+                    this.flashError(start.id);
+                    this.flashError(end.id);
+                    return;
+                }
+
+                History.push(this.snapshot());
+                if (start._new) { delete start._new; this.nodes.push(start); }
+                if (end._new) { delete end._new; this.nodes.push(end); }
+                if (existing) existing.type = this.activeTool;
+                else this.edges.push({ id: this.nextId(), startId: start.id, endId: end.id, type: this.activeTool });
+                this.render(); this.updateStats();
+                return;
+            }
+            if (this.isArrowDrawing) {
+                this.isArrowDrawing = false;
+                if (this.tempArrowEl && this.tempArrowEl.parentNode) this.tempArrowEl.parentNode.removeChild(this.tempArrowEl);
+                this.tempArrowEl = null;
+                if (!this.arrowStart) return;
+                const dist = Math.hypot(c.x - this.arrowStart.x, c.y - this.arrowStart.y);
+                if (dist >= 8) {
+                    History.push(this.snapshot());
+                    let label = '';
+                    let stepNo = this.arrows.length + 1;
+                    if (this.reactionMode && (this.activeTool === 'arrow-reaction' || this.activeTool === 'arrow-equilibrium' || this.activeTool === 'arrow-retro' || this.activeTool === 'arrow-mechanism')) {
+                        const cond = prompt('Reaksiyon koşulu / etiket (örn: H2SO4, Δ, 80°C, 2h)', '');
+                        if (cond !== null) label = String(cond).trim();
+                        const stepInput = prompt('Adım numarası', String(stepNo));
+                        if (stepInput !== null) {
+                            const parsed = Number(stepInput);
+                            if (Number.isFinite(parsed) && parsed > 0) stepNo = Math.round(parsed);
+                        }
+                    }
+                    this.arrows.push({
+                        id: this.nextId(),
+                        x1: this.arrowStart.x, y1: this.arrowStart.y,
+                        x2: c.x, y2: c.y,
+                        type: this.activeTool,
+                        step: stepNo,
+                        label
+                    });
+                    this.render();
+                    this.updateStats();
+                }
+                this.arrowStart = null;
+                return;
+            }
+            if (this.isSelecting) {
+                this.isSelecting = false;
+                this.selectionRectEl.style.display = 'none';
+                const raw = this.getRawCoords(e);
+                const x1 = Math.min(raw.x, this.selectionStart.x) / this.zoomLevel, y1 = Math.min(raw.y, this.selectionStart.y) / this.zoomLevel;
+                const x2 = Math.max(raw.x, this.selectionStart.x) / this.zoomLevel, y2 = Math.max(raw.y, this.selectionStart.y) / this.zoomLevel;
+                for (const n of this.nodes) if (n.x >= x1 && n.x <= x2 && n.y >= y1 && n.y <= y2) this.selectedNodes.add(n.id);
+                this.selectionStart = null;
+                this.render();
+            }
+            this.isDragging = false; this.dragNode = null; this.dragAnchor = null;
+        },
+
+        onGlobalMouseUp() {
+            this.isDrawing = false;
+            if (this.tempLineEl && this.tempLineEl.parentNode) this.tempLineEl.parentNode.removeChild(this.tempLineEl);
+            this.tempLineEl = null;
+            this.drawStartNode = null;
+            this.isArrowDrawing = false;
+            if (this.tempArrowEl && this.tempArrowEl.parentNode) this.tempArrowEl.parentNode.removeChild(this.tempArrowEl);
+            this.tempArrowEl = null;
+            this.arrowStart = null;
+            this.isSelecting = false;
+            this.selectionRectEl.style.display = 'none';
+            this.isDragging = false;
+            this.dragNode = null;
+            this.dragAnchor = null;
+        },
+
+        onContextMenu(e) {
+            e.preventDefault();
+            const c = this.getCoords(e);
+            this._ctxTargetEdge = this.getClosestEdge(c, 12);
+            this._ctxTargetNode = this.getClosestNode(c, 18);
+            this._ctxTargetArrow = this.getClosestArrow(c, 10);
+            this._ctxTargetAnnotation = this.getClosestAnnotation(c, 12);
+            const m = document.getElementById('context-menu');
+            document.getElementById('ctx-edit-annotation').style.display = this._ctxTargetAnnotation ? 'flex' : 'none';
+            document.getElementById('ctx-delete-annotation').style.display = this._ctxTargetAnnotation ? 'flex' : 'none';
+            document.getElementById('ctx-edit-arrow').style.display = this._ctxTargetArrow ? 'flex' : 'none';
+            document.getElementById('ctx-delete-arrow').style.display = this._ctxTargetArrow ? 'flex' : 'none';
+            document.getElementById('ctx-delete-bond').style.display = this._ctxTargetEdge ? 'flex' : 'none';
+            document.getElementById('ctx-change-bond-single').style.display = this._ctxTargetEdge ? 'flex' : 'none';
+            document.getElementById('ctx-change-bond-double').style.display = this._ctxTargetEdge ? 'flex' : 'none';
+            document.getElementById('ctx-change-bond-triple').style.display = this._ctxTargetEdge ? 'flex' : 'none';
+            document.getElementById('ctx-change-bond-aromatic').style.display = this._ctxTargetEdge ? 'flex' : 'none';
+            document.getElementById('ctx-change-bond-wavy').style.display = this._ctxTargetEdge ? 'flex' : 'none';
+            document.getElementById('ctx-change-bond-coordinate').style.display = this._ctxTargetEdge ? 'flex' : 'none';
+            const hasNode = !!this._ctxTargetNode;
+            document.getElementById('ctx-atom-props').style.display = hasNode ? 'flex' : 'none';
+            document.getElementById('ctx-charge-plus').style.display = hasNode ? 'flex' : 'none';
+            document.getElementById('ctx-charge-minus').style.display = hasNode ? 'flex' : 'none';
+            document.getElementById('ctx-delete-atom').style.display = hasNode ? 'flex' : 'none';
+            m.style.left = e.clientX + 'px';
+            m.style.top = e.clientY + 'px';
+            m.style.display = 'block';
+        },
+        hideContextMenu(e) {
+            const m = document.getElementById('context-menu');
+            if (e && m.contains(e.target)) return;
+            m.style.display = 'none';
+        },
+        contextDeleteBond() {
+            if (!this._ctxTargetEdge) return;
+            History.push(this.snapshot());
+            this.deleteEdge(this._ctxTargetEdge.id);
+            this.hideContextMenu();
+        },
+        contextChangeBond(newType) {
+            const edge = this._ctxTargetEdge;
+            if (!edge) return;
+            if (!this.canSetBondOrder(edge.startId, edge.endId, edge.type, newType)) {
+                UI.showToast('Valans ihlali: bağ türü değiştirilemedi.', 'error');
+                this.hideContextMenu();
+                return;
+            }
+            History.push(this.snapshot());
+            edge.type = newType;
+            this.render(); this.updateStats();
+            this.hideContextMenu();
+        },
+        contextDeleteArrow() {
+            if (!this._ctxTargetArrow) return;
+            History.push(this.snapshot());
+            this.arrows = this.arrows.filter(a => a.id !== this._ctxTargetArrow.id);
+            this.render();
+            this.updateStats();
+            this.hideContextMenu();
+        },
+        contextEditAnnotation() {
+            if (!this._ctxTargetAnnotation) return;
+            History.push(this.snapshot());
+            const current = this._ctxTargetAnnotation;
+            const next = prompt('Metin içeriği', current.text || '');
+            if (next !== null) current.text = String(next).trim();
+            this.render();
+            this.updateStats();
+            this.hideContextMenu();
+        },
+        contextDeleteAnnotation() {
+            if (!this._ctxTargetAnnotation) return;
+            History.push(this.snapshot());
+            this.annotations = this.annotations.filter(t => t.id !== this._ctxTargetAnnotation.id);
+            this.render();
+            this.updateStats();
+            this.hideContextMenu();
+        },
+        contextEditArrow() {
+            if (!this._ctxTargetArrow) return;
+            History.push(this.snapshot());
+            const a = this._ctxTargetArrow;
+            const label = prompt('Ok etiketi/koşul (örn: H2SO4, Δ, hv)', a.label || '');
+            if (label !== null) a.label = String(label).trim();
+            const step = prompt('Adım numarası', String(a.step || ''));
+            if (step !== null) {
+                const val = Number(step);
+                if (Number.isFinite(val) && val > 0) a.step = Math.round(val);
+            }
+            this.render();
+            this.updateStats();
+            this.hideContextMenu();
+        },
+        contextDeleteAtom() {
+            if (!this._ctxTargetNode) return;
+            History.push(this.snapshot());
+            this.deleteNode(this._ctxTargetNode.id, true);
+            this.hideContextMenu();
+        },
+        contextAtomProps() {
+            if (!this._ctxTargetNode) return;
+            const n = this.getNodeById(this._ctxTargetNode.id);
+            if (!n) return;
+            History.push(this.snapshot());
+            const iso = prompt('İzotop (örn: 13, 14) boş bırak = yok', n.isotope || '');
+            if (iso !== null) n.isotope = String(iso).trim();
+            const rad = prompt('Radikal (0/1/2)', String(n.radical || 0));
+            if (rad !== null) {
+                const rv = Number(rad);
+                if ([0, 1, 2].includes(rv)) n.radical = rv;
+            }
+            this.render();
+            this.updateStats();
+            this.hideContextMenu();
+        },
+        contextChangeCharge(delta) {
+            if (!this._ctxTargetNode) return;
+            const n = this.getNodeById(this._ctxTargetNode.id);
+            if (!n) return;
+            History.push(this.snapshot());
+            n.charge = Math.max(-4, Math.min(4, (n.charge || 0) + delta));
+            this.render();
+            this.updateStats();
+            this.hideContextMenu();
+        },
+
+        onDblClick(e) {
+            const c = this.getCoords(e);
+            const edge = this.getClosestEdge(c, 12);
+            if (!edge) return;
+            const cycle = ['bond-single', 'bond-double', 'bond-triple', 'bond-aromatic'];
+            const i = cycle.indexOf(edge.type);
+            const next = cycle[(i + 1) % cycle.length];
+            if (!this.canSetBondOrder(edge.startId, edge.endId, edge.type, next)) {
+                UI.showToast('Valans ihlali: çift tık dönüşümü engellendi.', 'error');
+                return;
+            }
+            History.push(this.snapshot());
+            edge.type = next;
+            this.render(); this.updateStats();
+        },
+
+        onKeyDown(e) {
+            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+            if (e.ctrlKey || e.metaKey) {
+                if (e.shiftKey && e.key.toLowerCase() === 's') {
+                    e.preventDefault();
+                    this.toggleSmilesPanel();
+                    return;
+                }
+                if (e.key.toLowerCase() === 'z') { e.preventDefault(); this.undo(); }
+                else if (e.key.toLowerCase() === 'y') { e.preventDefault(); this.redo(); }
+                else if (e.key.toLowerCase() === 'a') { e.preventDefault(); this.selectAll(); }
+                return;
+            }
+            if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); this.deleteSelected(); return; }
+            const k = e.key.toLowerCase();
+            const map = {
+                q:'select', e:'eraser', '1':'bond-single', '2':'bond-double', '3':'bond-triple', '4':'bond-aromatic',
+                '5':'arrow-reaction', '6':'arrow-equilibrium', '7':'arrow-mechanism',
+                b:'ring-benzene', c:'atom-C', o:'atom-O', n:'atom-N', p:'atom-P', f:'atom-F', s:'atom-S', x:'annotation-text'
+            };
+            if (map[k]) {
+                this.setActiveTool(map[k]);
+                return;
+            }
+            if (k === 'g') { this.showGrid = !this.showGrid; this.canvas.classList.toggle('canvas-grid', this.showGrid); return; }
+            if (k === 'u') { this.toggleAtomNumbers(); return; }
+            if (k === 'd') { this.toggleDarkMode(); return; }
+            if (k === 'k') { this.toggleHighContrast(); return; }
+            if (k === 'escape') { this.toggleSmilesPanel(false); return; }
+            if (k === 'v') { this.validateStructure(); return; }
+            if (k === 'h') { this.mirrorSelected('x'); return; }
+            if (k === 'm') { this.mirrorSelected('y'); return; }
+            if (k === 'r') { this.rotateSelected(90); return; }
+            if (k === 'l') { this.alignSelected('left'); return; }
+            if (k === 't') { this.alignSelected('top'); return; }
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key) && this.selectedNodes.size) {
+                e.preventDefault();
+                const step = e.shiftKey ? 10 : 1;
+                History.push(this.snapshot());
+                for (const id of this.selectedNodes) {
+                    const n = this.getNodeById(id);
+                    if (!n) continue;
+                    if (e.key === 'ArrowUp') n.y -= step;
+                    if (e.key === 'ArrowDown') n.y += step;
+                    if (e.key === 'ArrowLeft') n.x -= step;
+                    if (e.key === 'ArrowRight') n.x += step;
+                }
+                this.render();
+                this.updateStats();
+            }
+        },
+        validateStructure() {
+            const issues = [];
+            const idToNode = new Map(this.nodes.map(n => [n.id, n]));
+            for (const n of this.nodes) {
+                const used = this.getUsedValence(n.id);
+                const max = ChemData.maxValence[n.label] || 4;
+                if (used > max) issues.push(`${n.label}${n.id}: valans ${used}/${max}`);
+                if (used === 0 && this.nodes.length > 1) issues.push(`${n.label}${n.id}: izole atom`);
+            }
+            for (const n of this.nodes) {
+                const neigh = this.getNeighbors(n.id);
+                if (neigh.length < 2) continue;
+                for (let i = 0; i < neigh.length; i++) {
+                    for (let j = i + 1; j < neigh.length; j++) {
+                        const a = neigh[i], b = neigh[j];
+                        const v1x = a.x - n.x, v1y = a.y - n.y;
+                        const v2x = b.x - n.x, v2y = b.y - n.y;
+                        const dot = v1x * v2x + v1y * v2y;
+                        const m1 = Math.hypot(v1x, v1y), m2 = Math.hypot(v2x, v2y);
+                        if (!m1 || !m2) continue;
+                        const angle = Math.acos(Math.max(-1, Math.min(1, dot / (m1 * m2)))) * 180 / Math.PI;
+                        if (angle < 55) issues.push(`${n.label}${n.id}: olağandışı bağ açısı ${angle.toFixed(0)}°`);
+                    }
+                }
+            }
+            for (let i = 0; i < this.nodes.length; i++) {
+                for (let j = i + 1; j < this.nodes.length; j++) {
+                    const a = this.nodes[i], b = this.nodes[j];
+                    const d = Math.hypot(a.x - b.x, a.y - b.y);
+                    if (d < 10) issues.push(`${a.label}${a.id}-${b.label}${b.id}: atom çakışması (${d.toFixed(1)} px)`);
+                }
+            }
+            for (const n of this.nodes) {
+                const chiralDegree = this.edges.filter(e => e.startId === n.id || e.endId === n.id).length;
+                if (chiralDegree === 4) {
+                    const hasStereoBond = this.edges.some(e => (e.startId === n.id || e.endId === n.id) && (e.type === 'bond-wedge' || e.type === 'bond-hash' || e.type === 'bond-wavy'));
+                    if (!hasStereoBond) issues.push(`${n.label}${n.id}: şüpheli stereokimya (4 bağlı merkez, stereo bağı yok)`);
+                }
+            }
+            for (const e of this.edges) {
+                const a = idToNode.get(e.startId), b = idToNode.get(e.endId);
+                if (!a || !b) continue;
+                const len = Math.hypot(a.x - b.x, a.y - b.y);
+                if (len < 14) issues.push(`Bağ ${a.id}-${b.id}: olağandışı kısa bağ (${len.toFixed(1)} px)`);
+            }
+            this.validationIssues = issues;
+            this.renderValidationPanel();
+            if (!issues.length) UI.showToast('Yapı doğrulama: kritik hata yok', 'success');
+            else UI.showToast(`Doğrulama: ${issues.length} uyarı/hata bulundu`, 'warning');
+        },
+        renderValidationPanel() {
+            const el = document.getElementById('validation-list');
+            if (!el) return;
+            if (!this.validationIssues.length) {
+                el.innerHTML = '<p class="text-xs text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">Uyarı yok. Yapı doğrulaması temiz.</p>';
+                return;
+            }
+            el.innerHTML = this.validationIssues.map((x, i) => `<div class="text-xs bg-amber-50 border border-amber-200 rounded px-2 py-1">${i + 1}. ${x}</div>`).join('');
+        },
+        mirrorSelected(axis = 'x') {
+            if (!this.selectedNodes.size) return;
+            History.push(this.snapshot());
+            const pts = [...this.selectedNodes].map(id => this.getNodeById(id)).filter(Boolean);
+            const cx = pts.reduce((a, n) => a + n.x, 0) / pts.length;
+            const cy = pts.reduce((a, n) => a + n.y, 0) / pts.length;
+            for (const n of pts) {
+                if (axis === 'x') n.y = cy - (n.y - cy);
+                else n.x = cx - (n.x - cx);
+            }
+            this.render();
+        },
+        rotateSelected(deg = 90) {
+            if (!this.selectedNodes.size) return;
+            History.push(this.snapshot());
+            const rad = deg * Math.PI / 180;
+            const pts = [...this.selectedNodes].map(id => this.getNodeById(id)).filter(Boolean);
+            const cx = pts.reduce((a, n) => a + n.x, 0) / pts.length;
+            const cy = pts.reduce((a, n) => a + n.y, 0) / pts.length;
+            for (const n of pts) {
+                const x = n.x - cx, y = n.y - cy;
+                n.x = Math.round(cx + x * Math.cos(rad) - y * Math.sin(rad));
+                n.y = Math.round(cy + x * Math.sin(rad) + y * Math.cos(rad));
+            }
+            this.render();
+        },
+        alignSelected(mode = 'left') {
+            if (this.selectedNodes.size < 2) return;
+            History.push(this.snapshot());
+            const pts = [...this.selectedNodes].map(id => this.getNodeById(id)).filter(Boolean);
+            if (mode === 'left') {
+                const x = Math.min(...pts.map(n => n.x));
+                pts.forEach(n => { n.x = x; });
+            } else if (mode === 'top') {
+                const y = Math.min(...pts.map(n => n.y));
+                pts.forEach(n => { n.y = y; });
+            }
+            this.render();
+        },
+
+        addRing(kind, c) {
+            const cfg = kind === 'benzene' ? { count: 6, size: 35, aromatic: true } : { count: 6, size: 35, aromatic: false };
+            const ringNodes = [];
+            for (let i = 0; i < cfg.count; i++) {
+                const ang = (i * (360 / cfg.count) + 30) * Math.PI / 180;
+                const x = Math.round((c.x + cfg.size * Math.cos(ang)) / 20) * 20;
+                const y = Math.round((c.y + cfg.size * Math.sin(ang)) / 20) * 20;
+                let n = this.getClosestNode({ x, y }, 10);
+                if (!n) { n = this.makeNode(x, y, 'C'); this.nodes.push(n); }
+                ringNodes.push(n);
+            }
+            for (let i = 0; i < cfg.count; i++) {
+                const a = ringNodes[i], b = ringNodes[(i + 1) % cfg.count];
+                const t = cfg.aromatic ? 'bond-aromatic' : 'bond-single';
+                const ex = this.findEdgeBetween(a.id, b.id);
+                if (ex) continue;
+                if (this.canSetBondOrder(a.id, b.id, null, t)) this.edges.push({ id: this.nextId(), startId: a.id, endId: b.id, type: t });
+            }
+            this.render(); this.updateStats();
+        },
+
+        deleteEdge(edgeId) {
+            this.edges = this.edges.filter(e => e.id !== edgeId);
+            this.selectedEdges.delete(edgeId);
+            this.render(); this.updateStats();
+            UI.showToast('Bağ silindi', 'success');
+        },
+
+        autoReconnectNeighbors(neighborInfo) {
+            if (neighborInfo.length < 2) return;
+            for (let i = 0; i < neighborInfo.length; i++) {
+                for (let j = i + 1; j < neighborInfo.length; j++) {
+                    const a = this.getNodeById(neighborInfo[i].id);
+                    const b = this.getNodeById(neighborInfo[j].id);
+                    if (!a || !b) continue;
+                    if (this.findEdgeBetween(a.id, b.id)) continue;
+                    // Sadece yakın komşuları bağla: atom silme sonrası fiziksel olarak anlamlı kısa mesafe.
+                    const d = Math.hypot(a.x - b.x, a.y - b.y);
+                    if (d > 85) continue;
+                    if (!this.canSetBondOrder(a.id, b.id, null, 'bond-single')) continue;
+                    this.edges.push({ id: this.nextId(), startId: a.id, endId: b.id, type: 'bond-single' });
+                }
+            }
+        },
+
+        deleteNode(nodeId, reconnect = false) {
+            const neighborInfo = [];
+            for (const e of this.edges) {
+                if (e.startId === nodeId) neighborInfo.push({ id: e.endId, order: ChemData.bondOrder(e.type) });
+                else if (e.endId === nodeId) neighborInfo.push({ id: e.startId, order: ChemData.bondOrder(e.type) });
+            }
+            this.edges = this.edges.filter(e => e.startId !== nodeId && e.endId !== nodeId);
+            this.nodes = this.nodes.filter(n => n.id !== nodeId);
+            this.selectedNodes.delete(nodeId);
+            if (reconnect) this.autoReconnectNeighbors(neighborInfo);
+            this.render(); this.updateStats();
+            UI.showToast('Atom silindi', 'success');
+        },
+
+        deleteSelected() {
+            if (!this.selectedNodes.size && !this.selectedEdges.size) return;
+            History.push(this.snapshot());
+            for (const eid of [...this.selectedEdges]) this.deleteEdge(eid);
+            for (const nid of [...this.selectedNodes]) this.deleteNode(nid, true);
+            this.clearSelection(false);
+            this.render(); this.updateStats();
+        },
+
+        clearSelection(reRender = true) {
+            this.selectedNodes.clear();
+            this.selectedEdges.clear();
+            document.getElementById('status-sel').textContent = 'Yok';
+            if (reRender) this.render();
+        },
+        selectAll() {
+            this.nodes.forEach(n => this.selectedNodes.add(n.id));
+            this.edges.forEach(e => this.selectedEdges.add(e.id));
+            this.render();
+        },
+        zoom(delta) {
+            this.zoomLevel = Math.max(0.3, Math.min(3, this.zoomLevel + delta));
+            document.getElementById('zoom-label').textContent = `${Math.round(this.zoomLevel * 100)}%`;
+            this.canvas.style.transform = `scale(${this.zoomLevel})`;
+            this.canvas.style.transformOrigin = 'top left';
+        },
+        undo() {
+            const s = History.undo(this.snapshot());
+            if (s) { this.restoreSnapshot(s); UI.showToast('Geri alındı', 'info'); }
+        },
+        redo() {
+            const s = History.redo(this.snapshot());
+            if (s) { this.restoreSnapshot(s); UI.showToast('Yinelendi', 'info'); }
+        },
+        clearAll() {
+            History.push(this.snapshot());
+            this.nodes = []; this.edges = []; this.arrows = []; this.annotations = [];
+            this.spectrumHighlightedNodes = new Set();
+            this.clearSelection(false);
+            this.render(); this.updateStats();
+        },
+
+        render() {
+            this.svgRoot.innerHTML = '';
+            this.renderArrows();
+            this.renderEdges();
+            this.renderAnnotations();
+            if (this.tempArrowEl) this.svgRoot.appendChild(this.tempArrowEl);
+            if (this.tempLineEl) this.svgRoot.appendChild(this.tempLineEl);
+            this.renderNodes();
+            this.updateValencePanel();
+            lucide.createIcons();
+        },
+        renderArrows() {
+            if (!this.arrows.length) return;
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            marker.setAttribute('id', 'arrow-head');
+            marker.setAttribute('markerWidth', '8');
+            marker.setAttribute('markerHeight', '8');
+            marker.setAttribute('refX', '7');
+            marker.setAttribute('refY', '4');
+            marker.setAttribute('orient', 'auto');
+            const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            p.setAttribute('d', 'M0,0 L8,4 L0,8 Z');
+            p.setAttribute('fill', '#7B2D8B');
+            marker.appendChild(p);
+            defs.appendChild(marker);
+            const openHead = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            openHead.setAttribute('id', 'arrow-open');
+            openHead.setAttribute('markerWidth', '9');
+            openHead.setAttribute('markerHeight', '9');
+            openHead.setAttribute('refX', '8');
+            openHead.setAttribute('refY', '4.5');
+            openHead.setAttribute('orient', 'auto');
+            const op = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            op.setAttribute('d', 'M1,1 L8,4.5 L1,8');
+            op.setAttribute('fill', 'none');
+            op.setAttribute('stroke', '#7B2D8B');
+            op.setAttribute('stroke-width', '1.6');
+            openHead.appendChild(op);
+            defs.appendChild(openHead);
+            this.svgRoot.appendChild(defs);
+
+            for (const a of this.arrows) {
+                const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                l.setAttribute('x1', a.x1); l.setAttribute('y1', a.y1);
+                l.setAttribute('x2', a.x2); l.setAttribute('y2', a.y2);
+                l.setAttribute('stroke', '#7B2D8B');
+                l.setAttribute('stroke-width', (a.type === 'arrow-reaction' || a.type === 'arrow-retro') ? '2.4' : '2');
+                if (a.type === 'arrow-resonance' || a.type === 'arrow-equilibrium') l.setAttribute('stroke-dasharray', '6 4');
+                if (a.type === 'arrow-equilibrium') {
+                    l.setAttribute('marker-start', 'url(#arrow-open)');
+                    l.setAttribute('marker-end', 'url(#arrow-open)');
+                } else if (a.type === 'arrow-mechanism') {
+                    l.setAttribute('marker-end', 'url(#arrow-open)');
+                } else {
+                    l.setAttribute('marker-end', 'url(#arrow-head)');
+                }
+                this.svgRoot.appendChild(l);
+                const labelText = [a.step ? `Adım ${a.step}` : '', a.label || ''].filter(Boolean).join(' · ');
+                if (labelText) {
+                    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    const mx = (a.x1 + a.x2) / 2;
+                    const my = (a.y1 + a.y2) / 2 - 8;
+                    t.setAttribute('x', mx);
+                    t.setAttribute('y', my);
+                    t.setAttribute('text-anchor', 'middle');
+                    t.setAttribute('font-size', '11');
+                    t.setAttribute('font-family', 'Inter, Arial, sans-serif');
+                    t.setAttribute('fill', '#5A1F6A');
+                    t.textContent = labelText;
+                    this.svgRoot.appendChild(t);
+                }
+            }
+        },
+        renderAnnotations() {
+            if (!this.annotations.length) return;
+            for (const a of this.annotations) {
+                const box = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                txt.setAttribute('x', a.x);
+                txt.setAttribute('y', a.y);
+                txt.setAttribute('font-size', '11');
+                txt.setAttribute('font-family', 'Inter, Arial, sans-serif');
+                txt.setAttribute('fill', '#1E3A5F');
+                txt.textContent = a.text;
+                box.appendChild(txt);
+                this.svgRoot.appendChild(box);
+            }
+        },
+        renderEdges() {
+            for (const e of this.edges) {
+                const a = this.getNodeById(e.startId), b = this.getNodeById(e.endId);
+                if (!a || !b) continue;
+                const selected = this.selectedEdges.has(e.id);
+                const col = selected ? '#00B4D8' : '#212529';
+                const w = selected ? 3 : 2.5;
+                const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy);
+                if (!len) continue;
+                const nx = -dy / len, ny = dx / len, off = 3.4;
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const line = (x1,y1,x2,y2,dashed=false) => {
+                    const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    l.setAttribute('x1', x1); l.setAttribute('y1', y1); l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+                    l.setAttribute('stroke', col); l.setAttribute('stroke-width', w); l.setAttribute('stroke-linecap', 'round');
+                    if (dashed) l.setAttribute('stroke-dasharray', '5 4');
+                    g.appendChild(l);
+                };
+                if (e.type === 'bond-double') {
+                    line(a.x + nx*off, a.y + ny*off, b.x + nx*off, b.y + ny*off);
+                    line(a.x - nx*off, a.y - ny*off, b.x - nx*off, b.y - ny*off);
+                } else if (e.type === 'bond-triple') {
+                    line(a.x, a.y, b.x, b.y);
+                    line(a.x + nx*off*1.6, a.y + ny*off*1.6, b.x + nx*off*1.6, b.y + ny*off*1.6);
+                    line(a.x - nx*off*1.6, a.y - ny*off*1.6, b.x - nx*off*1.6, b.y - ny*off*1.6);
+                } else if (e.type === 'bond-aromatic') {
+                    line(a.x, a.y, b.x, b.y, true);
+                } else if (e.type === 'bond-wedge') {
+                    const p = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                    const bx1 = b.x + nx * 5.5, by1 = b.y + ny * 5.5;
+                    const bx2 = b.x - nx * 5.5, by2 = b.y - ny * 5.5;
+                    p.setAttribute('points', `${a.x},${a.y} ${bx1},${by1} ${bx2},${by2}`);
+                    p.setAttribute('fill', col);
+                    g.appendChild(p);
+                } else if (e.type === 'bond-hash') {
+                    for (let i = 1; i <= 6; i++) {
+                        const t = i / 7;
+                        const cx = a.x + (b.x - a.x) * t;
+                        const cy = a.y + (b.y - a.y) * t;
+                        const span = 1 + i * 0.9;
+                        line(cx - nx * span, cy - ny * span, cx + nx * span, cy + ny * span);
+                    }
+                } else if (e.type === 'bond-wavy') {
+                    const segments = 8;
+                    for (let i = 0; i < segments; i++) {
+                        const t0 = i / segments;
+                        const t1 = (i + 1) / segments;
+                        const x0 = a.x + dx * t0 + nx * Math.sin(t0 * Math.PI * 2 * 2) * 2.6;
+                        const y0 = a.y + dy * t0 + ny * Math.sin(t0 * Math.PI * 2 * 2) * 2.6;
+                        const x1 = a.x + dx * t1 + nx * Math.sin(t1 * Math.PI * 2 * 2) * 2.6;
+                        const y1 = a.y + dy * t1 + ny * Math.sin(t1 * Math.PI * 2 * 2) * 2.6;
+                        line(x0, y0, x1, y1);
+                    }
+                } else if (e.type === 'bond-coordinate') {
+                    line(a.x, a.y, b.x, b.y, true);
+                    const ah = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    const ux = dx / len, uy = dy / len;
+                    const tx = b.x - ux * 8, ty = b.y - uy * 8;
+                    const lx = tx - uy * 3, ly = ty + ux * 3;
+                    const rx = tx + uy * 3, ry = ty - ux * 3;
+                    ah.setAttribute('d', `M${lx},${ly} L${b.x},${b.y} L${rx},${ry}`);
+                    ah.setAttribute('fill', 'none');
+                    ah.setAttribute('stroke', col);
+                    ah.setAttribute('stroke-width', w);
+                    ah.setAttribute('stroke-linecap', 'round');
+                    g.appendChild(ah);
+                } else {
+                    line(a.x, a.y, b.x, b.y);
+                }
+                const hit = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                hit.setAttribute('x1', a.x); hit.setAttribute('y1', a.y); hit.setAttribute('x2', b.x); hit.setAttribute('y2', b.y);
+                hit.setAttribute('stroke', 'transparent'); hit.setAttribute('stroke-width', 14);
+                g.appendChild(hit);
+                this.svgRoot.appendChild(g);
+            }
+        },
+        renderNodes() {
+            this.nodesLayer.innerHTML = '';
+            for (const n of this.nodes) {
+                const used = this.getUsedValence(n.id), max = ChemData.maxValence[n.label] || 4, over = used > max;
+                const implH = ChemData.calcImplicitH(n.label, used), sel = this.selectedNodes.has(n.id);
+                const spectrumOn = this.spectrumHighlightedNodes && this.spectrumHighlightedNodes.has(n.id);
+                const el = document.createElement('div');
+                el.id = `node-${n.id}`;
+                el.className = 'atom-node absolute pointer-events-auto cursor-pointer select-none';
+                el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; el.style.transform = 'translate(-50%, -50%)';
+                if (n.label === 'C') {
+                    const num = this.showAtomNumbers ? `<div class="text-[10px] text-gray-500 -mt-0.5">${n.id}</div>` : '';
+                    el.innerHTML = `<div class="flex flex-col items-center"><div class="w-2.5 h-2.5 rounded-full ${over ? 'bg-red-500' : sel ? 'bg-mind-accent' : spectrumOn ? 'bg-orange-500' : 'bg-mind-secondary opacity-50'}"></div>${num}</div>`;
+                } else {
+                    const color = ChemData.atomColor[n.label] || '#333';
+                    const charge = (n.charge || 0) === 0 ? '' : `<sup class="text-[10px] text-gray-700">${n.charge > 0 ? `${n.charge === 1 ? '+' : n.charge + '+'}` : `${Math.abs(n.charge) === 1 ? '-' : Math.abs(n.charge) + '-'}`}</sup>`;
+                    const isotope = n.isotope ? `<sup class="text-[10px] text-gray-700">${n.isotope}</sup>` : '';
+                    const radical = (n.radical || 0) > 0 ? `<span class="text-[10px] text-purple-700">${'•'.repeat(n.radical)}</span>` : '';
+                    const num = this.showAtomNumbers ? `<sub class="text-[10px] text-gray-500">${n.id}</sub>` : '';
+                    el.innerHTML = `<div class="font-serif font-bold text-[17px]" style="color:${color}">${isotope}${n.label}${charge}${radical}${num}${implH > 0 ? `<span class="text-[12px] text-gray-500">${implH === 1 ? 'H' : `H<sub>${implH}</sub>`}</span>` : ''}</div>`;
+                }
+                if (spectrumOn) {
+                    el.style.outline = '2px solid #f97316';
+                    el.style.outlineOffset = '2px';
+                    el.style.borderRadius = '6px';
+                    el.style.background = 'rgba(249,115,22,0.08)';
+                }
+                this.nodesLayer.appendChild(el);
+            }
+        },
+        updateValencePanel() {
+            const list = document.getElementById('valence-list');
+            const indicator = document.getElementById('valence-indicator');
+            if (!this.nodes.length) {
+                list.innerHTML = '<p class="text-xs text-mind-textMuted">Yapı çizmeye başlayınca valans bilgileri burada görünecek.</p>';
+                this.validationIssues = [];
+                this.renderValidationPanel();
+                indicator.textContent = 'OK';
+                indicator.className = 'text-xs font-mono font-bold text-mind-success px-2 py-0.5 bg-green-50 border border-green-200 rounded';
+                document.getElementById('status-validity').innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> Geçerli';
+                return;
+            }
+            let html = '', errs = 0;
+            for (const n of this.nodes) {
+                const used = this.getUsedValence(n.id), max = ChemData.maxValence[n.label] || 4;
+                const ok = used <= max;
+                if (!ok) errs++;
+                html += `<div class="flex items-center justify-between py-1 px-2 rounded ${ok ? 'bg-green-50 border border-green-100' : 'bg-red-50 border border-red-200'}"><span class="font-serif font-bold">${n.label}<sub class="text-[10px] text-gray-400">${n.id}</sub></span><span class="text-xs font-mono ${ok ? 'text-green-700' : 'text-red-600'}">${used}/${max} ${ok ? '✓' : '✗'}</span></div>`;
+            }
+            list.innerHTML = html;
+            if (errs) {
+                indicator.textContent = '⚠ Hata';
+                indicator.className = 'text-xs font-mono font-bold text-red-600 px-2 py-0.5 bg-red-50 border border-red-200 rounded';
+                document.getElementById('status-validity').innerHTML = `<i data-lucide="alert-triangle" class="w-3 h-3"></i> ${errs} İhlal`;
+            } else {
+                indicator.textContent = '✓ OK';
+                indicator.className = 'text-xs font-mono font-bold text-mind-success px-2 py-0.5 bg-green-50 border border-green-200 rounded';
+                document.getElementById('status-validity').innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> Geçerli';
+            }
+        },
+        updateStats() {
+            document.getElementById('stat-atoms').textContent = this.nodes.length;
+            document.getElementById('stat-bonds').textContent = this.edges.length;
+            if (!this.nodes.length) {
+                document.getElementById('prop-formula').textContent = '-';
+                document.getElementById('status-formula').textContent = '-';
+                document.getElementById('prop-mw').textContent = '0.00';
+                document.getElementById('status-mw').textContent = '0.00';
+                document.getElementById('prop-logp').textContent = '0.00';
+                document.getElementById('prop-psa').textContent = '0.0';
+                document.getElementById('prop-hbdhba').textContent = '0 / 0';
+                document.getElementById('prop-rotb').textContent = '0';
+                document.getElementById('prop-admet').textContent = 'Biyoyararlanım: - | BBB: - | hERG: -';
+                document.getElementById('prop-smiles').value = '';
+                return;
+            }
+            const counts = {};
+            for (const n of this.nodes) counts[n.label] = (counts[n.label] || 0) + 1;
+            let hTotal = 0;
+            for (const n of this.nodes) hTotal += ChemData.calcImplicitH(n.label, this.getUsedValence(n.id));
+            if (hTotal > 0) counts.H = hTotal;
+
+            const order = ['C','H','N','O','F','P','S','Cl','Br','I'];
+            let f = '';
+            for (const s of order) if (counts[s]) f += s + (counts[s] > 1 ? counts[s] : '');
+            let mw = 0;
+            for (const [s, c] of Object.entries(counts)) mw += (ChemData.atomicWeight[s] || 0) * c;
+
+            document.getElementById('prop-formula').textContent = f || '-';
+            document.getElementById('status-formula').textContent = f || '-';
+            document.getElementById('prop-mw').textContent = mw.toFixed(2);
+            document.getElementById('status-mw').textContent = mw.toFixed(2);
+            const hetero = (counts.N || 0) + (counts.O || 0) + (counts.S || 0) + (counts.P || 0) + (counts.F || 0) + (counts.Cl || 0) + (counts.Br || 0) + (counts.I || 0);
+            const doubleTriple = this.edges.filter(e => e.type === 'bond-double' || e.type === 'bond-triple').length;
+            const rotatable = Math.max(0, this.edges.filter(e => e.type === 'bond-single').length - 1);
+            const hbd = (counts.O || 0) + (counts.N || 0);
+            const hba = (counts.O || 0) + (counts.N || 0) + (counts.S || 0);
+            const logP = ((counts.C || 0) * 0.54 + hetero * -0.28 + doubleTriple * 0.2);
+            const psa = Math.max(0, hba * 12.5 + hbd * 7.4 + (counts.P || 0) * 8.0).toFixed(1);
+            const bio = Math.max(5, Math.min(95, Math.round(78 - hetero * 2 + (counts.C || 0) * 1.2)));
+            const bbb = Math.max(1, Math.min(95, Math.round(65 + logP * 8 - parseFloat(psa) * 0.35)));
+            const hergRisk = logP > 3.5 ? 'Orta' : 'Düşük';
+            document.getElementById('prop-logp').textContent = logP.toFixed(2);
+            document.getElementById('prop-psa').textContent = psa;
+            document.getElementById('prop-hbdhba').textContent = `${hbd} / ${hba}`;
+            document.getElementById('prop-rotb').textContent = String(rotatable);
+            document.getElementById('prop-admet').textContent = `Biyoyararlanım: %${bio} | BBB: %${bbb} | hERG: ${hergRisk}`;
+
+            const smiles = this.nodes.map(n => `${n.label}${n.charge ? `[${n.charge}]` : ''}`).join('.');
+            document.getElementById('prop-smiles').value = smiles;
+            this.updateSpectrumMock();
+        },
+        setSpectrumMode(mode) {
+            this.spectrumMode = mode;
+            const lbl = document.getElementById('spectrum-mode-label');
+            if (lbl) lbl.textContent = `${mode} ${mode === 'HSQC' || mode === 'COSY' ? '' : 'NMR'}`.trim();
+            this.updateSpectrumMock();
+        },
+        renderSpectrumTable() {
+            const table = document.getElementById('spectrum-peak-table');
+            if (!table) return;
+            if (!this.spectrumPeaks.length) {
+                table.innerHTML = '<div class="px-2 py-1 text-gray-500">Henüz peak yok.</div>';
+                return;
+            }
+            let html = '<div class="grid grid-cols-4 gap-1 px-2 py-1 bg-gray-50 border-b border-gray-200 font-semibold text-gray-600"><span>No</span><span>δ (ppm)</span><span>Tip</span><span>Atama</span></div>';
+            this.spectrumPeaks.forEach((p, idx) => {
+                const mapTxt = (p.nodeIds || []).map(id => `#${id}`).join(', ') || '-';
+                html += `<button class="grid grid-cols-4 gap-1 px-2 py-1 w-full text-left hover:bg-orange-50 border-b border-gray-100" onclick="CanvasEngine.focusPeak(${idx})"><span>${idx + 1}</span><span>${p.shift}</span><span>${p.type}</span><span>${mapTxt}</span></button>`;
+            });
+            table.innerHTML = html;
+        },
+        updateSpectrumMock() {
+            const host = document.getElementById('spectrum-bars');
+            if (!host) return;
+            host.innerHTML = '';
+            this.spectrumPeaks = [];
+            const mode = this.spectrumMode || '1H';
+            let peakCount = Math.min(12, Math.max(3, this.nodes.length));
+            if (mode === '13C') peakCount = Math.min(16, Math.max(4, Math.floor(this.nodes.length * 1.2)));
+            if (mode === 'HSQC' || mode === 'COSY') peakCount = Math.min(10, Math.max(4, Math.floor(this.edges.length * 0.8) + 2));
+            const spanByMode = mode === '13C' ? [0, 220] : [0, 12];
+            for (let i = 0; i < peakCount; i++) {
+                const modeSeed = mode === '13C' ? 13 : (mode === 'HSQC' ? 23 : (mode === 'COSY' ? 31 : 7));
+                const h = 18 + ((i * 17 + this.edges.length * 9 + this.nodes.length * modeSeed) % 80);
+                const xPos = spanByMode[1] - (i / Math.max(1, peakCount - 1)) * (spanByMode[1] - spanByMode[0]);
+                const shift = xPos.toFixed(mode === '13C' ? 1 : 2);
+                const mapped = this.nodes.length ? [this.nodes[i % this.nodes.length].id] : [];
+                this.spectrumPeaks.push({
+                    shift,
+                    intensity: h,
+                    type: mode,
+                    nodeIds: mapped
+                });
+                const bar = document.createElement('div');
+                bar.className = `w-2 rounded-t ${mode === '13C' ? 'bg-emerald-500/80' : (mode === 'HSQC' ? 'bg-orange-500/80' : (mode === 'COSY' ? 'bg-fuchsia-500/80' : 'bg-indigo-500/80'))}`;
+                bar.style.height = `${h}%`;
+                bar.title = `${mode} Peak ${i + 1} (${shift} ppm)`;
+                bar.style.cursor = 'pointer';
+                bar.addEventListener('click', () => this.focusPeak(i));
+                host.appendChild(bar);
+            }
+            this.renderSpectrumTable();
+        }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+        CanvasEngine.init();
+        UI.showToast('Hazır: S/E/1/2/3/4/B/O/N/C/P/F + V doğrula + G ızgara', 'info');
+    });
+    </script>
+</body>
+</html>

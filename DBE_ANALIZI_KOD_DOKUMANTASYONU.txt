@@ -1,0 +1,1314 @@
+================================================================================
+DBE ANALİZİ KOD DOKÜMANTASYONU
+SpectroMind v2.0 - DBE (Degree of Unsaturation) Analizi Nasıl Oluşturuluyor?
+GÜNCELLENMİŞ VERSİYON (2024)
+================================================================================
+
+Bu dokümantasyon, "**0. DBE Analizi (ZORUNLU!)**" bölümünün nasıl 
+oluşturulduğunu, hangi kod bloklarının bunu tetiklediğini, hangi değişkenlerin 
+kullanıldığını ve işleyiş sırasını açıklar.
+
+⚠️ ÖNEMLİ DEĞİŞİKLİK (v2.0):
+DBE analizi artık AI tarafından DEĞİL, kod tarafında (lib/chem/formula.ts) 
+hesaplanıyor ve post-process ile AI'ın reasoning'ine ekleniyor/replace ediliyor.
+
+================================================================================
+1. GENEL BAKIŞ - DBE ANALİZİ NEDİR?
+================================================================================
+
+DBE (Degree of Unsaturation / Index of Hydrogen Deficiency):
+- Moleküldeki doymamışlık derecesini hesaplayan bir formül
+- Aromatik halkalar, çift bağlar, üçlü bağlar, halkalar için kullanılır
+- Formül: DBE = C - H/2 - X/2 + N/2 + 1
+- Nerede: 
+  * C = Karbon sayısı
+  * H = Hidrojen sayısı
+  * N = Azot sayısı
+  * X = Halojenler (F + Cl + Br + I)
+
+Kod tarafında üretilen format:
+```
+**0. DBE Analizi (ZORUNLU!):**
+- Formül: C47H51NO14
+- DBE Hesabı: DBE = 47 - 51/2 - 0/2 + 1/2 + 1 = 23
+- DBE Yorumu: DBE≥4: aromatik/çoklu halka veya çoklu doymamışlık olasılığı artar (kompleks yapı olabilir).
+```
+
+================================================================================
+2. KOD AKIŞI - DBE ANALİZİNİN OLUŞTURULMA SIRASI (GÜNCEL v2.0)
+================================================================================
+
+ADIM 1: Kullanıcı Spektrum Analizi İstiyor
+-------------------------------------------
+Dosya: lib/hooks/useSpectralAnalysis.ts
+Fonksiyon: analyzeSpectrum()
+Satır: ~1200-1300
+
+Akış:
+1. Kullanıcı peak'leri girer (NMR spektrum verileri)
+2. activeKnownMolecule varsa (kullanıcı molekül seçtiyse):
+   - activeKnownMolecule.formula → C47H51NO14 (Paclitaxel örneği)
+   - activeKnownMolecule.name → "Paclitaxel"
+   - activeKnownMolecule.cid → 36314
+3. libraryContext oluşturulur (Enhanced Library'den veya başka kaynaklardan)
+4. Identity lock uyarısı eklenir (eğer activeKnownMolecule.formula varsa)
+
+Değişkenler:
+- activeKnownMolecule: { name, formula, cid, enhancedLibrary?, ... }
+- libraryContext: string (AI'a gönderilecek context)
+- userPeaks: NMRPeak[] (kullanıcının girdiği peak'ler)
+
+ADIM 2: Identity Lock Uyarısı Ekleme
+-------------------------------------
+Dosya: lib/hooks/useSpectralAnalysis.ts
+Fonksiyon: analyzeSpectrum()
+Satır: ~1250-1263
+
+Kod:
+```typescript
+// 🔒 IDENTITY LOCK: Eğer kullanıcı molekül seçtiyse, formülü zorunlu kıl
+if (activeKnownMolecule?.formula) {
+  const lockedFormulaWarning = `\n\n🚨 **CRITICAL IDENTITY LOCK - MANDATORY:**\n` +
+    `User has selected molecule "${activeKnownMolecule.name || 'Unknown'}" with formula **${activeKnownMolecule.formula}**.\n` +
+    `⚠️ **YOU MUST USE THIS EXACT FORMULA: ${activeKnownMolecule.formula}**\n` +
+    `❌ **DO NOT derive a different formula from spectrum analysis!**\n` +
+    `❌ **DO NOT suggest alternative formulas!**\n` +
+    `✅ **Your response MUST include formula: "${activeKnownMolecule.formula}"**\n`;
+  
+  libraryContext = lockedFormulaWarning + (libraryContext || '');
+}
+```
+
+Değişkenler:
+- activeKnownMolecule.formula: string (örn: "C47H51NO14")
+- lockedFormulaWarning: string (identity lock uyarısı)
+- libraryContext: string (güncellenmiş context)
+
+ADIM 3: System Prompt Oluşturuluyor (DBE Talimatları KALDIRILDI)
+------------------------------------------------------------------
+Dosya: lib/api/openai.ts
+Fonksiyon: fetchChatGPTAnalysis()
+Satır: ~237-258
+
+Kod:
+```typescript
+const systemPrompt = `Sen deneyimli bir NMR spektroskopisti...
+
+🧮 **ADIM 0: MOLEKÜLER FORMÜL ANALİZİ:**
+
+⚠️ **CRITICAL: DBE (Degree of Unsaturation) analysis is computed by the application, NOT by you.**
+
+**DO NOT:**
+- ❌ Compute DBE from a formula you estimate
+- ❌ Write a DBE calculation section in reasoning
+- ❌ Derive a molecular formula from spectrum peaks
+- ❌ Output a "**0. DBE Analizi**" section
+
+**DO:**
+- ✅ Use the formula provided in context (if "CRITICAL IDENTITY LOCK" is present, use that exact formula)
+- ✅ If no formula is provided, you may mention formula uncertainty in reasoning
+- ✅ Focus on peak analysis and structural interpretation
+- ✅ The application will insert the correct DBE block automatically
+
+**Reasoning format:**
+- Start with peak analysis directly
+- If you see "<<DBE_BLOCK_INSERTED_BY_APP>>" placeholder, leave it as-is (it will be replaced)
+`;
+```
+
+Değişkenler:
+- systemPrompt: string (AI'a gönderilecek sistem talimatları)
+- DBE talimatları KALDIRILDI (artık AI DBE hesaplamıyor)
+
+ADIM 4: JSON Format Template'i (DBE Placeholder)
+-------------------------------------------------
+Dosya: lib/api/openai.ts
+Fonksiyon: fetchChatGPTAnalysis()
+Satır: ~561
+
+Kod:
+```typescript
+"reasoning": "DETAYLI Türkçe açıklama - MUTLAKA şu formatı kullan:\n\n" +
+  "<<DBE_BLOCK_INSERTED_BY_APP>>\n\n" +  // ← Placeholder, kod tarafında replace edilecek
+  "**1. Peak Analizi (Her peak için):**\n..."
+```
+
+Değişkenler:
+- Template string içinde "<<DBE_BLOCK_INSERTED_BY_APP>>" placeholder gösterilir
+- AI bu placeholder'ı olduğu gibi bırakır
+
+ADIM 5: User Prompt Oluşturuluyor
+-----------------------------------
+Dosya: lib/api/openai.ts
+Fonksiyon: fetchChatGPTAnalysis()
+Satır: ~750-850
+
+Kod:
+```typescript
+const userPrompt = `${spectrumType.toUpperCase()} Spektrumu:
+
+📊 **PEAK VERİLERİ:**
+${peakStr}
+
+${libraryMatchesContext}  // ← Identity lock uyarısı burada!
+
+🎯 **GÖREV:**
+1. Molekülü tanımla
+2. Peak'leri analiz et
+3. Reasoning'de DBE analizi YAPMA (uygulama yapacak)
+...`;
+```
+
+Değişkenler:
+- userPrompt: string (kullanıcı prompt'u)
+- peakStr: string (peak'lerin string formatı)
+- libraryMatchesContext: string (molekül bilgileri + identity lock)
+
+ADIM 6: OpenAI API Çağrısı
+---------------------------
+Dosya: lib/api/openai.ts
+Fonksiyon: fetchChatGPTAnalysis()
+Satır: ~850-950
+
+Kod:
+```typescript
+const openai = new OpenAI({ apiKey });
+const completion = await openai.chat.completions.create({
+  model: model,
+  messages: [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ],
+  response_format: { type: 'json_object' },
+  temperature: 0.7
+});
+```
+
+Değişkenler:
+- openai: OpenAI instance
+- completion: ChatCompletion (AI response)
+- systemPrompt: string (DBE talimatları KALDIRILDI)
+- userPrompt: string (identity lock uyarısı dahil)
+
+ADIM 7: AI Response Parse Ediliyor
+------------------------------------
+Dosya: lib/api/openai.ts
+Fonksiyon: fetchChatGPTAnalysis()
+Satır: ~1370-1420
+
+Kod:
+```typescript
+const text = completion.choices[0].message.content;
+let cleanedJson = text;
+// JSON temizleme işlemleri...
+const parsed = JSON.parse(cleanedJson);
+
+// parsed.reasoning içinde placeholder veya AI'ın yazdığı DBE bloğu olabilir
+// Örnek: "<<DBE_BLOCK_INSERTED_BY_APP>>" veya "**0. DBE Analizi...**"
+```
+
+Değişkenler:
+- text: string (AI'ın ham response'u)
+- cleanedJson: string (temizlenmiş JSON)
+- parsed: object
+  - parsed.reasoning: string (placeholder veya AI'ın yazdığı DBE bloğu)
+  - parsed.formula: string (AI'ın türettiği formül - yanlış olabilir!)
+
+ADIM 8: Response Döndürülüyor
+------------------------------
+Dosya: lib/api/openai.ts
+Fonksiyon: fetchChatGPTAnalysis()
+Return: AIAnalysisResult
+
+Kod:
+```typescript
+return {
+  moleculeName: parsed.moleculeName,
+  iupacName: parsed.iupacName,
+  formula: parsed.formula,  // ← AI'ın türettiği formül (yanlış olabilir!)
+  reasoning: parsed.reasoning,  // ← Placeholder veya AI'ın yazdığı DBE bloğu
+  confidence: parsed.confidence,
+  // ...
+};
+```
+
+Değişkenler:
+- result: AIAnalysisResult
+  - result.reasoning: string (placeholder veya AI'ın yazdığı DBE bloğu)
+  - result.formula: string (AI'ın türettiği formül)
+
+ADIM 9: useSpectralAnalysis'te Formül Override
+------------------------------------------------
+Dosya: lib/hooks/useSpectralAnalysis.ts
+Fonksiyon: analyzeSpectrum()
+Satır: ~1618-1641
+
+Kod:
+```typescript
+const userFormula = activeKnownMolecule.formula || '';  // C47H51NO14
+const aiFormula = result.formula || '';  // C10H10O (yanlış!)
+const formulaMismatch = userFormula && aiFormula && userFormula !== aiFormula;
+
+if (formulaMismatch) {
+  // Override AI formula
+  result.formula = userFormula;  // C47H51NO14'e düzelt
+  
+  // Lower confidence if mismatch
+  if ((result as any).confidence) {
+    (result as any).confidence = Math.min((result as any).confidence || 100, 70);
+  }
+  
+  // Add warning to reasoning
+  result.reasoning = (result.reasoning || '') + 
+    `\n\n⚠️ **WARNING:** AI initially detected formula "${aiFormula}" but user selected "${userDisplayName}" with formula "${userFormula}". ` +
+    `Formula has been corrected to match user selection.`;
+}
+```
+
+Değişkenler:
+- userFormula: string (kullanıcı seçimi: C47H51NO14)
+- aiFormula: string (AI türetimi: C10H10O)
+- formulaMismatch: boolean (true ise uyuşmazlık var)
+- result.reasoning: string (placeholder veya AI'ın yazdığı DBE bloğu + uyarı)
+
+ADIM 10: DBE BLOCK POST-PROCESS (YENİ - v2.0)
+-----------------------------------------------
+Dosya: lib/hooks/useSpectralAnalysis.ts
+Fonksiyon: analyzeSpectrum()
+Satır: ~1643-1710
+
+Kod:
+```typescript
+// 🔒 DBE BLOCK POST-PROCESS: Replace AI-generated DBE block with locked formula
+// Determine effective formula (locked formula takes priority)
+const effectiveFormula = activeKnownMolecule?.formula || result.formula || '';
+
+if (effectiveFormula) {
+  const normalizedFormula = normalizeFormula(effectiveFormula);
+  const dbeBlock = renderDBEBlock(normalizedFormula);
+  
+  if (dbeBlock) {
+    // Replace existing DBE block if present
+    // Pattern: "**0. DBE Analizi" ... until next "**" header (like "**1.") or end
+    const dbeBlockStartPattern = /\*\*0\.\s*DBE\s*Analizi[^*]*/i;
+    
+    if (dbeBlockStartPattern.test(result.reasoning)) {
+      // Find the start of DBE block
+      const dbeStartMatch = result.reasoning.match(dbeBlockStartPattern);
+      if (dbeStartMatch) {
+        const dbeStartIndex = dbeStartMatch.index!;
+        
+        // Find the end: next "**" header (like "**1.") or end of string
+        const afterDbeStart = result.reasoning.substring(dbeStartIndex);
+        const nextHeaderMatch = afterDbeStart.match(/\n\n\*\*[^0]/);
+        
+        if (nextHeaderMatch) {
+          // Replace from DBE start to next header
+          const dbeEndIndex = dbeStartIndex + nextHeaderMatch.index!;
+          result.reasoning = 
+            result.reasoning.substring(0, dbeStartIndex) +
+            dbeBlock +
+            result.reasoning.substring(dbeEndIndex);
+        } else {
+          // Replace from DBE start to end
+          result.reasoning = 
+            result.reasoning.substring(0, dbeStartIndex) +
+            dbeBlock;
+        }
+      }
+      console.log(`✅ DBE block replaced with locked formula: ${normalizedFormula}`);
+    } else {
+      // Insert DBE block at the beginning (before "**1." or at start)
+      const firstSectionIndex = result.reasoning.indexOf('**1.');
+      if (firstSectionIndex > 0) {
+        result.reasoning = dbeBlock + '\n\n' + result.reasoning.substring(firstSectionIndex);
+      } else {
+        result.reasoning = dbeBlock + '\n\n' + result.reasoning;
+      }
+      console.log(`✅ DBE block inserted with locked formula: ${normalizedFormula}`);
+    }
+    
+    // Also replace placeholder if present
+    result.reasoning = result.reasoning.replace(
+      /<<DBE_BLOCK_INSERTED_BY_APP>>/g,
+      dbeBlock
+    );
+    
+    // Remove any conflicting formula mentions in reasoning (except in DBE block itself)
+    // Only remove if locked formula exists and differs from AI formula
+    if (activeKnownMolecule?.formula && aiFormula && formulaMismatch) {
+      // Remove lines like "Formül: C10H10O" (but keep DBE block)
+      const normalizedLocked = normalizeFormula(activeKnownMolecule.formula);
+      const normalizedAI = normalizeFormula(aiFormula);
+      
+      if (normalizedLocked !== normalizedAI) {
+        // Remove conflicting formula mentions (but preserve DBE block)
+        result.reasoning = result.reasoning.replace(
+          new RegExp(`Formül:\\s*${normalizedAI.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'gi'),
+          `Formül: ${normalizedLocked}`
+        );
+      }
+    }
+  }
+}
+```
+
+Değişkenler:
+- effectiveFormula: string (locked formula öncelikli: C47H51NO14)
+- normalizedFormula: string (normalize edilmiş formül)
+- dbeBlock: string (kod tarafında üretilen DBE bloğu)
+- result.reasoning: string (güncellenmiş reasoning - DBE bloğu replace edildi)
+
+Fonksiyonlar:
+- normalizeFormula(): lib/chem/formula.ts → Unicode subscript'leri temizler
+- renderDBEBlock(): lib/chem/formula.ts → DBE bloğunu üretir
+
+================================================================================
+3. DBE HESAPLAMA - KOD TARAFINDA (lib/chem/formula.ts)
+================================================================================
+
+ADIM 1: renderDBEBlock() Fonksiyonu
+-------------------------------------
+Dosya: lib/chem/formula.ts
+Fonksiyon: renderDBEBlock(formula: string): string
+Satır: ~299-328
+
+Kod:
+```typescript
+export function renderDBEBlock(formula: string): string {
+  const { hillFormula, atomCounts } = parseFormula(formula);
+  const { dbe, terms } = computeDBEDetailed(atomCounts);
+
+  // Format DBE nicely: integer if close, else keep one decimal
+  const rounded = Math.round(dbe * 2) / 2; // to nearest 0.5
+  const dbeStr = Number.isInteger(rounded) ? String(rounded) : String(rounded);
+
+  // Build a deterministic "calculation string"
+  // DBE = C - H/2 - X/2 + N/2 + 1
+  let calc = `DBE = ${terms.C}`;
+  if (terms.H > 0) calc += ` - ${terms.H}/2`;
+  if (terms.X > 0) calc += ` - ${terms.X}/2`;
+  if (terms.N > 0) calc += ` + ${terms.N}/2`;
+  calc += ` + 1 = ${dbeStr}`;
+
+  // Minimal interpretation (avoid hallucinations)
+  let interp = "";
+  if (rounded <= 0) interp = "DBE≈0: doymuş yapı (çift bağ/halka beklenmez).";
+  else if (rounded === 1) interp = "DBE≈1: 1 halka veya 1 çift bağ (veya 1 karbonil) olası.";
+  else if (rounded >= 4) interp = `DBE≥4: aromatik/çoklu halka veya çoklu doymamışlık olasılığı artar (kompleks yapı olabilir).`;
+  else interp = `DBE=${dbeStr}: birden fazla doymamışlık/halka olası.`;
+
+  return [
+    `**0. DBE Analizi (ZORUNLU!):**`,
+    `- Formül: ${hillFormula || formula}`,
+    `- DBE Hesabı: ${calc}`,
+    `- DBE Yorumu: ${interp}`,
+  ].join("\n");
+}
+```
+
+Değişkenler:
+- formula: string (örn: "C47H51NO14" veya "C₄₇H₅₁NO₁₄")
+- hillFormula: string (örn: "C47H51NO14")
+- atomCounts: AtomCounts (örn: {C:47, H:51, N:1, O:14})
+- dbe: number (hesaplanan DBE değeri)
+- terms: {C, H, N, X} (DBE hesaplama terimleri)
+- rounded: number (0.5'e yuvarlanmış DBE)
+- dbeStr: string (formatlanmış DBE string'i)
+- calc: string (hesaplama string'i)
+- interp: string (minimal yorum)
+
+Fonksiyonlar:
+- parseFormula(): lib/chem/formula.ts → Formül string'ini atom sayılarına parse eder
+- computeDBEDetailed(): lib/chem/formula.ts → DBE'yi detaylı hesaplar
+
+ADIM 2: parseFormula() Fonksiyonu
+----------------------------------
+Dosya: lib/chem/formula.ts
+Fonksiyon: parseFormula(formula: string): ParseFormulaResult
+Satır: ~181-211
+
+Kod:
+```typescript
+export function parseFormula(formula: string): ParseFormulaResult {
+  const normalizedInput = stripCommonNoise(formula);
+
+  if (!normalizedInput) {
+    return { normalizedInput, atomCounts: {}, hillFormula: "" };
+  }
+
+  // Tokenize as repeating groups: Element + optional count
+  // Example: C47 H51 N O14
+  const re = /([A-Z][a-z]?)(\d*)/g;
+
+  const atomCounts: AtomCounts = {};
+  let match: RegExpExecArray | null;
+  let consumed = 0;
+
+  while ((match = re.exec(normalizedInput)) !== null) {
+    const [full, element, countStr] = match;
+    consumed += full.length;
+
+    if (!isElementSymbol(element)) continue;
+
+    const count = countStr ? Number.parseInt(countStr, 10) : 1;
+    if (!Number.isFinite(count) || count <= 0) continue;
+
+    atomCounts[element] = (atomCounts[element] ?? 0) + count;
+  }
+
+  const hillFormula = formatHillFormula(atomCounts);
+
+  return { normalizedInput, atomCounts, hillFormula };
+}
+```
+
+Algoritma:
+1. stripCommonNoise(): Unicode subscript'leri, boşlukları, charge'ları temizler
+2. Regex ile element + sayı tokenize eder: /([A-Z][a-z]?)(\d*)/g
+3. Her element için atom sayısını toplar
+4. formatHillFormula() ile Hill sisteminde formatlar
+
+Değişkenler:
+- normalizedInput: string (temizlenmiş formül)
+- atomCounts: AtomCounts (örn: {C:47, H:51, N:1, O:14})
+- hillFormula: string (örn: "C47H51NO14")
+
+ADIM 3: computeDBEDetailed() Fonksiyonu
+----------------------------------------
+Dosya: lib/chem/formula.ts
+Fonksiyon: computeDBEDetailed(atomCounts: AtomCounts, charge: number = 0): DBEResult
+Satır: ~98-112
+
+Kod:
+```typescript
+export function computeDBEDetailed(atomCounts: AtomCounts, charge: number = 0): DBEResult {
+  const C = atomCounts['C'] ?? 0;
+  const H = atomCounts['H'] ?? 0;
+  const N = atomCounts['N'] ?? 0;
+
+  const X =
+    (atomCounts['F'] ?? 0) +
+    (atomCounts['Cl'] ?? 0) +
+    (atomCounts['Br'] ?? 0) +
+    (atomCounts['I'] ?? 0);
+
+  const dbe = C - H / 2 - X / 2 + N / 2 + charge / 2 + 1;
+
+  return { dbe, terms: { C, H, N, X } };
+}
+```
+
+Formül:
+DBE = C - H/2 - X/2 + N/2 + charge/2 + 1
+
+Nerede:
+- C = Karbon sayısı
+- H = Hidrojen sayısı
+- N = Azot sayısı
+- X = Halojenler (F + Cl + Br + I)
+- charge = Molekül yükü (varsayılan: 0)
+
+Örnek Hesaplama: C47H51NO14 (Paclitaxel)
+- C = 47
+- H = 51
+- N = 1
+- X = 0 (halojen yok)
+- charge = 0
+- DBE = 47 - 51/2 - 0/2 + 1/2 + 0/2 + 1 = 47 - 25.5 + 0.5 + 1 = 23
+
+Değişkenler:
+- atomCounts: AtomCounts (örn: {C:47, H:51, N:1, O:14})
+- charge: number (varsayılan: 0)
+- dbe: number (hesaplanan DBE değeri)
+- terms: {C, H, N, X} (DBE hesaplama terimleri)
+
+================================================================================
+4. DBE ANALİZİNİN İÇERİĞİ - HANGİ BİLGİLER KULLANILIYOR? (GÜNCEL v2.0)
+================================================================================
+
+DBE Analizi Bileşenleri:
+------------------------
+
+1. FORMÜL (Formula):
+   Kaynak: effectiveFormula (activeKnownMolecule.formula || result.formula)
+   Örnek: "C47H51NO14"
+   Normalizasyon: normalizeFormula() → Unicode subscript'ler temizlenir
+   Hill Format: formatHillFormula() → "C47H51NO14"
+
+2. DBE HESABI (DBE Calculation):
+   Formül: DBE = C - H/2 - X/2 + N/2 + 1
+   Hesaplama: computeDBEDetailed() (kod tarafında, deterministik)
+   Örnek: DBE = 47 - 51/2 - 0/2 + 1/2 + 1 = 23
+   Format: "DBE = 47 - 51/2 - 0/2 + 1/2 + 1 = 23"
+
+3. DBE YORUMU (DBE Interpretation):
+   Kaynak: renderDBEBlock() içindeki minimal yorum tablosu
+   Örnek: "DBE≥4: aromatik/çoklu halka veya çoklu doymamışlık olasılığı artar (kompleks yapı olabilir)."
+   NOT: AI'ın yorum tablosu KALDIRILDI, kod tarafında minimal yorum yapılıyor
+
+4. NMR DOĞRULAMASI (NMR Validation):
+   Kaynak: Yok (artık DBE bloğunda NMR doğrulaması yok)
+   NOT: AI'ın NMR doğrulaması kaldırıldı, sadece DBE hesaplama ve minimal yorum var
+
+================================================================================
+5. KOD BLOKLARI - DETAYLI İNCELEME (GÜNCEL v2.0)
+================================================================================
+
+BLOK 1: System Prompt - DBE Talimatları KALDIRILDI
+---------------------------------------------------
+Dosya: lib/api/openai.ts
+Satır: 239-258
+
+Kod:
+```typescript
+⚠️ **CRITICAL: DBE (Degree of Unsaturation) analysis is computed by the application, NOT by you.**
+
+**DO NOT:**
+- ❌ Compute DBE from a formula you estimate
+- ❌ Write a DBE calculation section in reasoning
+- ❌ Derive a molecular formula from spectrum peaks
+- ❌ Output a "**0. DBE Analizi**" section
+
+**DO:**
+- ✅ Use the formula provided in context (if "CRITICAL IDENTITY LOCK" is present, use that exact formula)
+- ✅ If no formula is provided, you may mention formula uncertainty in reasoning
+- ✅ Focus on peak analysis and structural interpretation
+- ✅ The application will insert the correct DBE block automatically
+```
+
+Değişkenler:
+- systemPrompt: string (DBE talimatları KALDIRILDI, sadece uyarı var)
+
+Fonksiyonlar:
+- Yok (sadece string template)
+
+Algoritma:
+- AI'a DBE hesaplama YASAK
+- AI'a formül türetme YASAK (identity lock varsa)
+- Uygulama DBE bloğunu otomatik ekleyecek
+
+BLOK 2: JSON Format Template - DBE Placeholder
+------------------------------------------------
+Dosya: lib/api/openai.ts
+Satır: ~561
+
+Kod:
+```typescript
+"reasoning": "DETAYLI Türkçe açıklama - MUTLAKA şu formatı kullan:\n\n" +
+  "<<DBE_BLOCK_INSERTED_BY_APP>>\n\n" +  // ← Placeholder
+  "**1. Peak Analizi (Her peak için):**\n..."
+```
+
+Değişkenler:
+- Template string içinde "<<DBE_BLOCK_INSERTED_BY_APP>>" placeholder gösterilir
+- AI bu placeholder'ı olduğu gibi bırakır
+
+Fonksiyonlar:
+- Yok (sadece örnek format)
+
+Algoritma:
+- AI placeholder'ı olduğu gibi bırakır
+- Kod tarafında placeholder replace edilir
+
+BLOK 3: Identity Lock Uyarısı Ekleme
+-------------------------------------
+Dosya: lib/hooks/useSpectralAnalysis.ts
+Satır: ~1250-1263
+
+Kod:
+```typescript
+// 🔒 IDENTITY LOCK: Eğer kullanıcı molekül seçtiyse, formülü zorunlu kıl
+if (activeKnownMolecule?.formula) {
+  const lockedFormulaWarning = `\n\n🚨 **CRITICAL IDENTITY LOCK - MANDATORY:**\n` +
+    `User has selected molecule "${activeKnownMolecule.name || 'Unknown'}" with formula **${activeKnownMolecule.formula}**.\n` +
+    `⚠️ **YOU MUST USE THIS EXACT FORMULA: ${activeKnownMolecule.formula}**\n` +
+    `❌ **DO NOT derive a different formula from spectrum analysis!**\n` +
+    `❌ **DO NOT suggest alternative formulas!**\n` +
+    `✅ **Your response MUST include formula: "${activeKnownMolecule.formula}"**\n`;
+  
+  libraryContext = lockedFormulaWarning + (libraryContext || '');
+}
+```
+
+Değişkenler:
+- activeKnownMolecule: { name, formula, cid, ... }
+- lockedFormulaWarning: string (identity lock uyarısı)
+- libraryContext: string (güncellenmiş context)
+
+Fonksiyonlar:
+- Yok (sadece string concatenation)
+
+Algoritma:
+- Eğer activeKnownMolecule.formula varsa
+- Identity lock uyarısı oluştur
+- libraryContext'in başına ekle
+
+BLOK 4: DBE Block Post-Process (YENİ - v2.0)
+---------------------------------------------
+Dosya: lib/hooks/useSpectralAnalysis.ts
+Satır: ~1643-1710
+
+Kod:
+```typescript
+// 🔒 DBE BLOCK POST-PROCESS: Replace AI-generated DBE block with locked formula
+const effectiveFormula = activeKnownMolecule?.formula || result.formula || '';
+
+if (effectiveFormula) {
+  const normalizedFormula = normalizeFormula(effectiveFormula);
+  const dbeBlock = renderDBEBlock(normalizedFormula);
+  
+  // Replace existing DBE block if present
+  const dbeBlockStartPattern = /\*\*0\.\s*DBE\s*Analizi[^*]*/i;
+  
+  if (dbeBlockStartPattern.test(result.reasoning)) {
+    // Find and replace DBE block
+    // ... (detaylı replace mantığı yukarıda)
+  } else {
+    // Insert DBE block at the beginning
+    // ... (detaylı insert mantığı yukarıda)
+  }
+  
+  // Replace placeholder if present
+  result.reasoning = result.reasoning.replace(
+    /<<DBE_BLOCK_INSERTED_BY_APP>>/g,
+    dbeBlock
+  );
+}
+```
+
+Değişkenler:
+- effectiveFormula: string (locked formula öncelikli)
+- normalizedFormula: string (normalize edilmiş formül)
+- dbeBlock: string (kod tarafında üretilen DBE bloğu)
+- result.reasoning: string (güncellenmiş reasoning)
+
+Fonksiyonlar:
+- normalizeFormula(): lib/chem/formula.ts → Unicode subscript'leri temizler
+- renderDBEBlock(): lib/chem/formula.ts → DBE bloğunu üretir
+
+Algoritma:
+1. effectiveFormula belirle (locked formula öncelikli)
+2. normalizeFormula() ile normalize et
+3. renderDBEBlock() ile DBE bloğunu üret
+4. AI'ın yazdığı DBE bloğunu bul ve replace et (veya insert et)
+5. Placeholder'ı replace et
+6. Çakışan formül referanslarını temizle
+
+BLOK 5: renderDBEBlock() Fonksiyonu (lib/chem/formula.ts)
+----------------------------------------------------------
+Dosya: lib/chem/formula.ts
+Satır: ~299-328
+
+Kod:
+```typescript
+export function renderDBEBlock(formula: string): string {
+  const { hillFormula, atomCounts } = parseFormula(formula);
+  const { dbe, terms } = computeDBEDetailed(atomCounts);
+
+  const rounded = Math.round(dbe * 2) / 2;
+  const dbeStr = Number.isInteger(rounded) ? String(rounded) : String(rounded);
+
+  let calc = `DBE = ${terms.C}`;
+  if (terms.H > 0) calc += ` - ${terms.H}/2`;
+  if (terms.X > 0) calc += ` - ${terms.X}/2`;
+  if (terms.N > 0) calc += ` + ${terms.N}/2`;
+  calc += ` + 1 = ${dbeStr}`;
+
+  let interp = "";
+  if (rounded <= 0) interp = "DBE≈0: doymuş yapı (çift bağ/halka beklenmez).";
+  else if (rounded === 1) interp = "DBE≈1: 1 halka veya 1 çift bağ (veya 1 karbonil) olası.";
+  else if (rounded >= 4) interp = `DBE≥4: aromatik/çoklu halka veya çoklu doymamışlık olasılığı artar (kompleks yapı olabilir).`;
+  else interp = `DBE=${dbeStr}: birden fazla doymamışlık/halka olası.`;
+
+  return [
+    `**0. DBE Analizi (ZORUNLU!):**`,
+    `- Formül: ${hillFormula || formula}`,
+    `- DBE Hesabı: ${calc}`,
+    `- DBE Yorumu: ${interp}`,
+  ].join("\n");
+}
+```
+
+Değişkenler:
+- formula: string (örn: "C47H51NO14")
+- hillFormula: string (örn: "C47H51NO14")
+- atomCounts: AtomCounts (örn: {C:47, H:51, N:1, O:14})
+- dbe: number (hesaplanan DBE değeri)
+- terms: {C, H, N, X} (DBE hesaplama terimleri)
+- rounded: number (0.5'e yuvarlanmış DBE)
+- dbeStr: string (formatlanmış DBE string'i)
+- calc: string (hesaplama string'i)
+- interp: string (minimal yorum)
+
+Fonksiyonlar:
+- parseFormula(): lib/chem/formula.ts → Formül string'ini atom sayılarına parse eder
+- computeDBEDetailed(): lib/chem/formula.ts → DBE'yi detaylı hesaplar
+- formatHillFormula(): lib/chem/formula.ts → Hill sisteminde formatlar
+
+Algoritma:
+1. parseFormula() ile formülü parse et → atomCounts
+2. computeDBEDetailed() ile DBE hesapla
+3. Hesaplama string'i oluştur
+4. Minimal yorum yap (hallucination yok)
+5. DBE bloğunu formatla ve döndür
+
+================================================================================
+6. DEĞİŞKENLER VE VERİ YAPILARI (GÜNCEL v2.0)
+================================================================================
+
+Ana Değişkenler:
+----------------
+
+1. activeKnownMolecule (lib/hooks/useSpectralAnalysis.ts):
+   Tip: { name: string, formula: string, cid?: number, enhancedLibrary?: boolean, ... }
+   Örnek: { name: "Paclitaxel", formula: "C47H51NO14", cid: 36314 }
+   Kullanım: Kullanıcı seçimi, identity lock için
+
+2. libraryContext (lib/hooks/useSpectralAnalysis.ts):
+   Tip: string
+   İçerik: Molekül bilgileri + identity lock uyarısı
+   Örnek: "🚨 CRITICAL IDENTITY LOCK: Use formula C47H51NO14..."
+
+3. systemPrompt (lib/api/openai.ts):
+   Tip: string
+   İçerik: DBE talimatları KALDIRILDI, sadece uyarı var
+   Örnek: "⚠️ CRITICAL: DBE analysis is computed by the application, NOT by you."
+
+4. userPrompt (lib/api/openai.ts):
+   Tip: string
+   İçerik: Peak verileri + context
+   Örnek: "📊 **PEAK VERİLERİ:**\nδ 7.2 ppm: m, 5H\n..."
+
+5. parsed.reasoning (lib/api/openai.ts):
+   Tip: string
+   İçerik: Placeholder veya AI'ın yazdığı DBE bloğu + peak analizi
+   Örnek: "<<DBE_BLOCK_INSERTED_BY_APP>>\n\n**1. Peak Analizi...**"
+
+6. result.reasoning (lib/hooks/useSpectralAnalysis.ts):
+   Tip: string
+   Değer: Post-process sonrası: Kod tarafında üretilen DBE bloğu + peak analizi
+   Örnek: "**0. DBE Analizi (ZORUNLU!):**\n- Formül: C47H51NO14\n- DBE Hesabı: DBE = 47 - 51/2 - 0/2 + 1/2 + 1 = 23\n..."
+
+7. effectiveFormula (lib/hooks/useSpectralAnalysis.ts):
+   Tip: string
+   Değer: activeKnownMolecule.formula || result.formula || ''
+   Örnek: "C47H51NO14"
+
+8. dbeBlock (lib/hooks/useSpectralAnalysis.ts):
+   Tip: string
+   Değer: renderDBEBlock(normalizedFormula) → Kod tarafında üretilen DBE bloğu
+   Örnek: "**0. DBE Analizi (ZORUNLU!):**\n- Formül: C47H51NO14\n..."
+
+DBE Hesaplama Değişkenleri (Kod Tarafında):
+--------------------------------------------
+
+1. atomCounts (lib/chem/formula.ts):
+   Tip: AtomCounts = Record<string, number>
+   Kaynak: parseFormula() → parseFormulaToAtomCounts()
+   Örnek: {C:47, H:51, N:1, O:14}
+
+2. C, H, N, X (lib/chem/formula.ts):
+   Tip: number
+   Kaynak: atomCounts['C'], atomCounts['H'], atomCounts['N'], halojen toplamı
+   Örnek: C=47, H=51, N=1, X=0
+
+3. dbe (lib/chem/formula.ts):
+   Tip: number
+   Formül: DBE = C - H/2 - X/2 + N/2 + 1
+   Örnek: DBE = 47 - 51/2 - 0/2 + 1/2 + 1 = 23
+
+4. terms (lib/chem/formula.ts):
+   Tip: {C: number, H: number, N: number, X: number}
+   Kaynak: computeDBEDetailed() → DBE hesaplama terimleri
+   Örnek: {C:47, H:51, N:1, X:0}
+
+================================================================================
+7. FONKSİYONLAR VE ALGORİTMALAR (GÜNCEL v2.0)
+================================================================================
+
+Fonksiyon 1: renderDBEBlock()
+------------------------------
+Dosya: lib/chem/formula.ts
+Satır: 299-328
+
+Parametreler:
+- formula: string (örn: "C47H51NO14" veya "C₄₇H₅₁NO₁₄")
+
+Return: string (DBE bloğu)
+
+İşleyiş:
+1. parseFormula() ile formülü parse et → atomCounts
+2. computeDBEDetailed() ile DBE hesapla → dbe, terms
+3. Hesaplama string'i oluştur
+4. Minimal yorum yap (hallucination yok)
+5. DBE bloğunu formatla ve döndür
+
+Fonksiyon 2: parseFormula()
+----------------------------
+Dosya: lib/chem/formula.ts
+Satır: 181-211
+
+Parametreler:
+- formula: string (örn: "C47H51NO14" veya "C₄₇H₅₁NO₁₄")
+
+Return: ParseFormulaResult
+  - normalizedInput: string
+  - atomCounts: AtomCounts
+  - hillFormula: string
+
+İşleyiş:
+1. stripCommonNoise() ile temizle (Unicode subscript'ler, boşluklar, charge'lar)
+2. Regex ile tokenize et: /([A-Z][a-z]?)(\d*)/g
+3. Her element için atom sayısını topla
+4. formatHillFormula() ile Hill sisteminde formatla
+
+Fonksiyon 3: computeDBEDetailed()
+----------------------------------
+Dosya: lib/chem/formula.ts
+Satır: 98-112
+
+Parametreler:
+- atomCounts: AtomCounts (örn: {C:47, H:51, N:1, O:14})
+- charge: number (varsayılan: 0)
+
+Return: DBEResult
+  - dbe: number
+  - terms: {C, H, N, X}
+
+Formül:
+DBE = C - H/2 - X/2 + N/2 + charge/2 + 1
+
+İşleyiş:
+1. C, H, N sayılarını al
+2. X = F + Cl + Br + I (halojen toplamı)
+3. DBE hesapla
+4. terms ve dbe döndür
+
+Fonksiyon 4: normalizeFormula()
+---------------------------------
+Dosya: lib/chem/formula.ts
+Satır: 216-228
+
+Parametreler:
+- formula: string (örn: "C₄₇H₅₁NO₁₄")
+
+Return: string (örn: "C47H51NO14")
+
+İşleyiş:
+1. Unicode subscript'leri normal sayılara çevir
+2. Büyük harfe çevir
+3. Trim et
+
+Fonksiyon 5: analyzeSpectrum() - DBE Post-Process
+---------------------------------------------------
+Dosya: lib/hooks/useSpectralAnalysis.ts
+Satır: ~1643-1710
+
+Parametreler:
+- result: AIAnalysisResult (AI'dan gelen sonuç)
+- activeKnownMolecule: { name, formula, cid, ... } | null
+
+İşleyiş:
+1. effectiveFormula belirle (locked formula öncelikli)
+2. normalizeFormula() ile normalize et
+3. renderDBEBlock() ile DBE bloğunu üret
+4. AI'ın yazdığı DBE bloğunu bul ve replace et (veya insert et)
+5. Placeholder'ı replace et
+6. Çakışan formül referanslarını temizle
+
+Algoritma 1: DBE Hesaplama (Kod Tarafında)
+--------------------------------------------
+Formül: DBE = C - H/2 - X/2 + N/2 + 1
+
+Adımlar:
+1. parseFormula() ile formülü parse et → atomCounts
+2. C, H, N sayılarını çıkar
+3. X = F + Cl + Br + I (halojen toplamı)
+4. DBE hesapla: DBE = C - H/2 - X/2 + N/2 + 1
+5. 0.5'e yuvarla: rounded = Math.round(dbe * 2) / 2
+
+Kod (lib/chem/formula.ts):
+```typescript
+const C = atomCounts['C'] ?? 0;
+const H = atomCounts['H'] ?? 0;
+const N = atomCounts['N'] ?? 0;
+const X = (atomCounts['F'] ?? 0) + (atomCounts['Cl'] ?? 0) + (atomCounts['Br'] ?? 0) + (atomCounts['I'] ?? 0);
+const dbe = C - H / 2 - X / 2 + N / 2 + charge / 2 + 1;
+```
+
+Algoritma 2: DBE Yorumu (Minimal - Hallucination Yok)
+-------------------------------------------------------
+Kaynak: renderDBEBlock() içindeki minimal yorum tablosu (lib/chem/formula.ts, satır 316-320)
+
+Tablo:
+- rounded <= 0 → "DBE≈0: doymuş yapı (çift bağ/halka beklenmez)."
+- rounded === 1 → "DBE≈1: 1 halka veya 1 çift bağ (veya 1 karbonil) olası."
+- rounded >= 4 → "DBE≥4: aromatik/çoklu halka veya çoklu doymamışlık olasılığı artar (kompleks yapı olabilir)."
+- Diğer → "DBE=${dbeStr}: birden fazla doymamışlık/halka olası."
+
+NOT: AI'ın yorum tablosu KALDIRILDI, kod tarafında minimal yorum yapılıyor (hallucination yok).
+
+Algoritma 3: DBE Block Replace/Insert
+--------------------------------------
+Kaynak: lib/hooks/useSpectralAnalysis.ts, satır 1643-1710
+
+Kurallar:
+1. AI'ın yazdığı DBE bloğunu bul: /\*\*0\.\s*DBE\s*Analizi[^*]*/i
+2. Eğer bulunduysa: Replace et (next "**" header'a kadar veya end'e kadar)
+3. Eğer bulunamadıysa: Insert et (başlangıca, "**1." öncesine)
+4. Placeholder'ı replace et: /<<DBE_BLOCK_INSERTED_BY_APP>>/g
+5. Çakışan formül referanslarını temizle (locked formula varsa)
+
+================================================================================
+8. İŞLEYİŞ SIRASI - DETAYLI ADIMLAR (GÜNCEL v2.0)
+================================================================================
+
+ADIM 1: Kullanıcı Peak'leri Girer
+-----------------------------------
+- Kullanıcı, NMR spektrum peak'lerini girer
+- Peak formatı: { shift: number, integ: number, mult: string, coupling?: number[] }
+- Örnek: { shift: 7.2, integ: 5, mult: "m" }
+
+ADIM 2: Molekül Seçimi (Opsiyonel)
+-----------------------------------
+- Kullanıcı, "Paclitaxel" seçer
+- activeKnownMolecule = { name: "Paclitaxel", formula: "C47H51NO14", cid: 36314 }
+
+ADIM 3: analyzeSpectrum() Çağrılır
+------------------------------------
+- lib/hooks/useSpectralAnalysis.ts → analyzeSpectrum()
+- Parametreler: peaks, activeKnownMolecule, spectrumType, solvent, frequency
+
+ADIM 4: libraryContext Oluşturulur
+------------------------------------
+- Enhanced Library'den molekül bilgileri çekilir (varsa)
+- Identity lock uyarısı eklenir (eğer activeKnownMolecule.formula varsa)
+- libraryContext = "🚨 CRITICAL IDENTITY LOCK: Use formula C47H51NO14..."
+
+ADIM 5: fetchChatGPTAnalysis() Çağrılır
+----------------------------------------
+- lib/api/openai.ts → fetchChatGPTAnalysis()
+- Parametreler: apiKey, model, peaks, spectrumType, '', libraryContext, solvent, frequency
+
+ADIM 6: systemPrompt Oluşturulur
+----------------------------------
+- DBE talimatları KALDIRILDI (artık AI DBE hesaplamıyor)
+- Sadece uyarı var: "DBE analysis is computed by the application, NOT by you."
+- systemPrompt = "⚠️ CRITICAL: DBE analysis is computed by the application..."
+
+ADIM 7: userPrompt Oluşturulur
+-------------------------------
+- Peak'ler formatlanır: "δ X.XX ppm: Multiplisite (XH)"
+- libraryContext eklenir (identity lock uyarısı dahil)
+- userPrompt = "📊 **PEAK VERİLERİ:**\n..." + libraryContext
+
+ADIM 8: OpenAI API Çağrısı
+---------------------------
+- openai.chat.completions.create()
+- Messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }]
+- Response format: JSON
+
+ADIM 9: AI Response Alınır
+---------------------------
+- completion.choices[0].message.content
+- JSON formatında: { moleculeName, formula, reasoning, ... }
+- reasoning içinde: "<<DBE_BLOCK_INSERTED_BY_APP>>" placeholder veya AI'ın yazdığı DBE bloğu
+
+ADIM 10: JSON Parse Edilir
+---------------------------
+- JSON.parse(cleanedJson)
+- parsed.reasoning içinde placeholder veya AI'ın yazdığı DBE bloğu var
+- parsed.formula = "C10H10O" (yanlış olabilir!)
+
+ADIM 11: Formül Override Kontrolü
+-----------------------------------
+- userFormula = "C47H51NO14"
+- aiFormula = "C10H10O"
+- formulaMismatch = true
+- result.formula = "C47H51NO14" (override)
+- result.reasoning += "⚠️ WARNING: AI initially detected formula C10H10O..."
+
+ADIM 12: DBE BLOCK POST-PROCESS (YENİ - v2.0)
+-----------------------------------------------
+1. effectiveFormula belirle: "C47H51NO14" (locked formula öncelikli)
+2. normalizeFormula() ile normalize et: "C47H51NO14"
+3. renderDBEBlock() ile DBE bloğunu üret:
+   ```
+   **0. DBE Analizi (ZORUNLU!):**
+   - Formül: C47H51NO14
+   - DBE Hesabı: DBE = 47 - 51/2 - 0/2 + 1/2 + 1 = 23
+   - DBE Yorumu: DBE≥4: aromatik/çoklu halka veya çoklu doymamışlık olasılığı artar (kompleks yapı olabilir).
+   ```
+4. AI'ın yazdığı DBE bloğunu bul ve replace et (veya insert et)
+5. Placeholder'ı replace et: "<<DBE_BLOCK_INSERTED_BY_APP>>" → dbeBlock
+6. Çakışan formül referanslarını temizle
+
+ADIM 13: Final Result Döndürülür
+----------------------------------
+- result.reasoning içinde:
+  - DBE bloğu (kod tarafında üretilen, doğru formülle: C47H51NO14)
+  - Peak analizi
+  - Uyarı mesajı (formül düzeltildi: C47H51NO14)
+- Kullanıcı, doğru DBE analizini görür! ✅
+
+================================================================================
+9. SORUN: DBE ANALİZİ YANLIŞ FORMÜL İLE KALIYOR (ÇÖZÜLDÜ - v2.0)
+================================================================================
+
+Kritik Sorun (Önce - v1.0):
+----------------------------
+- AI, yanlış formülle (C10H10O) DBE analizi yapıyordu
+- Formül override ediliyordu (C47H51NO14)
+- AMA: DBE analizi reasoning'de kalıyordu, değişmiyordu!
+
+Çözüm (Şimdi - v2.0):
+---------------------
+- DBE analizi artık AI tarafından DEĞİL, kod tarafında hesaplanıyor
+- Post-process ile AI'ın yazdığı DBE bloğu replace ediliyor
+- Locked formula (C47H51NO14) ile doğru DBE bloğu üretiliyor
+- Kullanıcı, doğru DBE analizini görüyor! ✅
+
+Neden Çalışıyor?
+----------------
+- DBE hesaplama deterministik (kod tarafında)
+- Locked formula zorunlu (identity lock)
+- Post-process ile AI'ın yazdığı DBE bloğu replace ediliyor
+- Hallucination yok (minimal yorum)
+
+================================================================================
+10. KOD REFERANSLARI - DETAYLI LOKASYONLAR (GÜNCEL v2.0)
+================================================================================
+
+DBE Talimatları (System Prompt - KALDIRILDI):
+-----------------------------------------------
+Dosya: lib/api/openai.ts
+Satır: 239-258
+Fonksiyon: fetchChatGPTAnalysis()
+Değişken: systemPrompt
+NOT: DBE talimatları KALDIRILDI, sadece uyarı var
+
+DBE Format Template (JSON Format - Placeholder):
+-------------------------------------------------
+Dosya: lib/api/openai.ts
+Satır: ~561
+Fonksiyon: fetchChatGPTAnalysis()
+Değişken: "reasoning" template string
+NOT: "<<DBE_BLOCK_INSERTED_BY_APP>>" placeholder gösterilir
+
+Identity Lock Uyarısı:
+-----------------------
+Dosya: lib/hooks/useSpectralAnalysis.ts
+Satır: ~1250-1263
+Fonksiyon: analyzeSpectrum()
+Değişken: lockedFormulaWarning, libraryContext
+
+Formül Override:
+----------------
+Dosya: lib/hooks/useSpectralAnalysis.ts
+Satır: ~1618-1641
+Fonksiyon: analyzeSpectrum()
+Değişken: userFormula, aiFormula, formulaMismatch, result.formula, result.reasoning
+
+DBE Block Post-Process (YENİ - v2.0):
+--------------------------------------
+Dosya: lib/hooks/useSpectralAnalysis.ts
+Satır: ~1643-1710
+Fonksiyon: analyzeSpectrum()
+Değişken: effectiveFormula, normalizedFormula, dbeBlock, result.reasoning
+Fonksiyonlar: normalizeFormula(), renderDBEBlock()
+
+renderDBEBlock() Fonksiyonu:
+----------------------------
+Dosya: lib/chem/formula.ts
+Satır: 299-328
+Fonksiyon: renderDBEBlock(formula: string): string
+Fonksiyonlar: parseFormula(), computeDBEDetailed()
+
+parseFormula() Fonksiyonu:
+---------------------------
+Dosya: lib/chem/formula.ts
+Satır: 181-211
+Fonksiyon: parseFormula(formula: string): ParseFormulaResult
+Fonksiyonlar: stripCommonNoise(), formatHillFormula()
+
+computeDBEDetailed() Fonksiyonu:
+---------------------------------
+Dosya: lib/chem/formula.ts
+Satır: 98-112
+Fonksiyon: computeDBEDetailed(atomCounts: AtomCounts, charge: number = 0): DBEResult
+Formül: DBE = C - H/2 - X/2 + N/2 + charge/2 + 1
+
+AI API Çağrısı:
+---------------
+Dosya: lib/api/openai.ts
+Satır: ~850-950
+Fonksiyon: fetchChatGPTAnalysis()
+Değişken: openai, completion
+
+Response Parse:
+--------------
+Dosya: lib/api/openai.ts
+Satır: ~1370-1420
+Fonksiyon: fetchChatGPTAnalysis()
+Değişken: text, cleanedJson, parsed
+
+================================================================================
+11. FORMÜLLER VE HESAPLAMALAR (GÜNCEL v2.0)
+================================================================================
+
+DBE Hesaplama Formülü:
+----------------------
+DBE = C - H/2 - X/2 + N/2 + charge/2 + 1
+
+Nerede:
+- C = Karbon sayısı (atomCounts['C'])
+- H = Hidrojen sayısı (atomCounts['H'])
+- N = Azot sayısı (atomCounts['N'])
+- X = Halojenler (F + Cl + Br + I)
+- charge = Molekül yükü (varsayılan: 0)
+
+Örnek Hesaplamalar:
+-------------------
+
+1. C47H51NO14 (Paclitaxel):
+   DBE = 47 - 51/2 - 0/2 + 1/2 + 0/2 + 1
+   DBE = 47 - 25.5 + 0.5 + 1
+   DBE = 23 ✅
+
+2. C10H10O:
+   DBE = 10 - 10/2 - 0/2 + 0/2 + 0/2 + 1
+   DBE = 10 - 5 + 1
+   DBE = 6 ✅ (AI yanlış hesaplamıştı: 7)
+
+3. C9H10O2:
+   DBE = 9 - 10/2 - 0/2 + 0/2 + 0/2 + 1
+   DBE = 9 - 5 + 1
+   DBE = 5 ✅
+
+DBE Yorum Tablosu (Minimal - Hallucination Yok):
+-------------------------------------------------
+Kaynak: renderDBEBlock() içindeki minimal yorum tablosu (lib/chem/formula.ts, satır 316-320)
+
+- rounded <= 0 → "DBE≈0: doymuş yapı (çift bağ/halka beklenmez)."
+- rounded === 1 → "DBE≈1: 1 halka veya 1 çift bağ (veya 1 karbonil) olası."
+- rounded >= 4 → "DBE≥4: aromatik/çoklu halka veya çoklu doymamışlık olasılığı artar (kompleks yapı olabilir)."
+- Diğer → "DBE=${dbeStr}: birden fazla doymamışlık/halka olası."
+
+NOT: AI'ın yorum tablosu KALDIRILDI, kod tarafında minimal yorum yapılıyor (hallucination yok).
+
+================================================================================
+12. ÖZET - DBE ANALİZİ NASIL OLUŞUYOR? (GÜNCEL v2.0)
+================================================================================
+
+1. KAYNAK: Kod tarafında (lib/chem/formula.ts → renderDBEBlock())
+   - DBE hesaplama deterministik (AI tarafında değil)
+   - Formül parse edilir → atomCounts
+   - DBE hesaplanır → dbe, terms
+   - Minimal yorum yapılır (hallucination yok)
+
+2. TETİKLEYİCİ: Post-process (lib/hooks/useSpectralAnalysis.ts, satır 1643-1710)
+   - AI response alındıktan sonra
+   - effectiveFormula belirlenir (locked formula öncelikli)
+   - renderDBEBlock() ile DBE bloğu üretilir
+   - AI'ın yazdığı DBE bloğu replace edilir (veya insert edilir)
+
+3. VERİ KAYNAĞI: effectiveFormula (activeKnownMolecule.formula || result.formula)
+   - Locked formula öncelikli (identity lock)
+   - Normalize edilir (Unicode subscript'ler temizlenir)
+   - Hill formatında formatlanır
+
+4. HESAPLAMA: Kod tarafında (lib/chem/formula.ts → computeDBEDetailed())
+   - DBE = C - H/2 - X/2 + N/2 + 1
+   - Deterministik (AI tarafında değil)
+   - Halojen düzeltmesi dahil
+
+5. YORUM: Kod tarafında (renderDBEBlock() içinde)
+   - Minimal yorum (hallucination yok)
+   - DBE değerine göre genel yorum
+   - Özel molekül iddiası yok
+
+6. YAZMA: Post-process ile AI'ın reasoning'ine eklenir/replace edilir
+   - Format: "**0. DBE Analizi (ZORUNLU!):**\n- Formül: C47H51NO14\n..."
+   - AI'ın yazdığı DBE bloğu replace edilir
+   - Placeholder replace edilir
+
+7. SONUÇ: Doğru DBE analizi kullanıcıya gösterilir ✅
+   - Locked formula ile doğru DBE hesaplanır
+   - Hallucination yok
+   - Deterministik ve tekrarlanabilir
+
+================================================================================
+13. DEĞİŞİKLİK ÖZETİ - v1.0 → v2.0
+================================================================================
+
+v1.0 (Önce - Hatalı):
+---------------------
+- AI, DBE hesaplıyordu (yanlış formülle: C10H10O)
+- AI, DBE yorumu yapıyordu (hallucination: "İki benzen halkası")
+- Formül override ediliyordu ama DBE analizi değişmiyordu
+- Kullanıcı, yanlış DBE analizini görüyordu ❌
+
+v2.0 (Şimdi - Düzeltildi):
+---------------------------
+- DBE hesaplama kod tarafında (lib/chem/formula.ts)
+- AI'a DBE hesaplama YASAK (systemPrompt'ta uyarı var)
+- Post-process ile AI'ın yazdığı DBE bloğu replace ediliyor
+- Locked formula ile doğru DBE bloğu üretiliyor
+- Minimal yorum (hallucination yok)
+- Kullanıcı, doğru DBE analizini görüyor ✅
+
+Ana Değişiklikler:
+------------------
+1. lib/chem/formula.ts (YENİ):
+   - renderDBEBlock() → DBE bloğunu üretir
+   - computeDBEDetailed() → DBE hesaplar
+   - parseFormula() → Formül parse eder
+
+2. lib/api/openai.ts:
+   - DBE talimatları KALDIRILDI
+   - Sadece uyarı var: "DBE analysis is computed by the application"
+
+3. lib/hooks/useSpectralAnalysis.ts:
+   - DBE block post-process eklendi (satır 1643-1710)
+   - AI'ın yazdığı DBE bloğu replace ediliyor
+   - Placeholder replace ediliyor
+
+================================================================================
+SONUÇ
+================================================================================
+
+DBE analizi, artık kod tarafında (lib/chem/formula.ts) deterministik olarak
+hesaplanıyor ve post-process ile AI'ın reasoning'ine ekleniyor/replace ediliyor.
+AI, DBE hesaplama yapmıyor, sadece peak analizi yapıyor. Bu sayede:
+
+✅ Doğru formül ile doğru DBE hesaplanıyor
+✅ Hallucination yok (minimal yorum)
+✅ Deterministik ve tekrarlanabilir
+✅ Identity lock ile formül zorunlu kılınıyor
+✅ Kullanıcı, doğru DBE analizini görüyor
+
+================================================================================
+KAYNAK KODLAR
+================================================================================
+
+1. lib/chem/formula.ts
+   - renderDBEBlock() (satır 299-328)
+   - computeDBEDetailed() (satır 98-112)
+   - parseFormula() (satır 181-211)
+   - normalizeFormula() (satır 216-228)
+
+2. lib/hooks/useSpectralAnalysis.ts
+   - analyzeSpectrum() (satır ~1200-2036)
+   - Identity lock uyarısı (satır ~1250-1263)
+   - Formül override (satır ~1618-1641)
+   - DBE block post-process (satır ~1643-1710)
+
+3. lib/api/openai.ts
+   - fetchChatGPTAnalysis() (satır 16-1898)
+   - System prompt (satır 239-258) - DBE talimatları KALDIRILDI
+   - JSON format template (satır ~561) - Placeholder gösterilir
+
+================================================================================
+DOKÜMANTASYON SONU
+================================================================================
