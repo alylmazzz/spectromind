@@ -240,7 +240,7 @@ export class NMRSimulationService {
       specialAnalysis.modifiedEdges,
       {
         fieldMHz,
-        linewidthHz: config.lineShape.baseLinewidthHz,
+        linewidthHz: config.lineShape.baseFWHMHz,
         jMinHz: 0.7,
         secondOrderThreshold: 3,
       }
