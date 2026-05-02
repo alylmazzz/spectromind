@@ -901,7 +901,21 @@ async function handleRemoteProcessing(
       signal: AbortSignal.timeout(120_000),
     });
 
-    const data = await res.json();
+    let data: any;
+    try {
+      data = await res.json();
+    } catch {
+      // Render returned non-JSON (likely 502 HTML)
+      return NextResponse.json(
+        finalizeFidFailure({
+          error_message: `Render FID processor unavailable (HTTP ${res.status}). Render free tier may be overloaded or sleeping. Try again in 30 seconds.`,
+          error_code: FidErrorCodes.API_INTERNAL,
+          debugId,
+          processing_steps: [{ step: 'remote_process', ok: false, detail: `Render ${res.status} - non-JSON response` }],
+        }),
+        { status: 502 }
+      );
+    }
 
     if (!res.ok || !data.success) {
       return NextResponse.json(
