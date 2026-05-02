@@ -62,7 +62,6 @@ import {
 
 import {
   runSpecialPacksAnalysis,
-  SpecialPacksConfig,
 } from '@/lib/nmr/special-packs';
 
 import {
