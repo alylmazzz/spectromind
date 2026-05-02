@@ -351,7 +351,7 @@ export class NMRSimulationService {
         type: input.type as Proton['type'],
         hybridization: input.hybridization as 'sp3' | 'sp2' | 'sp',
         topoClass: input.topoClass,
-        stereoClass: input.stereoClass ?? 'unknown',
+        stereoClass: (input.stereoClass === 'none' ? 'unknown' : input.stereoClass) ?? 'unknown',
         attachedAtoms: input.attachedAtoms,
         isExchangeable: input.isExchangeable,
         
