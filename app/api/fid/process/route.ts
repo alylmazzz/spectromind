@@ -820,6 +820,8 @@ async function handleRemoteProcessing(
     if (processingSpecJson) remoteForm.append('processingSpec', processingSpecJson);
 
     // DatasetId mode: read actual FID files from /tmp staging area
+    // NOTE: On Vercel serverless, /tmp files from upload route may not be visible
+    // in process route (different instances). Prefer direct file upload.
     if (datasetId) {
       const baseDir = path.join(os.tmpdir(), 'spectromind', datasetId);
 
@@ -831,27 +833,34 @@ async function handleRemoteProcessing(
       }
 
       if (!rawFile) {
-        // Try recursive find
         const found = await findFileRecursive(baseDir, 'fid') || await findFileRecursive(baseDir, 'ser');
         if (found) rawFile = found;
       }
 
       if (!rawFile) {
-        return NextResponse.json(
-          finalizeFidFailure({
-            error_message: 'Staged dataset contains no raw FID file',
-            error_code: FidErrorCodes.RAW_FILE_NOT_FOUND,
-            debugId,
-            processing_steps: [{ step: 'remote_prepare', ok: false, detail: 'no raw file in staging' }],
-          }),
-          { status: 400 }
-        );
+        // Serverless isolation: staged files unavailable: tell client to use single-step.
+        // Also check if files included directly in this request
+        const directFile = formData.get('fid') as File | null;
+        if (directFile) {
+          remoteForm.append('dataset', directFile, directFile.name);
+          console.log(`📎 Direct file attached: ${directFile.name}`);
+        } else {
+          return NextResponse.json(
+            finalizeFidFailure({
+              error_message:
+                'FID dosyası bulunamadı. Production ortamda lütfen dosyayı doğrudan process isteğine ekleyin (fid field).',
+              error_code: FidErrorCodes.RAW_FILE_NOT_FOUND,
+              debugId,
+              processing_steps: [{ step: 'remote_prepare', ok: false, detail: 'serverless isolation: no staged files' }],
+            }),
+            { status: 400 }
+          );
+        }
+      } else {
+        const fileBuffer = await fs.readFile(rawFile);
+        remoteForm.append('dataset', new Blob([fileBuffer]), path.basename(rawFile));
+        console.log(`📦 Attached staged FID file: ${rawFile} (${fileBuffer.length} bytes)`);
       }
-
-      // Read file and attach to FormData
-      const fileBuffer = await fs.readFile(rawFile);
-      remoteForm.append('dataset', new Blob([fileBuffer]), path.basename(rawFile));
-      console.log(`📦 Attached staged FID file: ${rawFile} (${fileBuffer.length} bytes)`);
     }
     // Direct file upload mode: file already in FormData
     else {
