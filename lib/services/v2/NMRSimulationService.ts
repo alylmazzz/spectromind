@@ -400,7 +400,7 @@ export class NMRSimulationService {
           
           shifts.push(({
             conformerId: conf.id,
-            weight: conf.boltzmannWeight,
+            weight: (conf as any).weight,
             layers: shiftResult,
           } as any));
         }
