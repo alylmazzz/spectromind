@@ -395,7 +395,7 @@ export class NMRSimulationService {
             [],
             [],
             solvent,
-            config.shiftModel
+            (config as any).shift
           );
           
           shifts.push({
