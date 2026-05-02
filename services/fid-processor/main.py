@@ -87,16 +87,20 @@ async def process_fid(
                 with open(target, "wb") as f:
                     f.write(content)
 
-            # Recursively find raw FID file
-            input_path = _find_raw_fid(work_dir)
-            if not input_path:
+            # Recursively find raw FID file and dataset root
+            fid_path, dataset_root, vendor = _find_dataset_root(work_dir)
+            if not fid_path:
                 return {
                     "success": False,
                     "error_code": "FID_RAW_FILE_NOT_FOUND",
                     "error_message": "Klasörde 'fid' veya 'ser' ham veri dosyası bulunamadı.",
                     "received_files": len(files),
+                    "received_filenames": [p for _, p in zip(files[:20], paths[:20])],
                     "searched_root": work_dir,
                 }
+            input_path = dataset_root
+            if format == "auto" and vendor:
+                format = vendor
         elif dataset:
             safe_name = Path(dataset.filename or "fid").name
             input_path = os.path.join(work_dir, safe_name)
@@ -217,6 +221,54 @@ async def upload_fid(
     except Exception:
         shutil.rmtree(base_dir, ignore_errors=True)
         raise HTTPException(status_code=500, detail="Upload failed")
+
+
+def _find_dataset_root(root_dir: str) -> tuple[Optional[str], Optional[str], Optional[str]]:
+    """Recursively find raw FID file, dataset root directory, and vendor type.
+
+    Returns: (fid_path, dataset_root, vendor) where vendor is 'bruker'/'varian'/None.
+    """
+    fid_path = None
+
+    # Recursive walk: find first fid/ser file
+    for dirpath, _, filenames in os.walk(root_dir):
+        for name in filenames:
+            if name.lower() in ("fid", "ser"):
+                fid_path = os.path.join(dirpath, name)
+                break
+        if fid_path:
+            break
+
+    if not fid_path:
+        return None, None, None
+
+    # Determine dataset root: walk up from fid_path
+    # Varian: directory containing both fid and procpar
+    # Bruker: directory containing fid/ser and acqus/acqu
+    dataset_root = os.path.dirname(fid_path)
+    vendor = None
+
+    # Check current directory and parents for vendor markers
+    check_dir = dataset_root
+    for _ in range(3):  # Check up to 3 levels up
+        has_procpar = os.path.isfile(os.path.join(check_dir, "procpar"))
+        has_acqus = os.path.isfile(os.path.join(check_dir, "acqus"))
+        has_acqu = os.path.isfile(os.path.join(check_dir, "acqu"))
+
+        if has_procpar:
+            dataset_root = check_dir
+            vendor = "varian"
+            break
+        if has_acqus or has_acqu:
+            dataset_root = check_dir
+            vendor = "bruker"
+            break
+        parent = os.path.dirname(check_dir)
+        if parent == check_dir:
+            break
+        check_dir = parent
+
+    return fid_path, dataset_root, vendor
 
 
 def _find_raw_fid(root_dir: str) -> Optional[str]:
