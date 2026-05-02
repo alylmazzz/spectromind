@@ -311,7 +311,7 @@ export class MoleculePipelineService {
       return {
         canonicalSmiles: input.smiles,
         isomericSmiles: undefined, // Assume canonical unless marked
-        inchi: inchi || undefined,
+        inchi: input.inchi || undefined,
         inchiKey: undefined, // Would need to calculate
         stereoStatus: 'none', // Unknown
         source: 'user',
@@ -713,7 +713,7 @@ export class MoleculePipelineService {
       if (apiKey) {
         llmInterpretation = (await runLLMInterpretation({
           moleculeName: input.moleculeName || structure.canonicalSmiles || 'Unknown',
-          smiles: structure.isomericSmiles || structure.canonicalSmiles || undefined,
+          smiles: structure.isomericSmiles || structure.canonicalSmiles,
           formula: lockedFormula, // IDENTITY LOCK: Use computed formula only
           solvent: 'CDCl3',
           frequency: 400
