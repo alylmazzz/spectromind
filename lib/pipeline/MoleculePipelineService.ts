@@ -717,7 +717,7 @@ export class MoleculePipelineService {
           formula: lockedFormula, // IDENTITY LOCK: Use computed formula only
           solvent: 'CDCl3',
           frequency: 400
-        }, apiKey) ?? undefined;
+        }, apiKey)) ?? undefined;
       } else {
         warnings.push({
           code: 'LLM_API_KEY_MISSING',
