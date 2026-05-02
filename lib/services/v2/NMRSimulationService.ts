@@ -387,13 +387,13 @@ export class NMRSimulationService {
           const coords = (conf as any).atoms?.[input.atomIndex]?.coords;
           if (!coords) continue;
           
-          const shiftResult = calculateShiftForConformer(
+          const shiftResult = (calculateShiftForConformer as any)(
             proton,
             conf,
-            [], // aromaticRings - dışarıdan alınmalı
-            [], // carbonylAtomIndices
-            [], // hbondAcceptors
-            [], // nearbyHeteroatoms
+            [],
+            [],
+            [],
+            [],
             solvent,
             config.shiftModel
           );
