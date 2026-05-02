@@ -800,7 +800,7 @@ function compareWithTheoretical(
 
 /**
  * Proxy FID processing to remote Python processor (production mode).
- * Sends the uploaded dataset via multipart to FID_PROCESSOR_URL.
+ * Detects datasetId-based flow and reads actual files from /tmp.
  */
 async function handleRemoteProcessing(
   request: NextRequest,
@@ -809,13 +809,66 @@ async function handleRemoteProcessing(
 ): Promise<NextResponse> {
   const debugId = randomUUID();
   try {
-    // Re-read formData (clone request since body is consumed)
     const formData = await request.formData();
+    const datasetId = formData.get('datasetId') as string | null;
+    const format = (formData.get('format') as string) || 'auto';
+    const processingSpecJson = formData.get('processingSpec') as string | null;
 
-    // Forward to remote processor
-    const remoteForm = formData as any as FormData;
-    if (apiKey) {
-      remoteForm.append('api_key', apiKey);
+    const remoteForm = new FormData();
+    if (apiKey) remoteForm.append('api_key', apiKey);
+    remoteForm.append('format', format);
+    if (processingSpecJson) remoteForm.append('processingSpec', processingSpecJson);
+
+    // DatasetId mode: read actual FID files from /tmp staging area
+    if (datasetId) {
+      const baseDir = path.join(os.tmpdir(), 'spectromind', datasetId);
+
+      // Find the raw FID file (fid or ser)
+      let rawFile: string | null = null;
+      for (const candidate of ['fid', 'ser']) {
+        const p = path.join(baseDir, candidate);
+        try { await fs.access(p); rawFile = p; break; } catch {}
+      }
+
+      if (!rawFile) {
+        // Try recursive find
+        const found = await findFileRecursive(baseDir, 'fid') || await findFileRecursive(baseDir, 'ser');
+        if (found) rawFile = found;
+      }
+
+      if (!rawFile) {
+        return NextResponse.json(
+          finalizeFidFailure({
+            error_message: 'Staged dataset contains no raw FID file',
+            error_code: FidErrorCodes.RAW_FILE_NOT_FOUND,
+            debugId,
+            processing_steps: [{ step: 'remote_prepare', ok: false, detail: 'no raw file in staging' }],
+          }),
+          { status: 400 }
+        );
+      }
+
+      // Read file and attach to FormData
+      const fileBuffer = await fs.readFile(rawFile);
+      remoteForm.append('dataset', new Blob([fileBuffer]), path.basename(rawFile));
+      console.log(`📦 Attached staged FID file: ${rawFile} (${fileBuffer.length} bytes)`);
+    }
+    // Direct file upload mode: file already in FormData
+    else {
+      const file = formData.get('fid') as File | null;
+      if (file) {
+        remoteForm.append('dataset', file, file.name);
+      } else {
+        return NextResponse.json(
+          finalizeFidFailure({
+            error_message: 'No FID file provided (dataset or fid field required)',
+            error_code: FidErrorCodes.MISSING_INPUT,
+            debugId,
+            processing_steps: [{ step: 'remote_prepare', ok: false, detail: 'no file in request' }],
+          }),
+          { status: 400 }
+        );
+      }
     }
 
     const url = processorUrl.replace(/\/+$/, '') + '/process-fid';
@@ -832,7 +885,7 @@ async function handleRemoteProcessing(
     if (!res.ok || !data.success) {
       return NextResponse.json(
         finalizeFidFailure({
-          error_message: data.error_message || 'Remote FID processor returned error',
+          error_message: data.error_message || data.detail || 'Remote FID processor returned error',
           error_code: data.error_code || FidErrorCodes.API_INTERNAL,
           debugId,
           processing_steps: [{ step: 'remote_process', ok: false, detail: String(res.status) }],
@@ -841,7 +894,6 @@ async function handleRemoteProcessing(
       );
     }
 
-    // Map remote response to frontend format
     return NextResponse.json(
       finalizeFidSuccess({
         debugId,
