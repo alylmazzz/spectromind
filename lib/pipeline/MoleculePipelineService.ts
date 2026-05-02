@@ -711,13 +711,13 @@ export class MoleculePipelineService {
     try {
       const apiKey = process.env.OPENAI_API_KEY;
       if (apiKey) {
-        llmInterpretation = await runLLMInterpretation({
+        llmInterpretation = (await runLLMInterpretation({
           moleculeName: input.moleculeName || structure.canonicalSmiles || 'Unknown',
           smiles: structure.isomericSmiles || structure.canonicalSmiles,
           formula: lockedFormula, // IDENTITY LOCK: Use computed formula only
           solvent: 'CDCl3',
           frequency: 400
-        }, apiKey);
+        }, apiKey)) ?? undefined;
       } else {
         warnings.push({
           code: 'LLM_API_KEY_MISSING',
