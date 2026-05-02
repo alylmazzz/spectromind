@@ -150,6 +150,11 @@ export default function FIDUploader({ theoreticalPeaks, onProcessingComplete }: 
       processFormData.append('format', 'auto');
       processFormData.append('processingSpec', JSON.stringify(createProcessingSpec()));
 
+      // Include files directly for production (serverless isolation)
+      files.forEach((file) => {
+        processFormData.append('fid', file);
+      });
+
       if (theoreticalPeaks && theoreticalPeaks.length > 0) {
         processFormData.append('theoreticalPeaks', JSON.stringify(theoreticalPeaks));
       }
