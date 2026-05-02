@@ -481,7 +481,7 @@ export class NMRSimulationService {
             bondClass: jResult.bondClass,
             isLongRange: jResult.pathLength > 3,
             karplusAngle: jResult.dihedralAngle,
-          });
+          } as any);
         }
       }
     }
