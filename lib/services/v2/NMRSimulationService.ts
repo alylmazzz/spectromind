@@ -369,6 +369,12 @@ export class NMRSimulationService {
         
         // Confidence
         confidence: 0.8,
+        
+        // Required Proton fields with defaults
+        heavyAtomIdx: 0,
+        isAromatic: false,
+        deltaByConf: [],
+        jEdges: [],
       };
       
       // Shift hesapla
