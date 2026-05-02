@@ -182,19 +182,30 @@ function normalizeFidPythonPayload(
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check if running on Vercel (serverless) - FID processing requires local Python environment
-    if (process.env.VERCEL) {
+    // Determine processing strategy
+    const processorUrl = process.env.FID_PROCESSOR_URL;
+    const processorApiKey = process.env.FID_PROCESSOR_API_KEY;
+    const isVercel = !!process.env.VERCEL;
+
+    // If running on Vercel without remote processor configured
+    if (isVercel && !processorUrl) {
       const debugId = randomUUID();
       return NextResponse.json(
         finalizeFidFailure({
           error_message:
-            'FID Analyzer yalnızca yerel ortamda çalışır (Python + nmrglue). Vercel üzerinde kullanılamaz.',
-          error_code: FidErrorCodes.VERCEL_BLOCKED,
+            'Production FID processing için FID_PROCESSOR_URL tanımlanmalı. ' +
+            'Detaylar: https://github.com/alylmazzz/spectromind/tree/main/services/fid-processor',
+          error_code: FidErrorCodes.PRODUCTION_CONFIG_MISSING,
           debugId,
-          processing_steps: [{ step: 'runtime_check', ok: false, detail: 'vercel' }],
+          processing_steps: [{ step: 'runtime_check', ok: false, detail: 'vercel_no_processor_url' }],
         }),
         { status: 503 }
       );
+    }
+
+    // Production mode: proxy to remote FID processor
+    if (processorUrl) {
+      return handleRemoteProcessing(request, processorUrl, processorApiKey);
     }
 
     const formData = await request.formData();
@@ -785,4 +796,69 @@ function compareWithTheoretical(
       missing: missing.length
     }
   };
+}
+
+/**
+ * Proxy FID processing to remote Python processor (production mode).
+ * Sends the uploaded dataset via multipart to FID_PROCESSOR_URL.
+ */
+async function handleRemoteProcessing(
+  request: NextRequest,
+  processorUrl: string,
+  apiKey?: string
+): Promise<NextResponse> {
+  const debugId = randomUUID();
+  try {
+    // Re-read formData (clone request since body is consumed)
+    const formData = await request.formData();
+
+    // Forward to remote processor
+    const remoteForm = formData as any as FormData;
+    if (apiKey) {
+      remoteForm.append('api_key', apiKey);
+    }
+
+    const url = processorUrl.replace(/\/+$/, '') + '/process-fid';
+    console.log(`🔄 Proxying FID process to: ${url}`);
+
+    const res = await fetch(url, {
+      method: 'POST',
+      body: remoteForm,
+      signal: AbortSignal.timeout(120_000),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      return NextResponse.json(
+        finalizeFidFailure({
+          error_message: data.error_message || 'Remote FID processor returned error',
+          error_code: data.error_code || FidErrorCodes.API_INTERNAL,
+          debugId,
+          processing_steps: [{ step: 'remote_process', ok: false, detail: String(res.status) }],
+        }),
+        { status: 502 }
+      );
+    }
+
+    // Map remote response to frontend format
+    return NextResponse.json(
+      finalizeFidSuccess({
+        debugId,
+        ...normalizeFidPythonPayload(data),
+        processing_steps: [{ step: 'remote_process', ok: true, detail: processorUrl }],
+      })
+    );
+  } catch (error: any) {
+    console.error('Remote FID processor error:', error);
+    return NextResponse.json(
+      finalizeFidFailure({
+        error_message: `Remote FID processor unreachable: ${error.message}`,
+        error_code: FidErrorCodes.API_INTERNAL,
+        debugId,
+        processing_steps: [{ step: 'remote_process', ok: false, detail: error.message }],
+      }),
+      { status: 502 }
+    );
+  }
 }

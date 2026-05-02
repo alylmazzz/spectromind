@@ -23,6 +23,7 @@ export const FidErrorCodes = {
   AXIS_UNCERTAIN: 'FID_AXIS_UNCERTAIN',
   FLAT_SIGNAL: 'FID_FLAT_SIGNAL',
   VERCEL_BLOCKED: 'FID_LOCAL_ONLY',
+  PRODUCTION_CONFIG_MISSING: 'FID_PRODUCTION_CONFIG_MISSING',
   MISSING_INPUT: 'FID_MISSING_INPUT',
   LOAD_FAILED: 'FID_LOAD_FAILED',
   UNKNOWN_VENDOR: 'FID_UNKNOWN_VENDOR',
@@ -45,6 +46,8 @@ const HINTS: Partial<Record<FidErrorCode, string>> = {
     'Yerel ortamda pip install scipy (venv_rdkit) çalıştırın.',
   [FidErrorCodes.VERCEL_BLOCKED]:
     'FID işleme yalnızca yerel npm run dev ile çalışır.',
+  [FidErrorCodes.PRODUCTION_CONFIG_MISSING]:
+    'Production FID processor URL yapılandırılmamış. FID_PROCESSOR_URL env değişkenini tanımlayın.',
   [FidErrorCodes.UNSUPPORTED_VENDOR]:
     'Bu vendor formatı henüz desteklenmiyor (JEOL/JDF şu an üretim dışı).',
   [FidErrorCodes.BINARY_PARSE_FAILED]:
