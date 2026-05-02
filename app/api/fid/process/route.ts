@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { spawn } from 'child_process';
+import os from 'os';
 import path from 'path';
 import fs from 'fs/promises';
 import { writeFile } from 'fs/promises';
@@ -12,6 +13,8 @@ import { FidErrorCodes, inferErrorCodeFromPython } from '@/lib/fid/fidErrorCodes
 import type { FidLegacyChartData } from '@/lib/fid/buildFidProcessResponse';
 import { buildRecipeProvenance } from '@/lib/fid/processingPresets';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 export const maxDuration = 120;
 
 /** Python fid_process / fid_processor stdout JSON -> frontend schema.
@@ -207,7 +210,7 @@ export async function POST(request: NextRequest) {
       const debugId = randomUUID();
       const processing_steps: Array<{ step: string; ok: boolean; detail?: string }> = [];
 
-      const baseDir = path.join(process.cwd(), 'temp', datasetId);
+      const baseDir = path.join(os.tmpdir(), 'spectromind', datasetId);
 
       const maxRetries = 5;
       const retryDelayMs = 300;
@@ -376,7 +379,7 @@ export async function POST(request: NextRequest) {
       console.log(`🔬 Format: ${format}`);
       console.log('═══════════════════════════════════════════════════════');
 
-      const tempDir = path.join(process.cwd(), 'temp');
+      const tempDir = path.join(os.tmpdir(), 'spectromind');
       await fs.mkdir(tempDir, { recursive: true });
 
       const isZip = file.name.toLowerCase().endsWith('.zip');
@@ -700,7 +703,7 @@ async function processFIDPath(
  * Unpack uploaded zip into temp dataset directory for authoritative processing.
  */
 async function unpackZipToDataset(file: File, datasetId: string): Promise<string> {
-  const baseDir = path.join(process.cwd(), 'temp', datasetId);
+  const baseDir = path.join(os.tmpdir(), 'spectromind', datasetId);
   await fs.mkdir(baseDir, { recursive: true });
   const buffer = Buffer.from(await file.arrayBuffer());
   const zip = await JSZip.loadAsync(buffer);

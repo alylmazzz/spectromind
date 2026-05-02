@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import os from 'os';
 import path from 'path';
 import fs from 'fs/promises';
 import { safeJoin, findFileRecursive } from '@/lib/fid/fsUtils';
@@ -52,8 +53,8 @@ export async function POST(req: NextRequest) {
     console.log(`📄 Files: ${files.length}`);
     console.log('═══════════════════════════════════════════════════════');
     
-    // Create base directory
-    const baseDir = path.join(process.cwd(), 'temp', datasetId);
+    // Create base directory in OS temp (Vercel-safe: /tmp)
+    const baseDir = path.join(os.tmpdir(), 'spectromind', datasetId);
     await fs.mkdir(baseDir, { recursive: true });
     
     console.log(`📂 Base directory: ${baseDir}`);
