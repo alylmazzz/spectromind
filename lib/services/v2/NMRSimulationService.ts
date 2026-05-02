@@ -169,9 +169,9 @@ export class NMRSimulationService {
     const config = { ...this.config, ...input.config };
     
     // Solvent ve koşullar
-    const solvent = input.solvent ?? config.experimentalConditions.solvent;
-    const fieldMHz = input.fieldMHz ?? config.experimentalConditions.fieldMHz;
-    const temperatureK = input.temperatureK ?? config.experimentalConditions.temperatureK;
+    const solvent = input.solvent ?? (config as any).experimentalConditions?.solvent ?? 'CDCl3';
+    const fieldMHz = input.fieldMHz ?? (config as any).experimentalConditions?.fieldMHz ?? 400;
+    const temperatureK = input.temperatureK ?? (config as any).experimentalConditions?.temperatureK ?? 298.15;
     
     // Konformer kontrolü
     const conformers = input.conformers ?? [];
